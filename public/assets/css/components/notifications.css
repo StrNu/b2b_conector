@@ -1,0 +1,28 @@
+/* Notificaciones Modernas y Minimalistas */
+.notification {
+  padding: 16px 24px;
+  border-radius: 10px;
+  margin-bottom: 18px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #222;
+  background: #f5f5f5;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  border: 1px solid #e0e0e0;
+}
+.notification-success {
+  background: #e8f5e9;
+  color: #388e3c;
+}
+.notification-error {
+  background: #ffebee;
+  color: #d32f2f;
+}
+.notification-info {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+.notification-warning {
+  background: #fffde7;
+  color: #fbc02d;
+}

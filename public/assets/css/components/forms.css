@@ -1,0 +1,39 @@
+/* Formularios Modernos y Minimalistas */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 18px;
+}
+.form-group label {
+  font-weight: 500;
+  color: #444;
+  margin-bottom: 6px;
+}
+.form-control, .form-control-file {
+  background: #f7f7f7;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 1rem;
+  color: #222;
+  margin-bottom: 0;
+  transition: border 0.2s;
+}
+.form-control:focus {
+  border: 1.5px solid #bdbdbd;
+  outline: none;
+  background: #fff;
+}
+.form-text.text-muted {
+  color: #aaa;
+  font-size: 0.95rem;
+  margin-top: 2px;
+}
+.text-danger {
+  color: #e53935;
+}
+.error-message {
+  color: #e53935;
+  font-size: 0.95rem;
+  margin-top: 2px;
+}
