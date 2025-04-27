@@ -1,0 +1,766 @@
+[2025-04-22 01:49:24] [INFO] Application bootstrap started.
+[2025-04-22 01:49:24] [DEBUG] Session started. Session ID: 88l0g6usucthhohbr76eea20ra
+[2025-04-22 01:49:24] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 01:49:24] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"no autenticado"}
+[2025-04-22 01:49:24] [DEBUG] Verificando autenticación: no hay usuario en sesión
+[2025-04-22 01:49:24] [WARNING] Authentication required, redirecting to login. {"route":"dashboard\/index"}
+[2025-04-22 01:49:24] [DEBUG] Mensaje flash establecido: Debe iniciar sesión para acceder a esta sección. (tipo: danger)
+[2025-04-22 01:49:24] [INFO] Application bootstrap started.
+[2025-04-22 01:49:24] [DEBUG] Session started. Session ID: 88l0g6usucthhohbr76eea20ra
+[2025-04-22 01:49:24] [DEBUG] Routing request {"controller":"auth","action":"login","params":[],"original_url":"auth\/login","method":"GET"}
+[2025-04-22 01:49:24] [DEBUG] Comprobando autenticación para ruta: auth/login {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+[2025-04-22 01:49:24] [DEBUG] AuthController inicializado
+[2025-04-22 01:49:24] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"login"}
+[2025-04-22 01:49:24] [DEBUG] Verificando autenticación: no hay usuario en sesión
+[2025-04-22 01:49:24] [DEBUG] Token CSRF generado para formulario de login: e00a8520...
+[2025-04-22 01:49:24] [INFO] Request handled successfully.
+[2025-04-22 01:49:24] [INFO] Application bootstrap started.
+[2025-04-22 01:49:24] [DEBUG] Session started. Session ID: 88l0g6usucthhohbr76eea20ra
+[2025-04-22 01:49:24] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","auth.css"]}
+[2025-04-22 01:49:24] [DEBUG] Routing request {"controller":"assets","action":"css","params":["auth.css"],"original_url":"public\/assets\/css\/auth.css","method":"GET"}
+[2025-04-22 01:49:24] [DEBUG] Comprobando autenticación para ruta: assets/css {"es_ruta_publica":false,"estado_sesion":"no autenticado"}
+[2025-04-22 01:49:24] [ERROR] Controller file not found. {"controller":"AssetsController","file":"\/var\/www\/html\/b2b_conector\/controllers\/AssetsController.php"}
+[2025-04-22 01:49:34] [INFO] Application bootstrap started.
+[2025-04-22 01:49:34] [DEBUG] Session started. Session ID: 88l0g6usucthhohbr76eea20ra
+[2025-04-22 01:49:34] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","auth","authenticate"]}
+[2025-04-22 01:49:34] [DEBUG] Routing request {"controller":"auth","action":"authenticate","params":[],"original_url":"public\/auth\/authenticate","method":"POST"}
+[2025-04-22 01:49:34] [DEBUG] Comprobando autenticación para ruta: auth/authenticate {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+[2025-04-22 01:49:34] [DEBUG] AuthController inicializado
+[2025-04-22 01:49:34] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"authenticate"}
+[2025-04-22 01:49:34] [INFO] Iniciando proceso de autenticación
+[2025-04-22 01:49:34] [DEBUG] Datos recibidos en POST: {"csrf_token":"e00a8520bd29a112551c7efde280a595","login":"admin","password":"admin123"}
+[2025-04-22 01:49:34] [DEBUG] Verificando autenticación: no hay usuario en sesión
+[2025-04-22 01:49:34] [DEBUG] Intentando autenticar usuario: admin
+[2025-04-22 01:49:34] [DEBUG] Iniciando proceso de autenticación para: admin
+[2025-04-22 01:49:34] [DEBUG] Buscando usuario por login: admin
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT user_id as id, username, email, password_hash as password, \n                     name, role, is_active, registration_date as created_at, \n                     registration_date as updated_at \n              FROM users \n              WHERE email = :login_email OR username = :login_username \n              LIMIT 1","params":{":login_email":"admin",":login_username":"admin"},"execution_time":"0.45 ms"}
+[2025-04-22 01:49:34] [DEBUG] Datos de usuario cargados {"id":1,"username":"admin","email":"admin@test.com","has_password":"s\u00ed","role":"admin","is_active":1}
+[2025-04-22 01:49:34] [DEBUG] Usuario encontrado por login: admin
+[2025-04-22 01:49:34] [DEBUG] Verificando contraseña para usuario: admin (ID: 1)
+[2025-04-22 01:49:34] [INFO] Autenticación exitosa para usuario: admin (ID: 1)
+[2025-04-22 01:49:34] [INFO] Resultado de autenticación: éxito
+[2025-04-22 01:49:34] [DEBUG] Autenticación exitosa, guardando datos de sesión
+[2025-04-22 01:49:34] [DEBUG] Estado de sesión antes de regenerar: activa
+[2025-04-22 01:49:34] [DEBUG] ID de sesión antes: 88l0g6usucthhohbr76eea20ra
+[2025-04-22 01:49:34] [INFO] Iniciando regeneración de sesión
+[2025-04-22 01:49:34] [DEBUG] Sesión activa, guardando datos actuales
+[2025-04-22 01:49:34] [DEBUG] Regenerando ID de sesión
+[2025-04-22 01:49:34] [DEBUG] Sesión regenerada, datos restaurados: ["csrf_token"]
+[2025-04-22 01:49:34] [DEBUG] ID de sesión después: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:34] [DEBUG] Datos de sesión guardados: {"user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 01:49:34] [INFO] Redirigiendo a: /b2b_conector/dashboard
+[2025-04-22 01:49:34] [DEBUG] Mensaje flash establecido: Inicio de sesión exitoso. Bienvenido(a) Administrador de Prueba (tipo: success)
+[2025-04-22 01:49:34] [DEBUG] Redirigiendo a: /b2b_conector/dashboard
+[2025-04-22 01:49:34] [INFO] Application bootstrap started.
+[2025-04-22 01:49:34] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:34] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 01:49:34] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 01:49:34] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:49:34] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 01:49:34] [INFO] Iniciando DashboardController
+[2025-04-22 01:49:34] [DEBUG] Estado de sesión: activa
+[2025-04-22 01:49:34] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:34] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+[2025-04-22 01:49:34] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:49:34] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 01:49:34] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:49:34] [INFO] Usuario autenticado, continuando...
+[2025-04-22 01:49:34] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.53 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"1.06 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.7 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.76 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.71 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"1.19 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.65 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.29 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.65 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.27 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.65 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.59 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"1.98 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.49 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.54 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"1.2 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.87 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.69 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.44 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.79 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"1.07 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.66 ms"}
+[2025-04-22 01:49:34] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"1.06 ms"}
+[2025-04-22 01:49:34] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.5 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.38 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"1.1 ms"}
+[2025-04-22 01:49:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.28 ms"}
+[2025-04-22 01:49:34] [ERROR] Error: Call to undefined method MatchModel::countWithoutParticipants() en /var/www/html/b2b_conector/controllers/DashboardController.php:493 {"trace":"#0 \/var\/www\/html\/b2b_conector\/controllers\/DashboardController.php(105): DashboardController->loadAdminStats()\n#1 \/var\/www\/html\/b2b_conector\/public\/index.php(193): DashboardController->index()\n#2 {main}"}
+[2025-04-22 01:49:34] [INFO] Application bootstrap started.
+[2025-04-22 01:49:34] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:34] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 01:49:55] [INFO] Application bootstrap started.
+[2025-04-22 01:49:55] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:55] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 01:49:55] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 01:49:55] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:49:55] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 01:49:55] [INFO] Iniciando DashboardController
+[2025-04-22 01:49:55] [DEBUG] Estado de sesión: activa
+[2025-04-22 01:49:55] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:55] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+[2025-04-22 01:49:55] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:49:55] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 01:49:55] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:49:55] [INFO] Usuario autenticado, continuando...
+[2025-04-22 01:49:55] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.56 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"3.07 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.36 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.27 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.24 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.24 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.26 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.27 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.29 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.23 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.29 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.26 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.28 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.24 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.21 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"2.73 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.48 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.41 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.21 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.23 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.2 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.24 ms"}
+[2025-04-22 01:49:55] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.33 ms"}
+[2025-04-22 01:49:55] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.32 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.41 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.32 ms"}
+[2025-04-22 01:49:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.3 ms"}
+[2025-04-22 01:49:55] [ERROR] Error: Call to undefined method MatchModel::countWithoutParticipants() en /var/www/html/b2b_conector/controllers/DashboardController.php:493 {"trace":"#0 \/var\/www\/html\/b2b_conector\/controllers\/DashboardController.php(105): DashboardController->loadAdminStats()\n#1 \/var\/www\/html\/b2b_conector\/public\/index.php(193): DashboardController->index()\n#2 {main}"}
+[2025-04-22 01:49:55] [INFO] Application bootstrap started.
+[2025-04-22 01:49:55] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:49:55] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 01:52:25] [INFO] Application bootstrap started.
+[2025-04-22 01:52:25] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:52:25] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 01:52:25] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 01:52:25] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:52:25] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 01:52:25] [INFO] Iniciando DashboardController
+[2025-04-22 01:52:25] [DEBUG] Estado de sesión: activa
+[2025-04-22 01:52:25] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:52:25] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+[2025-04-22 01:52:25] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:52:25] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 01:52:25] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 01:52:25] [INFO] Usuario autenticado, continuando...
+[2025-04-22 01:52:25] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.63 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.46 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"1.7 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.5 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.43 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.33 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"1.23 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.51 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.45 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.46 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.72 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"1.03 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"2.16 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.72 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.42 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"1.99 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.47 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.47 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.67 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.62 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.57 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.63 ms"}
+[2025-04-22 01:52:25] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"1.49 ms"}
+[2025-04-22 01:52:25] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.56 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"1.35 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.64 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"1.33 ms"}
+[2025-04-22 01:52:25] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"3.35 ms"}
+[2025-04-22 01:52:25] [ERROR] Error: Call to undefined method User::getAll() en /var/www/html/b2b_conector/controllers/DashboardController.php:108 {"trace":"#0 \/var\/www\/html\/b2b_conector\/public\/index.php(193): DashboardController->index()\n#1 {main}"}
+[2025-04-22 01:52:25] [INFO] Application bootstrap started.
+[2025-04-22 01:52:25] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 01:52:25] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:17] [INFO] Application bootstrap started.
+[2025-04-22 02:00:17] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:17] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:17] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:17] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:17] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:17] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:17] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:17] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:17] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+[2025-04-22 02:00:17] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:17] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:17] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:17] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:17] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.5 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.32 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.3 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.21 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.27 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.31 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.39 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.38 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.14 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.25 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.27 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.39 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.32 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.16 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.14 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.21 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.35 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.13 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.15 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.26 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.25 ms"}
+[2025-04-22 02:00:17] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.42 ms"}
+[2025-04-22 02:00:17] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.32 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.35 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.23 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.29 ms"}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"0.85 ms"}
+[2025-04-22 02:00:17] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:17] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:17] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:17] [INFO] Request handled successfully.
+[2025-04-22 02:00:17] [INFO] Application bootstrap started.
+[2025-04-22 02:00:17] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:17] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:17] [INFO] Application bootstrap started.
+[2025-04-22 02:00:17] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:17] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:17] [INFO] Application bootstrap started.
+[2025-04-22 02:00:17] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:17] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:34] [INFO] Application bootstrap started.
+[2025-04-22 02:00:34] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:34] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:34] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:34] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:34] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:34] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:34] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:34] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:34] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:34] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:34] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:34] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:34] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:34] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.58 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.49 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.41 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.39 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.49 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.44 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.53 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.43 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.42 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.41 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.43 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.4 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.45 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.42 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.39 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.39 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.43 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.43 ms"}
+[2025-04-22 02:00:34] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.59 ms"}
+[2025-04-22 02:00:34] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.52 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.57 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.51 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.55 ms"}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"2.34 ms"}
+[2025-04-22 02:00:34] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:34] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.83 ms"}
+[2025-04-22 02:00:34] [INFO] Request handled successfully.
+[2025-04-22 02:00:34] [INFO] Application bootstrap started.
+[2025-04-22 02:00:34] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:34] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:34] [INFO] Application bootstrap started.
+[2025-04-22 02:00:34] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:34] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:34] [INFO] Application bootstrap started.
+[2025-04-22 02:00:34] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:34] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:36] [INFO] Application bootstrap started.
+[2025-04-22 02:00:36] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:36] [DEBUG] Routing request {"controller":"events","action":"index","params":[],"original_url":"events","method":"GET"}
+[2025-04-22 02:00:36] [DEBUG] Comprobando autenticación para ruta: events/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:36] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:36] [ERROR] Error: Class "Company" not found en /var/www/html/b2b_conector/controllers/EventController.php:31 {"trace":"#0 \/var\/www\/html\/b2b_conector\/public\/index.php(187): EventController->__construct()\n#1 {main}"}
+[2025-04-22 02:00:36] [INFO] Application bootstrap started.
+[2025-04-22 02:00:36] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:36] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:38] [INFO] Application bootstrap started.
+[2025-04-22 02:00:38] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:38] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:38] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:38] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:38] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:38] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:38] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:38] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:38] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:38] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:38] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:38] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:38] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:38] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.58 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.57 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"3.05 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.5 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.43 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.44 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.5 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.38 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.3 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.29 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.32 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.31 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.51 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.35 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.29 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.73 ms"}
+[2025-04-22 02:00:38] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.86 ms"}
+[2025-04-22 02:00:38] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.68 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.52 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.36 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.44 ms"}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"1.02 ms"}
+[2025-04-22 02:00:38] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:38] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:38] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.41 ms"}
+[2025-04-22 02:00:38] [INFO] Request handled successfully.
+[2025-04-22 02:00:38] [INFO] Application bootstrap started.
+[2025-04-22 02:00:38] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:38] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:38] [INFO] Application bootstrap started.
+[2025-04-22 02:00:38] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:38] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:38] [INFO] Application bootstrap started.
+[2025-04-22 02:00:38] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:38] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:40] [INFO] Application bootstrap started.
+[2025-04-22 02:00:40] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:40] [DEBUG] Routing request {"controller":"companies","action":"index","params":[],"original_url":"companies","method":"GET"}
+[2025-04-22 02:00:40] [DEBUG] Comprobando autenticación para ruta: companies/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:40] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:40] [ERROR] Error: Class "Event" not found en /var/www/html/b2b_conector/controllers/CompanyController.php:26 {"trace":"#0 \/var\/www\/html\/b2b_conector\/public\/index.php(187): CompanyController->__construct()\n#1 {main}"}
+[2025-04-22 02:00:40] [INFO] Application bootstrap started.
+[2025-04-22 02:00:40] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:40] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:42] [INFO] Application bootstrap started.
+[2025-04-22 02:00:42] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:42] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:42] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:42] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:42] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:42] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:42] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:42] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:42] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:42] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:42] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:42] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:42] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:42] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.56 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.43 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.35 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.34 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.47 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.66 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.49 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.35 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.29 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.76 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.67 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.42 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.39 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.24 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.27 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.3 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.24 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.22 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.18 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.24 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.15 ms"}
+[2025-04-22 02:00:42] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.2 ms"}
+[2025-04-22 02:00:42] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.28 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.25 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.21 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.35 ms"}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"1.55 ms"}
+[2025-04-22 02:00:42] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:42] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:42] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.61 ms"}
+[2025-04-22 02:00:42] [INFO] Request handled successfully.
+[2025-04-22 02:00:42] [INFO] Application bootstrap started.
+[2025-04-22 02:00:42] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:42] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:42] [INFO] Application bootstrap started.
+[2025-04-22 02:00:42] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:42] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:42] [INFO] Application bootstrap started.
+[2025-04-22 02:00:42] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:42] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:44] [INFO] Application bootstrap started.
+[2025-04-22 02:00:44] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:44] [DEBUG] Routing request {"controller":"categories","action":"index","params":[],"original_url":"categories","method":"GET"}
+[2025-04-22 02:00:44] [DEBUG] Comprobando autenticación para ruta: categories/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:44] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:44] [ERROR] Controller class not found. {"controller":"CategoryController","file":"\/var\/www\/html\/b2b_conector\/controllers\/CategoryController.php"}
+[2025-04-22 02:00:45] [INFO] Application bootstrap started.
+[2025-04-22 02:00:45] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:45] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:45] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:45] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:45] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:45] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:45] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:45] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:45] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:45] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:45] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:45] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:45] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:45] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.63 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.26 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.24 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.29 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.33 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.4 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.14 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.21 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.17 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.22 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.23 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.21 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"1.11 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"1.4 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.48 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.77 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.16 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.47 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.69 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.3 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.29 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.8 ms"}
+[2025-04-22 02:00:45] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.32 ms"}
+[2025-04-22 02:00:45] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.19 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.16 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.12 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.16 ms"}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"0.58 ms"}
+[2025-04-22 02:00:45] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:45] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:45] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.15 ms"}
+[2025-04-22 02:00:45] [INFO] Request handled successfully.
+[2025-04-22 02:00:45] [INFO] Application bootstrap started.
+[2025-04-22 02:00:45] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:45] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:45] [INFO] Application bootstrap started.
+[2025-04-22 02:00:45] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:45] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:45] [INFO] Application bootstrap started.
+[2025-04-22 02:00:45] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:45] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:47] [INFO] Application bootstrap started.
+[2025-04-22 02:00:47] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:47] [DEBUG] Routing request {"controller":"users","action":"index","params":[],"original_url":"users","method":"GET"}
+[2025-04-22 02:00:47] [DEBUG] Comprobando autenticación para ruta: users/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:47] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:47] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:47] [INFO] Dispatching to controller action. {"controller":"UserController","action":"index"}
+[2025-04-22 02:00:47] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:47] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.84 ms"}
+[2025-04-22 02:00:47] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC","params":[]}
+[2025-04-22 02:00:47] [WARNING] include(/var/www/html/b2b_conector/views/users/index.php): Failed to open stream: No such file or directory en /var/www/html/b2b_conector/controllers/UserController.php línea 88 {"errno":2}
+[2025-04-22 02:00:47] [WARNING] include(): Failed opening '/var/www/html/b2b_conector/views/users/index.php' for inclusion (include_path='.:/usr/share/php') en /var/www/html/b2b_conector/controllers/UserController.php línea 88 {"errno":2}
+[2025-04-22 02:00:47] [INFO] Request handled successfully.
+[2025-04-22 02:00:49] [INFO] Application bootstrap started.
+[2025-04-22 02:00:49] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:49] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:49] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:49] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:49] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:49] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:49] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:49] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:49] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:49] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:49] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:49] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:49] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:49] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.6 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.59 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.63 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.51 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.63 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.51 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.64 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.49 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.44 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.44 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.51 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.45 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.42 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.44 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.56 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.8 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"1.39 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.79 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.45 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"1.17 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.75 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.53 ms"}
+[2025-04-22 02:00:49] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.85 ms"}
+[2025-04-22 02:00:49] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"1.02 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"1.17 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.61 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.66 ms"}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"1.96 ms"}
+[2025-04-22 02:00:49] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:49] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:49] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.84 ms"}
+[2025-04-22 02:00:49] [INFO] Request handled successfully.
+[2025-04-22 02:00:49] [INFO] Application bootstrap started.
+[2025-04-22 02:00:49] [INFO] Application bootstrap started.
+[2025-04-22 02:00:49] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:49] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:49] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:49] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:49] [INFO] Application bootstrap started.
+[2025-04-22 02:00:49] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:49] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:50] [INFO] Application bootstrap started.
+[2025-04-22 02:00:50] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:50] [DEBUG] Routing request {"controller":"settings","action":"index","params":[],"original_url":"settings","method":"GET"}
+[2025-04-22 02:00:50] [DEBUG] Comprobando autenticación para ruta: settings/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:50] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:50] [ERROR] Controller file not found. {"controller":"SettingsController","file":"\/var\/www\/html\/b2b_conector\/controllers\/SettingsController.php"}
+[2025-04-22 02:00:52] [INFO] Application bootstrap started.
+[2025-04-22 02:00:52] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:52] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:52] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:52] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:52] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:52] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:52] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:52] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:52] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:52] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:52] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:52] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:52] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:52] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.55 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.47 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.58 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.73 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.76 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"1.01 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"1.73 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.82 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"1.09 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.92 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.56 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.47 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.46 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.49 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.37 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.72 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.48 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.66 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.38 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.44 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"1.04 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.44 ms"}
+[2025-04-22 02:00:52] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.63 ms"}
+[2025-04-22 02:00:52] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.61 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.63 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.48 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.55 ms"}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"2.02 ms"}
+[2025-04-22 02:00:52] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:52] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.68 ms"}
+[2025-04-22 02:00:52] [INFO] Request handled successfully.
+[2025-04-22 02:00:52] [INFO] Application bootstrap started.
+[2025-04-22 02:00:52] [INFO] Application bootstrap started.
+[2025-04-22 02:00:52] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:52] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:52] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:52] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:52] [INFO] Application bootstrap started.
+[2025-04-22 02:00:52] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:52] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:00:53] [INFO] Application bootstrap started.
+[2025-04-22 02:00:53] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:53] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:00:53] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:00:53] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:53] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:00:53] [INFO] Iniciando DashboardController
+[2025-04-22 02:00:53] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:00:53] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:53] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:00:53] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:53] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:00:53] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:00:53] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:00:53] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.69 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.52 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"1.11 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.63 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"1.24 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.7 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.72 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"1.3 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.81 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.69 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.84 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.49 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.65 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.84 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.92 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.65 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.87 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"1.59 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.7 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"1.12 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.75 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.71 ms"}
+[2025-04-22 02:00:53] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.79 ms"}
+[2025-04-22 02:00:53] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.84 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"1.09 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"1.02 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.72 ms"}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"1.8 ms"}
+[2025-04-22 02:00:53] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:00:53] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:00:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.67 ms"}
+[2025-04-22 02:00:53] [INFO] Request handled successfully.
+[2025-04-22 02:00:53] [INFO] Application bootstrap started.
+[2025-04-22 02:00:53] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:53] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:00:53] [INFO] Application bootstrap started.
+[2025-04-22 02:00:53] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:53] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:00:53] [INFO] Application bootstrap started.
+[2025-04-22 02:00:53] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:00:53] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}
+[2025-04-22 02:01:04] [INFO] Application bootstrap started.
+[2025-04-22 02:01:04] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:01:04] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:01:26] [INFO] Application bootstrap started.
+[2025-04-22 02:01:26] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:01:26] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+[2025-04-22 02:01:26] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+[2025-04-22 02:01:26] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:01:26] [INFO] Prueba de log info desde DashboardController
+[2025-04-22 02:01:26] [INFO] Iniciando DashboardController
+[2025-04-22 02:01:26] [DEBUG] Estado de sesión: activa
+[2025-04-22 02:01:26] [DEBUG] ID de sesión: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:01:26] [DEBUG] Datos de sesión: {"csrf_token":"e00a8520bd29a112551c7efde280a595","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+[2025-04-22 02:01:26] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:01:26] [DEBUG] Verificando autenticación. isAuthenticated(): true
+[2025-04-22 02:01:26] [DEBUG] Verificando autenticación: usuario en sesión
+[2025-04-22 02:01:26] [INFO] Usuario autenticado, continuando...
+[2025-04-22 02:01:26] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users","params":[],"execution_time":"0.41 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"admin"},"execution_time":"0.37 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"organizer"},"execution_time":"0.77 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"buyer"},"execution_time":"0.43 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM users WHERE role = :role","params":{":role":"supplier"},"execution_time":"0.33 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events","params":[],"execution_time":"0.62 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.6 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM events WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.33 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-22"},"execution_time":"0.66 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.3 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.31 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.38 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":1},"execution_time":"0.29 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE is_active = :is_active","params":{"is_active":0},"execution_time":"0.24 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.28 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.23 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.27 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"1.05 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.46 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.24 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.38 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.33 ms"}
+[2025-04-22 02:01:26] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":["pending","accepted","rejected"]},"execution_time":"0.94 ms"}
+[2025-04-22 02:01:26] [WARNING] Array to string conversion en /var/www/html/b2b_conector/config/database.php línea 57 {"errno":2}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":["scheduled","completed"]},"execution_time":"0.58 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE is_active = :is_active ORDER BY start_date DESC","params":{"is_active":1},"execution_time":"0.63 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM matches WHERE status = 'accepted'","params":[],"execution_time":"0.21 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC","params":[],"execution_time":"0.15 ms"}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id ORDER BY m.match_strength DESC, m.created_at DESC","params":[],"execution_time":"0.7 ms"}
+[2025-04-22 02:01:26] [ERROR] Error en consulta SQL: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'created_at' in 'order clause' {"sql":"SELECT * FROM users WHERE 1=1 ORDER BY created_at DESC LIMIT :limit","params":{":limit":5}}
+[2025-04-22 02:01:26] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 313 {"errno":2}
+[2025-04-22 02:01:26] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-22","offset":0,"limit":null},"execution_time":"0.29 ms"}
+[2025-04-22 02:01:26] [INFO] Request handled successfully.
+[2025-04-22 02:01:26] [INFO] Application bootstrap started.
+[2025-04-22 02:01:26] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:01:26] [DEBUG] Routing request {"controller":"assets","action":"css","params":["main.css"],"original_url":"assets\/css\/main.css","method":"GET"}
+[2025-04-22 02:01:26] [INFO] Application bootstrap started.
+[2025-04-22 02:01:26] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:01:26] [DEBUG] Routing request {"controller":"assets","action":"js","params":["main.js"],"original_url":"assets\/js\/main.js","method":"GET"}
+[2025-04-22 02:01:26] [INFO] Application bootstrap started.
+[2025-04-22 02:01:26] [DEBUG] Session started. Session ID: i9fpjspkfhk1ovaj5heg11fbk9
+[2025-04-22 02:01:26] [DEBUG] Routing request {"controller":"assets","action":"images","params":["favicon.ico"],"original_url":"assets\/images\/favicon.ico","method":"GET"}

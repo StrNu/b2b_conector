@@ -1,0 +1,23 @@
+/* Cards Modernas y Minimalistas */
+.card {
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.04);
+  padding: 32px 28px 28px 28px;
+  margin-bottom: 32px;
+  border: 1px solid #f0f0f0;
+}
+.card-header {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #222;
+  margin-bottom: 18px;
+}
+.card-body {
+  padding: 0;
+}
+@media (max-width: 900px) {
+  .card {
+    padding: 16px 4px 16px 4px;
+  }
+}

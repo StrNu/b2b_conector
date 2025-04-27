@@ -1,0 +1,40 @@
+/* Tablas Modernas y Minimalistas */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+.table th {
+  text-align: left;
+  padding: 14px 10px;
+  border-bottom: 2px solid #e3f2fd;
+  color: #1976d2;
+  font-weight: 600;
+  font-size: 1rem;
+  background: #e3f2fd;
+}
+.table td {
+  padding: 13px 10px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #333;
+  font-size: 1rem;
+}
+.table tr:nth-child(even) td {
+  background: #fafbfc;
+}
+.table tr:last-child td {
+  border-bottom: none;
+}
+.table .btn {
+  padding: 5px 12px;
+  font-size: 0.95rem;
+  border-radius: 5px;
+  text-decoration: none;
+  font-weight: 500;
+  margin-right: 6px;
+  display: inline-block;
+  transition: background 0.2s, color 0.2s;
+}

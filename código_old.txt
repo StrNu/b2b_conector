@@ -1,0 +1,34 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Verificación simple para comprobar si este script se ejecuta
+    console.log('Script en línea se está ejecutando');
+    
+    // Verificar el checkbox de breaks
+    const hasBreakCheckbox = document.getElementById('has_break');
+    const breaksContainer = document.getElementById('breaks-container');
+    
+    console.log('Checkbox de breaks encontrado:', !!hasBreakCheckbox);
+    console.log('Contenedor de breaks encontrado:', !!breaksContainer);
+    
+    if (hasBreakCheckbox && breaksContainer) {
+        console.log('Estado inicial del checkbox:', hasBreakCheckbox.checked);
+        
+        // Mostrar/ocultar breaks según el estado del checkbox
+        hasBreakCheckbox.addEventListener('change', function() {
+            console.log('Checkbox cambiado a:', this.checked);
+            if (this.checked) {
+                breaksContainer.classList.remove('d-none');
+            } else {
+                breaksContainer.classList.add('d-none');
+            }
+        });
+        
+        // Forzar la verificación inicial
+        if (hasBreakCheckbox.checked) {
+            breaksContainer.classList.remove('d-none');
+        } else {
+            breaksContainer.classList.add('d-none');
+        }
+    }
+});
+</script>
