@@ -51,4 +51,8 @@ Este proyecto es privado y para uso interno. Si deseas usarlo o modificarlo, con
 
 ---
 
+<<<<<<< HEAD
 Desarrollado por Str Nu.
+=======
+Desarrollado por [Tu Nombre o Empresa].
+>>>>>>> 0f9595f (Actualización: Actualización y ajustes en vistas)

@@ -41205,3 +41205,1268 @@ Stack trace:
 
 [27-Apr-2025 02:29:37 America/Mexico_City] [LOGGER] [2025-04-27 02:29:37] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
 
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Session started. Session ID: r4m9a1s18m2ht0do942spjnjb7
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Routing request {"controller":"events","action":"view","params":["3"],"original_url":"events\/view\/3","method":"GET"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Comprobando autenticación para ruta: events/view {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Dispatching to controller action. {"controller":"EventController","action":"view"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE event_id = :id LIMIT 1","params":{"id":"3"},"execution_time":"0.85 ms"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Creation of dynamic property Event::$event_id is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1493 {"errno":8192}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Creation of dynamic property Event::$event_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1508 {"errno":8192}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Creation of dynamic property Event::$company_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1509 {"errno":8192}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Creation of dynamic property Event::$created_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1510 {"errno":8192}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Creation of dynamic property Event::$updated_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1511 {"errno":8192}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM breaks WHERE event_id = :event_id ORDER BY start_time","params":{"event_id":"3"},"execution_time":"1.2 ms"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"0.43 ms"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"0.4 ms"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE m.event_id = :event_id ORDER BY m.match_strength DESC, m.created_at DESC","params":{"event_id":"3"},"execution_time":"0.55 ms"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT es.*, \n                  m.buyer_id, m.supplier_id, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM event_schedules es\n                  JOIN matches m ON es.match_id = m.match_id \n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE es.event_id = :event_id ORDER BY es.start_datetime ASC","params":{"event_id":"3"},"execution_time":"0.55 ms"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Request handled successfully.
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Session started. Session ID: r4m9a1s18m2ht0do942spjnjb7
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Session started. Session ID: r4m9a1s18m2ht0do942spjnjb7
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Session started. Session ID: r4m9a1s18m2ht0do942spjnjb7
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 02:41:51 America/Mexico_City] [LOGGER] [2025-04-27 02:41:51] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Session started. Session ID: jdpcq102cpiv6b0vcat1ddn12l
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Routing request {"controller":"auth","action":"login","params":[],"original_url":"auth\/login","method":"GET"}
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Comprobando autenticación para ruta: auth/login {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] AuthController inicializado
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"login"}
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Token CSRF generado para formulario de login: 4eab9065...
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [login.php] Vista de login cargada
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [INFO] Request handled successfully.
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Session started. Session ID: jdpcq102cpiv6b0vcat1ddn12l
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","auth.css"]}
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Routing request {"controller":"assets","action":"css","params":["auth.css"],"original_url":"public\/assets\/css\/auth.css","method":"GET"}
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [DEBUG] Intentando servir recurso estático: public/assets/css/auth.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/auth.css"]}
+
+[27-Apr-2025 10:18:23 America/Mexico_City] [LOGGER] [2025-04-27 10:18:23] [WARNING] Archivo estático no encontrado: public/assets/css/auth.css
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Session started. Session ID: jdpcq102cpiv6b0vcat1ddn12l
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","auth","authenticate"]}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Routing request {"controller":"auth","action":"authenticate","params":[],"original_url":"public\/auth\/authenticate","method":"POST"}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Comprobando autenticación para ruta: auth/authenticate {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] AuthController inicializado
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"authenticate"}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [INFO] Iniciando proceso de autenticación
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Datos recibidos en POST: {"csrf_token":"4eab9065bd8144045e2d458a2b502cb0","login":"admin","password":"admin123"}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Intentando autenticar usuario: admin
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Iniciando proceso de autenticación para: admin
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Buscando usuario por login: admin
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT user_id as id, username, email, password_hash as password, \n                     name, role, is_active, registration_date as created_at, \n                     registration_date as updated_at \n              FROM users \n              WHERE email = :login_email OR username = :login_username \n              LIMIT 1","params":{":login_email":"admin",":login_username":"admin"},"execution_time":"8.5 ms"}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [INFO] Creation of dynamic property User::$created_at is deprecated en /var/www/html/b2b_conector/models/User.php línea 237 {"errno":8192}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Datos de usuario cargados {"id":1,"username":"admin","email":"admin@test.com","has_password":"s\u00ed","role":"admin","is_active":1}
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Usuario encontrado por login: admin
+
+[27-Apr-2025 10:18:34 America/Mexico_City] [LOGGER] [2025-04-27 10:18:34] [DEBUG] Verificando contraseña para usuario: admin (ID: 1)
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Autenticación exitosa para usuario: admin (ID: 1)
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Resultado de autenticación: éxito
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Autenticación exitosa, guardando datos de sesión
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Estado de sesión antes de regenerar: activa
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] ID de sesión antes: jdpcq102cpiv6b0vcat1ddn12l
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Iniciando regeneración de sesión
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Sesión activa, guardando datos actuales
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Regenerando ID de sesión
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Sesión regenerada, datos restaurados: ["csrf_token"]
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] ID de sesión después: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Datos de sesión guardados: {"user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Redirigiendo a: /b2b_conector/dashboard
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Mensaje flash establecido: Inicio de sesión exitoso. Bienvenido(a) Administrador de Prueba (tipo: success)
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Redirigiendo a: /b2b_conector/dashboard
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Prueba de log info desde DashboardController
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Iniciando DashboardController
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Estado de sesión: activa
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] ID de sesión: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Datos de sesión: {"csrf_token":"4eab9065bd8144045e2d458a2b502cb0","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Verificando autenticación. isAuthenticated(): true
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Usuario autenticado, continuando...
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"2.61 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"1.72 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"1.23 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Dashboard stats loaded {"companies":2,"events":3,"matches":2}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 398 {"errno":2}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-27","offset":0,"limit":null},"execution_time":"0.66 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Recent events loaded {"count":0}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1 AND is_active = :is_active","params":{":is_active":1},"execution_time":"0.57 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-27"},"execution_time":"0.42 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.44 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.67 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.45 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.54 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.52 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"1.5 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.61 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.51 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.47 ms"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [WARNING] Undefined variable $csrfToken en /var/www/html/b2b_conector/views/shared/modals.php línea 19 {"errno":2}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Request handled successfully.
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 10:18:35 America/Mexico_City] [LOGGER] [2025-04-27 10:18:35] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Routing request {"controller":"events","action":"list","params":[],"original_url":"events\/list","method":"GET"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Comprobando autenticación para ruta: events/list {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] Dispatching to controller action. {"controller":"EventController","action":"list"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.49 ms"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC LIMIT :offset, :limit","params":{"offset":0,"limit":9},"execution_time":"0.61 ms"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] Request handled successfully.
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 10:18:53 America/Mexico_City] [LOGGER] [2025-04-27 10:18:53] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Routing request {"controller":"events","action":"view","params":["3"],"original_url":"events\/view\/3","method":"GET"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Comprobando autenticación para ruta: events/view {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Dispatching to controller action. {"controller":"EventController","action":"view"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE event_id = :id LIMIT 1","params":{"id":"3"},"execution_time":"0.71 ms"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Creation of dynamic property Event::$event_id is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1493 {"errno":8192}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Creation of dynamic property Event::$event_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1508 {"errno":8192}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Creation of dynamic property Event::$company_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1509 {"errno":8192}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Creation of dynamic property Event::$created_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1510 {"errno":8192}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Creation of dynamic property Event::$updated_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1511 {"errno":8192}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM breaks WHERE event_id = :event_id ORDER BY start_time","params":{"event_id":"3"},"execution_time":"9.71 ms"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"11.4 ms"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"0.49 ms"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE m.event_id = :event_id ORDER BY m.match_strength DESC, m.created_at DESC","params":{"event_id":"3"},"execution_time":"0.49 ms"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT es.*, \n                  m.buyer_id, m.supplier_id, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM event_schedules es\n                  JOIN matches m ON es.match_id = m.match_id \n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE es.event_id = :event_id ORDER BY es.start_datetime ASC","params":{"event_id":"3"},"execution_time":"0.35 ms"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Request handled successfully.
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [INFO] Application bootstrap started.
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Session started. Session ID: 1opom9ickt0garcjmc6jdg0o32
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 10:19:33 America/Mexico_City] [LOGGER] [2025-04-27 10:19:33] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Session started. Session ID: tm80olbm1k2hspupqo85g8oblq
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Routing request {"controller":"categories","action":"create","params":[],"original_url":"categories\/create","method":"GET"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Comprobando autenticación para ruta: categories/create {"es_ruta_publica":false,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [WARNING] Authentication required, redirecting to login. {"route":"categories\/create"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Mensaje flash establecido: Debe iniciar sesión para acceder a esta sección. (tipo: danger)
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Session started. Session ID: tm80olbm1k2hspupqo85g8oblq
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Routing request {"controller":"auth","action":"login","params":[],"original_url":"auth\/login","method":"GET"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Comprobando autenticación para ruta: auth/login {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] AuthController inicializado
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"login"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Token CSRF generado para formulario de login: c0ae7577...
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [login.php] Vista de login cargada
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [INFO] Request handled successfully.
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Session started. Session ID: tm80olbm1k2hspupqo85g8oblq
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","auth.css"]}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Routing request {"controller":"assets","action":"css","params":["auth.css"],"original_url":"public\/assets\/css\/auth.css","method":"GET"}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [DEBUG] Intentando servir recurso estático: public/assets/css/auth.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/auth.css"]}
+
+[27-Apr-2025 11:09:30 America/Mexico_City] [LOGGER] [2025-04-27 11:09:30] [WARNING] Archivo estático no encontrado: public/assets/css/auth.css
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Session started. Session ID: tm80olbm1k2hspupqo85g8oblq
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","auth","authenticate"]}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Routing request {"controller":"auth","action":"authenticate","params":[],"original_url":"public\/auth\/authenticate","method":"POST"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Comprobando autenticación para ruta: auth/authenticate {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] AuthController inicializado
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"authenticate"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Iniciando proceso de autenticación
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Datos recibidos en POST: {"csrf_token":"c0ae75778a266c72791a74d8d951ce18","login":"admin","password":"admin123"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Intentando autenticar usuario: admin
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Iniciando proceso de autenticación para: admin
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Buscando usuario por login: admin
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT user_id as id, username, email, password_hash as password, \n                     name, role, is_active, registration_date as created_at, \n                     registration_date as updated_at \n              FROM users \n              WHERE email = :login_email OR username = :login_username \n              LIMIT 1","params":{":login_email":"admin",":login_username":"admin"},"execution_time":"1.2 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Creation of dynamic property User::$created_at is deprecated en /var/www/html/b2b_conector/models/User.php línea 237 {"errno":8192}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Datos de usuario cargados {"id":1,"username":"admin","email":"admin@test.com","has_password":"s\u00ed","role":"admin","is_active":1}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Usuario encontrado por login: admin
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Verificando contraseña para usuario: admin (ID: 1)
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Autenticación exitosa para usuario: admin (ID: 1)
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Resultado de autenticación: éxito
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Autenticación exitosa, guardando datos de sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Estado de sesión antes de regenerar: activa
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] ID de sesión antes: tm80olbm1k2hspupqo85g8oblq
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Iniciando regeneración de sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Sesión activa, guardando datos actuales
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Regenerando ID de sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Sesión regenerada, datos restaurados: ["csrf_token"]
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] ID de sesión después: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Datos de sesión guardados: {"user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Redirigiendo a: /b2b_conector/dashboard
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Mensaje flash establecido: Inicio de sesión exitoso. Bienvenido(a) Administrador de Prueba (tipo: success)
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Redirigiendo a: /b2b_conector/dashboard
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Prueba de log info desde DashboardController
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Iniciando DashboardController
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Estado de sesión: activa
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] ID de sesión: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Datos de sesión: {"csrf_token":"c0ae75778a266c72791a74d8d951ce18","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Verificando autenticación. isAuthenticated(): true
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Usuario autenticado, continuando...
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.32 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.13 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.1 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Dashboard stats loaded {"companies":2,"events":3,"matches":2}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 398 {"errno":2}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-27","offset":0,"limit":null},"execution_time":"0.16 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Recent events loaded {"count":0}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1 AND is_active = :is_active","params":{":is_active":1},"execution_time":"0.11 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-27"},"execution_time":"0.12 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.1 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.11 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.1 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.08 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.13 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.16 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.23 ms"}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [WARNING] Undefined variable $csrfToken en /var/www/html/b2b_conector/views/shared/modals.php línea 19 {"errno":2}
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:41] [INFO] Request handled successfully.
+
+[27-Apr-2025 11:09:41 America/Mexico_City] [LOGGER] [2025-04-27 11:09:42] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:42 America/Mexico_City] [LOGGER] [2025-04-27 11:09:42] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:42 America/Mexico_City] [LOGGER] [2025-04-27 11:09:42] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 11:09:42 America/Mexico_City] [LOGGER] [2025-04-27 11:09:42] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 11:09:42 America/Mexico_City] [LOGGER] [2025-04-27 11:09:42] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 11:09:42 America/Mexico_City] [LOGGER] [2025-04-27 11:09:42] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Routing request {"controller":"events","action":"list","params":[],"original_url":"events\/list","method":"GET"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Comprobando autenticación para ruta: events/list {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] Dispatching to controller action. {"controller":"EventController","action":"list"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.84 ms"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC LIMIT :offset, :limit","params":{"offset":0,"limit":9},"execution_time":"0.94 ms"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] Request handled successfully.
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 11:09:47 America/Mexico_City] [LOGGER] [2025-04-27 11:09:47] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Routing request {"controller":"events","action":"view","params":["3"],"original_url":"events\/view\/3","method":"GET"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Comprobando autenticación para ruta: events/view {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Dispatching to controller action. {"controller":"EventController","action":"view"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE event_id = :id LIMIT 1","params":{"id":"3"},"execution_time":"0.87 ms"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Creation of dynamic property Event::$event_id is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1493 {"errno":8192}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Creation of dynamic property Event::$event_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1508 {"errno":8192}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Creation of dynamic property Event::$company_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1509 {"errno":8192}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Creation of dynamic property Event::$created_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1510 {"errno":8192}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Creation of dynamic property Event::$updated_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1511 {"errno":8192}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM breaks WHERE event_id = :event_id ORDER BY start_time","params":{"event_id":"3"},"execution_time":"0.85 ms"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"1.02 ms"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"0.86 ms"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE m.event_id = :event_id ORDER BY m.match_strength DESC, m.created_at DESC","params":{"event_id":"3"},"execution_time":"1.51 ms"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT es.*, \n                  m.buyer_id, m.supplier_id, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM event_schedules es\n                  JOIN matches m ON es.match_id = m.match_id \n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE es.event_id = :event_id ORDER BY es.start_datetime ASC","params":{"event_id":"3"},"execution_time":"1.07 ms"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Request handled successfully.
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [INFO] Application bootstrap started.
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Session started. Session ID: 8un190ot0nh64irccumrbk1c1q
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 11:09:53 America/Mexico_City] [LOGGER] [2025-04-27 11:09:53] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Session started. Session ID: p8dr7ruc8kklmjsab28skqe4d0
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Routing request {"controller":"events","action":"view","params":["3"],"original_url":"events\/view\/3","method":"GET"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Comprobando autenticación para ruta: events/view {"es_ruta_publica":false,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [WARNING] Authentication required, redirecting to login. {"route":"events\/view"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Mensaje flash establecido: Debe iniciar sesión para acceder a esta sección. (tipo: danger)
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Session started. Session ID: p8dr7ruc8kklmjsab28skqe4d0
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Routing request {"controller":"auth","action":"login","params":[],"original_url":"auth\/login","method":"GET"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Comprobando autenticación para ruta: auth/login {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] AuthController inicializado
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"login"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Token CSRF generado para formulario de login: 3c420972...
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [login.php] Vista de login cargada
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Session started. Session ID: p8dr7ruc8kklmjsab28skqe4d0
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","auth.css"]}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Routing request {"controller":"assets","action":"css","params":["auth.css"],"original_url":"public\/assets\/css\/auth.css","method":"GET"}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [DEBUG] Intentando servir recurso estático: public/assets/css/auth.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/auth.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/auth.css"]}
+
+[27-Apr-2025 19:01:51 America/Mexico_City] [LOGGER] [2025-04-27 19:01:51] [WARNING] Archivo estático no encontrado: public/assets/css/auth.css
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Session started. Session ID: p8dr7ruc8kklmjsab28skqe4d0
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","auth","authenticate"]}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Routing request {"controller":"auth","action":"authenticate","params":[],"original_url":"public\/auth\/authenticate","method":"POST"}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Comprobando autenticación para ruta: auth/authenticate {"es_ruta_publica":true,"estado_sesion":"no autenticado"}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] AuthController inicializado
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [INFO] Dispatching to controller action. {"controller":"AuthController","action":"authenticate"}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [INFO] Iniciando proceso de autenticación
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Datos recibidos en POST: {"csrf_token":"3c420972b2742cd84860e221dea1d17d","login":"admin","password":"admin123"}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Verificando autenticación: no hay usuario en sesión
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Intentando autenticar usuario: admin
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Iniciando proceso de autenticación para: admin
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Buscando usuario por login: admin
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT user_id as id, username, email, password_hash as password, \n                     name, role, is_active, registration_date as created_at, \n                     registration_date as updated_at \n              FROM users \n              WHERE email = :login_email OR username = :login_username \n              LIMIT 1","params":{":login_email":"admin",":login_username":"admin"},"execution_time":"0.95 ms"}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [INFO] Creation of dynamic property User::$created_at is deprecated en /var/www/html/b2b_conector/models/User.php línea 237 {"errno":8192}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Datos de usuario cargados {"id":1,"username":"admin","email":"admin@test.com","has_password":"s\u00ed","role":"admin","is_active":1}
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Usuario encontrado por login: admin
+
+[27-Apr-2025 19:01:58 America/Mexico_City] [LOGGER] [2025-04-27 19:01:58] [DEBUG] Verificando contraseña para usuario: admin (ID: 1)
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Autenticación exitosa para usuario: admin (ID: 1)
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Resultado de autenticación: éxito
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Autenticación exitosa, guardando datos de sesión
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Estado de sesión antes de regenerar: activa
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] ID de sesión antes: p8dr7ruc8kklmjsab28skqe4d0
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Iniciando regeneración de sesión
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Sesión activa, guardando datos actuales
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Regenerando ID de sesión
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Sesión regenerada, datos restaurados: ["csrf_token"]
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] ID de sesión después: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Datos de sesión guardados: {"user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Redirigiendo a: /b2b_conector/dashboard
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Mensaje flash establecido: Inicio de sesión exitoso. Bienvenido(a) Administrador de Prueba (tipo: success)
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Redirigiendo a: /b2b_conector/dashboard
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Routing request {"controller":"dashboard","action":"index","params":[],"original_url":"dashboard","method":"GET"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Comprobando autenticación para ruta: dashboard/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Prueba de log info desde DashboardController
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Iniciando DashboardController
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Estado de sesión: activa
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] ID de sesión: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Datos de sesión: {"csrf_token":"3c420972b2742cd84860e221dea1d17d","user_id":1,"username":"admin","name":"Administrador de Prueba","role":"admin","flash_messages":{"success":["Inicio de sesi\u00f3n exitoso. Bienvenido(a) Administrador de Prueba"]}}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Verificando autenticación. isAuthenticated(): true
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Usuario autenticado, continuando...
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Dispatching to controller action. {"controller":"DashboardController","action":"index"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company","params":[],"execution_time":"0.26 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.22 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m","params":[],"execution_time":"0.14 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Dashboard stats loaded {"companies":2,"events":3,"matches":2}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [WARNING] Undefined array key "per_page" en /var/www/html/b2b_conector/models/Event.php línea 398 {"errno":2}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC LIMIT :offset, :limit","params":{"today":"2025-04-27","offset":0,"limit":null},"execution_time":"0.36 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Recent events loaded {"count":0}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1 AND is_active = :is_active","params":{":is_active":1},"execution_time":"0.13 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events \n                  WHERE end_date >= :today \n                  AND is_active = 1","params":{":today":"2025-04-27"},"execution_time":"0.13 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"buyer"},"execution_time":"0.1 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM company WHERE role = :role","params":{"role":"supplier"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"pending"},"execution_time":"0.1 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"accepted"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM matches m WHERE m.status = :status","params":{"status":"rejected"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es","params":[],"execution_time":"0.08 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"scheduled"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"completed"},"execution_time":"0.1 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) FROM event_schedules es WHERE es.status = :status","params":{"status":"cancelled"},"execution_time":"0.09 ms"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [WARNING] Undefined variable $csrfToken en /var/www/html/b2b_conector/views/shared/modals.php línea 19 {"errno":2}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 19:01:59 America/Mexico_City] [LOGGER] [2025-04-27 19:01:59] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Routing request {"controller":"events","action":"list","params":[],"original_url":"events\/list","method":"GET"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Comprobando autenticación para ruta: events/list {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] Dispatching to controller action. {"controller":"EventController","action":"list"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.77 ms"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC LIMIT :offset, :limit","params":{"offset":0,"limit":9},"execution_time":"0.89 ms"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 19:15:52 America/Mexico_City] [LOGGER] [2025-04-27 19:15:52] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Routing request {"controller":"events","action":"create","params":[],"original_url":"events\/create","method":"GET"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Comprobando autenticación para ruta: events/create {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [INFO] Dispatching to controller action. {"controller":"EventController","action":"create"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM categories ORDER BY category_name ASC","params":[],"execution_time":"2.48 ms"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 19:15:55 America/Mexico_City] [LOGGER] [2025-04-27 19:15:55] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Routing request {"controller":"events","action":"index","params":[],"original_url":"events","method":"GET"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Comprobando autenticación para ruta: events/index {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] Dispatching to controller action. {"controller":"EventController","action":"index"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.61 ms"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC LIMIT :offset, :limit","params":{"offset":0,"limit":10},"execution_time":"0.81 ms"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/index.php línea 74 {"errno":8192}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/index.php línea 74 {"errno":8192}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [WARNING] Undefined variable $csrfToken en /var/www/html/b2b_conector/views/shared/modals.php línea 19 {"errno":2}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 19:16:00 America/Mexico_City] [LOGGER] [2025-04-27 19:16:00] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Routing request {"controller":"events","action":"list","params":[],"original_url":"events\/list","method":"GET"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Comprobando autenticación para ruta: events/list {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] Dispatching to controller action. {"controller":"EventController","action":"list"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT COUNT(*) as count FROM events WHERE 1=1","params":[],"execution_time":"0.83 ms"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events ORDER BY start_date DESC LIMIT :offset, :limit","params":{"offset":0,"limit":9},"execution_time":"0.85 ms"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 61 {"errno":8192}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 82 {"errno":8192}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] htmlspecialchars(): Passing null to parameter #1 ($string) of type string is deprecated en /var/www/html/b2b_conector/views/events/list.php línea 89 {"errno":8192}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 19:16:03 America/Mexico_City] [LOGGER] [2025-04-27 19:16:03] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Routing request {"controller":"events","action":"view","params":["3"],"original_url":"events\/view\/3","method":"GET"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Comprobando autenticación para ruta: events/view {"es_ruta_publica":false,"estado_sesion":"autenticado"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Dispatching to controller action. {"controller":"EventController","action":"view"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Verificando autenticación: usuario en sesión
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM events WHERE event_id = :id LIMIT 1","params":{"id":"3"},"execution_time":"0.97 ms"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Creation of dynamic property Event::$event_id is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1493 {"errno":8192}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Creation of dynamic property Event::$event_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1508 {"errno":8192}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Creation of dynamic property Event::$company_logo is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1509 {"errno":8192}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Creation of dynamic property Event::$created_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1510 {"errno":8192}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Creation of dynamic property Event::$updated_at is deprecated en /var/www/html/b2b_conector/models/Event.php línea 1511 {"errno":8192}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT * FROM breaks WHERE event_id = :event_id ORDER BY start_time","params":{"event_id":"3"},"execution_time":"0.82 ms"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"0.84 ms"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT a.*, c.company_name\n              FROM assistants a\n              LEFT JOIN company c ON a.company_id = c.company_id\n              WHERE c.event_id = :event_id","params":{":event_id":"3"},"execution_time":"0.86 ms"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT m.*, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM matches m\n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE m.event_id = :event_id ORDER BY m.match_strength DESC, m.created_at DESC","params":{"event_id":"3"},"execution_time":"0.93 ms"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Consulta SQL ejecutada {"sql":"SELECT es.*, \n                  m.buyer_id, m.supplier_id, \n                  b.company_name as buyer_name, \n                  s.company_name as supplier_name \n                  FROM event_schedules es\n                  JOIN matches m ON es.match_id = m.match_id \n                  JOIN company b ON m.buyer_id = b.company_id \n                  JOIN company s ON m.supplier_id = s.company_id WHERE es.event_id = :event_id ORDER BY es.start_datetime ASC","params":{"event_id":"3"},"execution_time":"0.97 ms"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Request handled successfully.
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","css","normalize.css"]}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Routing request {"controller":"assets","action":"css","params":["normalize.css"],"original_url":"public\/assets\/css\/normalize.css","method":"GET"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Intentando servir recurso estático: public/assets/css/normalize.css {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/css\/normalize.css","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/css\/normalize.css"]}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [WARNING] Archivo estático no encontrado: public/assets/css/normalize.css
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","flatpickr.min.js"]}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","flatpickr.min.js"],"original_url":"public\/assets\/js\/lib\/flatpickr.min.js","method":"GET"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/flatpickr.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/flatpickr.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/flatpickr.min.js"]}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [WARNING] Archivo estático no encontrado: public/assets/js/lib/flatpickr.min.js
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [INFO] Application bootstrap started.
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Session started. Session ID: ecdfdfpjhiu88rbvbl8f5e1ioj
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Adjusting route: Removing leading 'public' segment from URL parts. {"original_parts":["public","assets","js","lib","choices.min.js"]}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Routing request {"controller":"assets","action":"js","params":["lib","choices.min.js"],"original_url":"public\/assets\/js\/lib\/choices.min.js","method":"GET"}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [DEBUG] Intentando servir recurso estático: public/assets/js/lib/choices.min.js {"possible_paths":["\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/assets\/public\/assets\/js\/lib\/choices.min.js","\/var\/www\/html\/b2b_conector\/public\/public\/assets\/js\/lib\/choices.min.js"]}
+
+[27-Apr-2025 19:16:08 America/Mexico_City] [LOGGER] [2025-04-27 19:16:08] [WARNING] Archivo estático no encontrado: public/assets/js/lib/choices.min.js
+

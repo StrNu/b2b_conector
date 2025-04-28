@@ -1,0 +1,93 @@
+/* Estilos para el modal de importación de categorías */
+
+/* Base del modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    overflow: auto;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal.show {
+    display: flex;
+}
+
+/* Contenido del modal */
+.modal-content {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    margin: 1.75rem auto;
+    width: 100%;
+    max-width: 32rem;
+    position: relative;
+    pointer-events: auto;
+    outline: 0;
+}
+
+/* Encabezado del modal */
+.modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.modal-close {
+    float: right;
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1;
+    color: #000;
+    text-shadow: 0 1px 0 #fff;
+    opacity: .5;
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+    padding: 0;
+}
+
+.modal-close:hover {
+    opacity: .75;
+}
+
+/* Cuerpo del modal */
+.modal-body {
+    padding: 1rem;
+}
+
+/* Ejemplo de código para el formato CSV */
+.code-example {
+    background-color: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+}
+
+.code-example p {
+    margin: 0.25rem 0;
+}
+
+/* Botones para el modal */
+.modal-body .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
