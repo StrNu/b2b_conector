@@ -54,11 +54,11 @@
         <!-- Vista de Tarjetas con Tailwind CSS -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     <?php foreach ($events as $event): ?>
-        <div class="bg-white rounded-lg shadow-md border <?= $event['is_active'] ? 'border-green-500' : 'border-gray-300' ?> overflow-hidden hover:shadow-lg transition-shadow">
+        <div class="bg-white rounded-lg shadow-md border <?= !empty($event['is_active']) ? 'border-green-500' : 'border-gray-300' ?> overflow-hidden hover:shadow-lg transition-shadow">
             <!-- Cabecera de tarjeta -->
             <div class="p-4 border-b">
-                <h3 class="text-xl font-semibold text-gray-800"><?= htmlspecialchars($event['event_name']) ?></h3>
-                <p class="text-gray-600"><?= htmlspecialchars($event['venue']) ?></p>
+                <h3 class="text-xl font-semibold text-gray-800"><?= htmlspecialchars($event['event_name'] ?? '') ?></h3>
+                <p class="text-gray-600"><?= htmlspecialchars($event['venue'] ?? '') ?></p>
             </div>
             
             <!-- Cuerpo de tarjeta -->
@@ -69,7 +69,7 @@
                         <i class="far fa-calendar-alt"></i>
                     </span>
                     <span class="text-gray-700">
-                        <?= dateFromDatabase($event['start_date']) ?> - <?= dateFromDatabase($event['end_date']) ?>
+                        <?= dateFromDatabase($event['start_date'] ?? '') ?> - <?= dateFromDatabase($event['end_date'] ?? '') ?>
                     </span>
                 </div>
                 
@@ -79,43 +79,43 @@
                         <span class="text-blue-500 mr-2">
                             <i class="fas fa-table"></i>
                         </span>
-                        <span>Mesas: <?= htmlspecialchars($event['available_tables']) ?></span>
+                        <span>Mesas: <?= htmlspecialchars($event['available_tables'] ?? '') ?></span>
                     </div>
                     
                     <div class="flex items-center text-gray-700">
                         <span class="text-blue-500 mr-2">
                             <i class="fas fa-clock"></i>
                         </span>
-                        <span>Duración de reuniones: <?= htmlspecialchars($event['meeting_duration']) ?> min</span>
+                        <span>Duración de reuniones: <?= htmlspecialchars($event['meeting_duration'] ?? '') ?> min</span>
                     </div>
                 </div>
                 
                 <!-- Estado -->
                 <div class="mb-4">
-                    <span class="inline-block px-2 py-1 text-xs rounded-full <?= $event['is_active'] 
+                    <span class="inline-block px-2 py-1 text-xs rounded-full <?= !empty($event['is_active']) 
                         ? 'bg-green-100 text-green-800' 
                         : 'bg-gray-100 text-gray-800' ?>">
-                        <?= $event['is_active'] ? 'Activo' : 'Inactivo' ?>
+                        <?= !empty($event['is_active']) ? 'Activo' : 'Inactivo' ?>
                     </span>
                 </div>
             </div>
             
             <!-- Pie de tarjeta con acciones -->
             <div class="p-4 bg-gray-50 border-t">
-                <a href="<?= BASE_URL ?>/events/view/<?= $event['event_id'] ?>" 
+                <a href="<?= BASE_URL ?>/events/view/<?= $event['event_id'] ?? '' ?>" 
                    class="block w-full py-2 mb-2 text-center bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors">
                     Ir al Evento <i class="fas fa-arrow-right ml-1"></i>
                 </a>
                 
                 <div class="flex justify-between">
-                    <a href="<?= BASE_URL ?>/events/edit/<?= $event['event_id'] ?>" 
+                    <a href="<?= BASE_URL ?>/events/edit/<?= $event['event_id'] ?? '' ?>" 
                        class="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded text-gray-700 transition-colors">
                         <i class="fas fa-edit"></i> Editar
                     </a>
                     
                     <button type="button" 
                         class="px-3 py-1 bg-red-100 hover:bg-red-200 text-red-700 rounded transition-colors" 
-                        onclick="confirmDelete('<?= $event['event_id'] ?>', '<?= htmlspecialchars(addslashes($event['event_name'])) ?>')">
+                        onclick="confirmDelete('<?= $event['event_id'] ?? '' ?>', '<?= htmlspecialchars(addslashes($event['event_name'] ?? '')) ?>')">
                         <i class="fas fa-trash"></i> Eliminar
                     </button>
                 </div>

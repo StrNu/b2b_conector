@@ -5,9 +5,48 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Verificar autenticación
-if (!isset($_SESSION['user_id']) && basename($_SERVER['PHP_SELF']) !== 'login.php') {
-    header('Location: login.php');
-    exit;
+$isLoginProcess = false;
+// Verifica si el script actual es login.php o si la URL es auth/login
+if (basename($_SERVER['PHP_SELF']) === 'login.php') {
+    $isLoginProcess = true;
+} elseif (isset($_GET['url']) && strpos(trim($_GET['url'], '/'), 'auth/login') === 0) {
+    $isLoginProcess = true;
+}
+
+$isConsideredPublicPage = false;
+
+// Lista de nombres base de scripts PHP que son públicos (si se acceden directamente)
+$directPublicScripts = ['evento_page.php']; 
+if (in_array(basename($_SERVER['PHP_SELF']), $directPublicScripts)) {
+    $isConsideredPublicPage = true;
+}
+
+// Lista de prefijos de URL (de $_GET['url']) que son públicos cuando se usa el enrutador principal (index.php)
+if (!$isConsideredPublicPage && isset($_GET['url'])) {
+    $rawUrlPath = trim($_GET['url'], '/');
+    $urlPathParts = explode('/', $rawUrlPath);
+    if (!empty($urlPathParts[0]) && $urlPathParts[0] === 'public') {
+        array_shift($urlPathParts);
+    }
+    $urlPath = implode('/', $urlPathParts);
+
+    $publicUrlPrefixes = [
+        'buyers_registration',
+        'suppliers_registration',
+        'events/assistant_login'
+        // 'evento_page' 
+    ];
+    foreach ($publicUrlPrefixes as $prefix) {
+        if (strpos($urlPath, $prefix) === 0) {
+            $isConsideredPublicPage = true;
+            break;
+        }
+    }
+}
+
+if (!isset($_SESSION['user_id']) && !$isLoginProcess && !$isConsideredPublicPage) {
+    header('Location: ' . BASE_URL . '/auth/login'); // Restaurado
+    exit; // Restaurado
 }
 
 // Obtener el nombre de usuario si está disponible
@@ -24,9 +63,10 @@ $userName = $_SESSION['name'] ?? 'Usuario';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="shortcut icon" href="<?= BASE_PUBLIC_URL ?>/assets/images/favicon.ico" type="image/x-icon">
     <!-- CSS de componentes comunes -->
+    <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/forms.css">
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/buttons.css">
-    <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/forms.css">
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/notifications.css">
+    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/components/tabs.css">
 
     <!-- CSS específicos de módulo -->
     <?php if (isset($moduleCSS)): ?>

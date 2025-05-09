@@ -10,19 +10,26 @@
  * @version 1.0
  */
 
- class EventController {
+class EventController {
     private $db;
     private $eventModel;
     private $companyModel;
     private $matchModel;
-    private $categoryModel; // Añadido el modelo de categorías
+    private $categoryModel;
+    private $breakModel;
+    private $assistantModel;
+    private $eventScheduleModel;
+    private $requirementModel;
+    private $attendanceDayModel;
     private $validator;
-    
+
     /**
      * Constructor
      * 
      * Inicializa los modelos necesarios y otras dependencias
      */
+    
+
     public function __construct() {
         // Inicializar conexión a la base de datos
         $this->db = Database::getInstance();
@@ -43,54 +50,27 @@
             exit;
         }
     }
+
+    private function _showNotFoundError($message = "Recurso no encontrado.") {
+        Logger::getInstance()->error($message);
+        http_response_code(404);
+        $this->loadView('errors/404', ['error_message' => $message]); 
+        exit;
+    }
     
     /**
-     * Listar todos los eventos
+     * Verificar permisos del usuario
      * 
+     * @param array $roles Roles permitidos
+     * @param string $redirect URL de redirección en caso de no tener permisos
      * @return void
      */
-    public function index() {
-        // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+    private function checkPermission($roles, $redirect = BASE_URL) {
+        if (!hasRole($roles)) {
             setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-            redirect(BASE_URL);
+            redirect($redirect);
             exit;
         }
-        
-        // Obtener parámetros de paginación y filtros
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $perPage = 10;
-        
-        // Configurar filtros
-        $filters = [];
-        
-        // Filtrar por nombre si se especifica
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
-            $filters['event_name'] = '%' . sanitize($_GET['search']) . '%';
-        }
-        
-        // Filtrar por estado si se especifica
-        if (isset($_GET['status']) && in_array($_GET['status'], ['1', '0'])) {
-            $filters['is_active'] = (int)$_GET['status'];
-        }
-        
-        // Obtener total de eventos según filtros
-        $totalEvents = $this->eventModel->count($filters);
-        
-        // Configurar paginación
-        $pagination = paginate($totalEvents, $page, $perPage);
-        
-        // Obtener eventos para la página actual con filtros aplicados
-        $events = $this->eventModel->getAll($filters, $pagination);
-
-        $pageTitle = 'Eventos';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/datepicker.css';
-        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
-        
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/events/index.php');
     }
 
     /**
@@ -360,40 +340,54 @@ private function processLogo($fileData, $type = 'event') {
             redirect(BASE_URL);
             exit;
         }
-        
-        // Buscar evento por ID
-        if (!$this->eventModel->findById($id)) {
-            setFlashMessage('Evento no encontrado', 'danger');
+        $eventId = filter_var($id, FILTER_VALIDATE_INT);
+        if ($eventId === false || $eventId <= 0) {
+            Logger::warning('Intento de acceso a evento con ID inválido.', ['id_proporcionado' => $id, 'user_id' => $_SESSION['user_id'] ?? null]);
+            setFlashMessage('ID de evento inválido', 'danger');
             redirect(BASE_URL . '/events');
             exit;
         }
 
-        $eventModel = $this->eventModel;
+        // Cargar el evento. findById() en Event.php carga los datos en $this->eventModel
+        if (!$this->eventModel->findById($eventId)) {
+            Logger::notice('Evento no encontrado al intentar ver.', ['event_id' => $eventId, 'user_id' => $_SESSION['user_id'] ?? null]);
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
         
-        // Obtener información adicional del evento
-        $breaks = $this->eventModel->getBreaks($id);
-        $buyers = $this->eventModel->getBuyers($id);
-        $suppliers = $this->eventModel->getSuppliers($id);
-        
-        // Contar matches y citas
-        $matches = $this->matchModel->getByEvent($id);
-        $matchCount = count($matches);
-        
-        // Obtener citas programadas
-        $appointmentModel = new Appointment($this->db);
-        $schedules = $appointmentModel->getByEvent($id);
-        $scheduleCount = count($schedules);
-        
-        // Token CSRF para posibles formularios en la vista
-        $csrfToken = generateCSRFToken();
-
-        $pageTitle = 'Eventos';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/datepicker.css';
-        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
-        
-        // Cargar vista con los datos
+        $event = $this->eventModel;
+        $eventModel = $event; // Para compatibilidad con modals/import_categories.php
+        $breaks = $this->eventModel->getBreaks($eventId); 
+        $participants = $this->eventModel->getParticipants($eventId);
+        $matches = method_exists($this->matchModel, 'findAllByEventId') ? $this->matchModel->findAllByEventId($eventId) : [];
+        $schedules = $this->eventModel->getSchedules($eventId);
+        // CORRECCIÓN: Construir correctamente categoriesWithSubcategories
+        $eventCategories = $this->categoryModel->getEventCategories($eventId);
+        $categoriesWithSubcategories = [];
+        foreach ($eventCategories as $category) {
+            $subcategories = $this->categoryModel->getEventSubcategories($category['event_category_id']);
+            $categoriesWithSubcategories[] = [
+                'category' => $category,
+                'subcategories' => $subcategories
+            ];
+        }
+        $hasCategories = !empty($categoriesWithSubcategories);
+        $csrfToken = Security::generateCsrfToken();
+        $viewData = [
+            'event' => $event,
+            'eventModel' => $eventModel,
+            'breaks' => $breaks,
+            'participants' => $participants,
+            'matches' => $matches,
+            'schedules' => $schedules,
+            'hasCategories' => $hasCategories,
+            'categoriesWithSubcategories' => $categoriesWithSubcategories,
+            'csrfToken' => $csrfToken
+        ];
+        foreach ($viewData as $key => $value) {
+            $$key = $value;
+        }
         include(VIEW_DIR . '/events/view.php');
     }
         
@@ -448,6 +442,11 @@ private function processLogo($fileData, $type = 'event') {
         
         // Cargar vista
         include(VIEW_DIR . '/events/time_slots.php');
+    }
+
+    // Alias para compatibilidad con rutas tipo snake_case
+    public function time_slots($id) {
+        return $this->timeSlots($id);
     }
     
     /**
@@ -1422,59 +1421,733 @@ public function report($id) {
     // Cargar vista
     include(VIEW_DIR . '/events/report.php');
 }
+    /**
+     * Listar todos los eventos
+     * 
+     * @return void
+     */
+    public function index() {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        
+        // Obtener parámetros de paginación y filtros
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $perPage = 10;
+        
+        // Configurar filtros
+        $filters = [];
+        
+        // Filtrar por nombre si se especifica
+        if (isset($_GET['search']) && !empty($_GET['search'])) {
+            $filters['event_name'] = '%' . sanitize($_GET['search']) . '%';
+        }
+        
+        // Filtrar por estado si se especifica
+        if (isset($_GET['status']) && in_array($_GET['status'], ['1', '0'])) {
+            $filters['is_active'] = (int)$_GET['status'];
+        }
+        
+        // Obtener total de eventos según filtros
+        $totalEvents = $this->eventModel->count($filters);
+        
+        // Configurar paginación
+        $pagination = paginate($totalEvents, $page, $perPage);
+        
+        // Obtener eventos para la página actual con filtros aplicados
+        $events = $this->eventModel->getAll($filters, $pagination);
 
-/**
- * Mostrar lista de eventos en formato de tarjetas
- * 
- * @return void
- */
-public function list() {
-    // Verificar permisos
-    if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-        setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-        redirect(BASE_URL);
+        $csrfToken = Security::generateCsrfToken();
+
+        $pageTitle = 'Eventos';
+        $moduleCSS = 'events';
+        $moduleJS = 'events';
+        $additionalCSS = 'components/datepicker.css';
+        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
+        
+        // Cargar vista con los datos
+        include(VIEW_DIR . '/events/index.php');
+    }
+
+
+    /**
+     * Mostrar el registro completo de una empresa para un evento.
+     * Muestra todos los datos recopilados en el formulario de buyers_registration.
+     *
+     * @param int $eventId ID del evento
+     * @param int $companyId ID de la empresa
+     * @return void
+     */
+    public function viewFullRegistration($eventId, $companyId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+
+        // Cargar evento
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $event = $this->eventModel;
+
+        // Cargar empresa
+        if (!$this->companyModel->findById($companyId)) {
+            setFlashMessage('Empresa no encontrada', 'danger');
+            redirect(BASE_URL . '/events/view/' . $eventId);
+            exit;
+        }
+        // Verificar que la empresa pertenece al evento (si companyModel tiene event_id como propiedad)
+        // Asumiendo que CompanyModel tiene un método getEventId() o una propiedad event_id
+        // Esta lógica puede necesitar ajuste según la implementación de tu CompanyModel
+        if (property_exists($this->companyModel, 'event_id') && $this->companyModel->event_id != $eventId) {
+             setFlashMessage('La empresa no pertenece a este evento (verificación de propiedad).', 'danger');
+             redirect(BASE_URL . '/events/view/' . $eventId);
+             exit;
+        } else if (method_exists($this->companyModel, 'getEventId') && $this->companyModel->getEventId() != $eventId) {
+            setFlashMessage('La empresa no pertenece a este evento (verificación de método).', 'danger');
+            redirect(BASE_URL . '/events/view/' . $eventId);
+            exit;
+        }
+        $company = $this->companyModel;
+
+        // Obtener datos adicionales
+        $assistants = $this->companyModel->getAssistants($companyId);
+        
+        $rawRequirements = $this->companyModel->getRequirements($companyId);
+        $requirements = [];
+        if ($rawRequirements) {
+            foreach ($rawRequirements as $req) {
+                $requirements[] = $req; 
+            }
+        }
+
+        $attendanceDays = $this->companyModel->getAttendanceDays($eventId, $companyId);
+
+        $eventUsername = null;
+        $userQuery = "SELECT username FROM event_users WHERE company_id = :company_id AND event_id = :event_id LIMIT 1";
+        $userResult = $this->db->single($userQuery, ['company_id' => $companyId, 'event_id' => $eventId]);
+        if ($userResult && isset($userResult['username'])) {
+            $eventUsername = $userResult['username'];
+        }
+        
+        $csrfToken = Security::generateCsrfToken(); // Añadido para consistencia si se necesitan formularios
+
+        $pageTitle = 'Detalle de Registro de Empresa';
+        $moduleCSS = 'events'; 
+        $moduleJS = 'events';
+
+        $viewData = [
+            'event' => $event,
+            'company' => $company,
+            'assistants' => $assistants,
+            'requirements' => $requirements,
+            'attendanceDays' => $attendanceDays,
+            'eventUsername' => $eventUsername,
+            'csrfToken' => $csrfToken,
+            'pageTitle' => $pageTitle,
+            'moduleCSS' => $moduleCSS,
+            'moduleJS' => $moduleJS
+        ];
+        
+        // Asumiendo que tienes una vista en views/events/view_full_registration.php
+        $this->loadView('events/view_full_registration', $viewData);
+    }
+
+    /**
+     * Listar todos los eventos en formato de tarjetas (o alternativo al index)
+     * 
+     * @return void
+     */
+    public function list() {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        
+        // Obtener parámetros de paginación y filtros
+        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+        $perPage = 9; // Número de eventos por página para la vista de tarjetas
+        
+        // Configurar filtros
+        $filters = [];
+        if (isset($_GET['search']) && !empty($_GET['search'])) {
+            $filters['event_name'] = '%' . sanitize($_GET['search']) . '%';
+        }
+        if (isset($_GET['status']) && in_array($_GET['status'], ['1', '0'])) {
+            $filters['is_active'] = (int)$_GET['status'];
+        }
+        
+        // Obtener total de eventos según filtros
+        $totalEvents = $this->eventModel->count($filters);
+        
+        // Configurar paginación
+        $pagination = paginate($totalEvents, $page, $perPage);
+        
+        // Obtener eventos para la página actual con filtros aplicados
+        $events = $this->eventModel->getAll($filters, $pagination);
+
+        $pageTitle = 'Listado de Eventos (Tarjetas)';
+        $moduleCSS = 'events';
+        $moduleJS = 'events';
+        $csrfToken = Security::generateCsrfToken();
+        
+        // Cargar vista con los datos
+        include(VIEW_DIR . '/events/list.php');
+    }
+
+    /**
+     * Listar todas las empresas asociadas a un evento
+     * @param int $eventId
+     * @return void
+     */
+    public function companies($eventId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Buscar evento por ID
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Obtener empresas asociadas al evento
+        $companies = $this->companyModel->getByEvent($eventId);
+        $pageTitle = 'Empresas del Evento';
+        $moduleCSS = 'companies';
+        $moduleJS = 'companies';
+        $csrfToken = Security::generateCsrfToken();
+        include(VIEW_DIR . '/events/companies.php');
+    }
+
+    /**
+     * Mostrar y gestionar descansos (breaks) de un evento
+     * @param int $eventId
+     * @return void
+     */
+    public function breaks($eventId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Buscar evento por ID
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Obtener descansos asociados al evento
+        $breaks = $this->eventModel->getBreaks($eventId);
+        $pageTitle = 'Descansos del Evento';
+        $moduleCSS = 'breaks';
+        $moduleJS = 'breaks';
+        $csrfToken = Security::generateCsrfToken();
+        include(VIEW_DIR . '/events/breaks.php');
+    }
+
+    /**
+     * Mostrar y gestionar categorías de un evento
+     * @param int $eventId
+     * @return void
+     */
+    public function categories($eventId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Buscar evento por ID
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Obtener categorías y subcategorías asociadas al evento
+        $categories = $this->categoryModel->getEventCategories($eventId);
+        $categoriesWithSubcategories = [];
+        foreach ($categories as $category) {
+            $subcategories = $this->categoryModel->getEventSubcategories($category['event_category_id']);
+            $categoriesWithSubcategories[] = [
+                'category' => $category,
+                'subcategories' => $subcategories
+            ];
+        }
+        $eventModel = $this->eventModel;
+        $pageTitle = 'Categorías del Evento';
+        $moduleCSS = 'categories';
+        $moduleJS = 'categories';
+        $csrfToken = Security::generateCsrfToken();
+        include(VIEW_DIR . '/events/categories.php');
+    }
+
+    /**
+     * Listar participantes (asistentes) de un evento
+     * @param int $eventId
+     * @return void
+     */
+    public function participants($eventId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Buscar evento por ID
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Obtener participantes (asistentes) del evento
+        $participants = $this->eventModel->getParticipants($eventId);
+        // Obtener empresas asociadas al evento para el select
+        $companies = $this->companyModel->getByEvent($eventId);
+        $pageTitle = 'Participantes del Evento';
+        $moduleCSS = 'events';
+        $moduleJS = 'events';
+        $csrfToken = Security::generateCsrfToken();
+        include(VIEW_DIR . '/events/participants.php');
+    }
+
+    /**
+     * Editar un participante (asistente) de un evento
+     * @param int $eventId
+     * @param int $participantId
+     * @return void
+     */
+    public function editParticipant($eventId, $participantId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Buscar evento por ID
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Buscar participante (asistente) por ID
+        $assistantModel = new Assistant($this->db);
+        if (!$assistantModel->findById($participantId)) {
+            setFlashMessage('Participante no encontrado', 'danger');
+            redirect(BASE_URL . '/events/participants/' . $eventId);
+            exit;
+        }
+        $participant = $assistantModel;
+
+        // Procesar formulario POST
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Validar CSRF
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+                redirect(BASE_URL . "/events/editParticipant/$eventId/$participantId");
+                exit;
+            }
+            // Validar datos
+            $this->validator->setData($_POST);
+            $this->validator->required('first_name', 'El nombre es obligatorio')
+                ->required('last_name', 'El apellido es obligatorio')
+                ->required('email', 'El email es obligatorio')
+                ->email('email', 'El email no es válido');
+            if ($this->validator->hasErrors()) {
+                $_SESSION['validation_errors'] = $this->validator->getErrors();
+                redirect(BASE_URL . "/events/editParticipant/$eventId/$participantId");
+                exit;
+            }
+            // Actualizar datos
+            $data = [
+                'first_name' => sanitize($_POST['first_name']),
+                'last_name' => sanitize($_POST['last_name']),
+                'email' => sanitize($_POST['email']),
+                'mobile_phone' => sanitize($_POST['mobile_phone'] ?? ''),
+                // company_id no editable, pero se envía como hidden
+                'company_id' => $participant->getCompanyId(),
+            ];
+            $updated = $participant->update($data);
+            if ($updated) {
+                setFlashMessage('Participante actualizado exitosamente', 'success');
+                redirect(BASE_URL . "/events/participants/$eventId");
+                exit;
+            } else {
+                setFlashMessage('No se pudo actualizar el participante. Verifique los datos.', 'danger');
+                redirect(BASE_URL . "/events/editParticipant/$eventId/$participantId");
+                exit;
+            }
+        }
+
+        $csrfToken = Security::generateCsrfToken();
+        $pageTitle = 'Editar Participante';
+        $moduleCSS = 'events';
+        $moduleJS = 'events';
+        include(VIEW_DIR . '/events/edit_participant.php');
+    }
+
+    /**
+     * Eliminar un participante (asistente) de un evento
+     * @param int $eventId
+     * @param int $participantId
+     * @return void
+     */
+    public function deleteParticipant($eventId, $participantId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Verificar método POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . "/events/participants/$eventId");
+            exit;
+        }
+        // Validar CSRF
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+            redirect(BASE_URL . "/events/participants/$eventId");
+            exit;
+        }
+        // Buscar participante (asistente) por ID
+        $assistantModel = new Assistant($this->db);
+        if (!$assistantModel->findById($participantId)) {
+            setFlashMessage('Participante no encontrado', 'danger');
+            redirect(BASE_URL . "/events/participants/$eventId");
+            exit;
+        }
+        // Eliminar participante
+        if ($assistantModel->delete()) {
+            setFlashMessage('Participante eliminado exitosamente', 'success');
+        } else {
+            setFlashMessage('No se pudo eliminar el participante', 'danger');
+        }
+        redirect(BASE_URL . "/events/participants/$eventId");
         exit;
     }
-    
-    // Obtener parámetros de paginación y filtros
-    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-    $perPage = 9; // Mostrar 9 cards por página (3x3)
-    
-    // Configurar filtros
-    $filters = [];
-    
-    // Filtrar por nombre si se especifica
-    if (isset($_GET['search']) && !empty($_GET['search'])) {
-        $filters['event_name'] = '%' . sanitize($_GET['search']) . '%';
+
+    /**
+     * Agregar un nuevo participante (asistente) a un evento
+     * @param int $eventId
+     * @return void
+     */
+    public function addParticipant($eventId) {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para agregar participantes', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Verificar método POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . "/events/participants/$eventId");
+            exit;
+        }
+        // Validar CSRF
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+            redirect(BASE_URL . "/events/participants/$eventId");
+            exit;
+        }
+        // Validar datos
+        $this->validator->setData($_POST);
+        $this->validator->required('first_name', 'El nombre es obligatorio')
+            ->required('last_name', 'El apellido es obligatorio')
+            ->required('email', 'El email es obligatorio')
+            ->email('email', 'El email no es válido')
+            ->required('company_id', 'Debe seleccionar una empresa');
+        if ($this->validator->hasErrors()) {
+            $_SESSION['form_data'] = $_POST;
+            $_SESSION['validation_errors'] = $this->validator->getErrors();
+            redirect(BASE_URL . "/events/participants/$eventId");
+            exit;
+        }
+        // Insertar asistente
+        $assistantModel = new Assistant($this->db);
+        $data = [
+            'first_name' => sanitize($_POST['first_name']),
+            'last_name' => sanitize($_POST['last_name']),
+            'email' => sanitize($_POST['email']),
+            'mobile_phone' => sanitize($_POST['mobile_phone'] ?? ''),
+            'company_id' => (int)$_POST['company_id']
+        ];
+        $created = $assistantModel->create($data);
+        if ($created) {
+            setFlashMessage('Participante agregado exitosamente', 'success');
+        } else {
+            setFlashMessage('No se pudo agregar el participante. Verifique los datos.', 'danger');
+        }
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
     }
-    
-    // Filtrar por estado si se especifica
-    if (isset($_GET['status']) && in_array($_GET['status'], ['1', '0'])) {
-        $filters['is_active'] = (int)$_GET['status'];
+
+    /**
+     * Agrega una nueva categoría a un evento (POST)
+     * Espera: event_id (en URL o POST), name (POST)
+     */
+    public function addEventCategory($eventId) {
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para agregar categorías', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+        if ($name === '') {
+            setFlashMessage('El nombre de la categoría es obligatorio', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        // Insertar en event_categories
+        $data = [
+            'event_id' => (int)$eventId,
+            'name' => $name,
+            'is_active' => 1
+        ];
+        $result = $this->categoryModel->addEventCategory($eventId, $name);
+        if ($result) {
+            setFlashMessage('Categoría agregada correctamente', 'success');
+        } else {
+            setFlashMessage('No se pudo agregar la categoría', 'danger');
+        }
+        redirect(BASE_URL . '/events/categories/' . $eventId);
+        exit;
     }
-    
-    // Obtener total de eventos según filtros
-    $totalEvents = $this->eventModel->count($filters);
-    
-    // Configurar paginación
-    $pagination = paginate($totalEvents, $page, $perPage);
-    
-    // Obtener eventos para la página actual con filtros aplicados
-    $events = $this->eventModel->getAll($filters, $pagination);
-    
-    // Token CSRF para formularios
-    $csrfToken = generateCSRFToken();
 
-    $pageTitle = 'Eventos';
-    $moduleCSS = 'events';
-    $moduleJS = 'events';
-    $additionalCSS = 'components/datepicker.css';
-    $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
-    
-    // Cargar vista con los datos
-    include(VIEW_DIR . '/events/list.php');
-}
+    /**
+     * Agrega una nueva subcategoría a una categoría de evento (POST)
+     * Espera: eventId (en URL), categoryId (en URL), subcategory_name (POST)
+     */
+    public function addEventSubCategory($eventId, $categoryId) {
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para agregar subcategorías', 'danger');
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        $name = isset($_POST['subcategory_name']) ? trim($_POST['subcategory_name']) : '';
+        if ($name === '') {
+            setFlashMessage('El nombre de la subcategoría es obligatorio', 'danger');
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        $result = $this->categoryModel->addEventSubcategory($categoryId, $name);
+        if ($result) {
+            setFlashMessage('Subcategoría agregada correctamente', 'success');
+        } else {
+            setFlashMessage('No se pudo agregar la subcategoría', 'danger');
+        }
+        redirect(BASE_URL . "/events/categories/$eventId");
+        exit;
+    }
 
+    // Método genérico para cargar vistas
+    protected function loadView($viewName, $data = []) {
+        extract($data);
+        $viewFile = __DIR__ . '/../views/' . $viewName . '.php';
 
+        if (file_exists($viewFile)) {
+            if (file_exists(__DIR__ . '/../views/shared/header.php')) {
+                include __DIR__ . '/../views/shared/header.php';
+            }
+            
+            include $viewFile;
+            
+            if (file_exists(__DIR__ . '/../views/shared/footer.php')) {
+                include __DIR__ . '/../views/shared/footer.php';
+            }
+        } else {
+            Logger::getInstance()->error("Archivo de vista no encontrado: {$viewFile}");
+            http_response_code(500);
+            echo "Error: la vista '{$viewName}' no se encontró.";
+        }
+    }
 
-}
+     /**
+     * Editar una categoría de evento
+     * @param int $categoryId
+     * @param int $eventId
+     * @return void
+     */
+    public function editEventCategory($categoryId, $eventId) {
+        Logger::debug('Entrando a editEventCategory', ['categoryId' => $categoryId, 'eventId' => $eventId, 'POST' => $_POST]);
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Logger::warning('Método no permitido en editEventCategory', ['method' => $_SERVER['REQUEST_METHOD']]);
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        $name = isset($_POST['category_name']) ? trim($_POST['category_name']) : '';
+        if ($name === '') {
+            Logger::warning('Nombre de categoría vacío en editEventCategory', ['POST' => $_POST]);
+            setFlashMessage('El nombre de la categoría es obligatorio', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        $result = $this->categoryModel->editEventCategory($categoryId, ['name' => $name]);
+        Logger::debug('Resultado de editEventCategory', ['result' => $result]);
+        if ($result) {
+            setFlashMessage('Categoría actualizada correctamente', 'success');
+        } else {
+            setFlashMessage('No se pudo actualizar la categoría', 'danger');
+        }
+        Logger::debug('Redirigiendo tras editar categoría', ['eventId' => $eventId]);
+        redirect(BASE_URL . '/events/categories/' . $eventId);
+        exit;
+    }
+
+    /**
+     * Eliminar una categoría de evento
+     * @param int $categoryId
+     * @return void
+     */
+    public function deleteEventCategory($categoryId) {
+        Logger::debug('Entrando a deleteEventCategory', ['categoryId' => $categoryId, 'POST' => $_POST]);
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Logger::warning('Método no permitido en deleteEventCategory', ['method' => $_SERVER['REQUEST_METHOD']]);
+            setFlashMessage('Método no permitido', 'danger');
+            $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : null;
+            if (!$eventId) {
+                $category = $this->categoryModel->getEventCategory($categoryId);
+                $eventId = $category['event_id'] ?? null;
+            }
+            Logger::debug('Redirigiendo desde deleteEventCategory (no POST)', ['eventId' => $eventId]);
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : null;
+        if (!$eventId) {
+            $category = $this->categoryModel->getEventCategory($categoryId);
+            $eventId = $category['event_id'] ?? null;
+        }
+        if (!$eventId) {
+            Logger::error('No se pudo determinar el evento de la categoría en deleteEventCategory', ['categoryId' => $categoryId]);
+            setFlashMessage('No se pudo determinar el evento de la categoría', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        try {
+            $result = $this->categoryModel->deleteEventCategory($categoryId);
+        } catch (PDOException $e) {
+            if ($e->getCode() === '23000') {
+                setFlashMessage('No se puede eliminar la categoría porque hay requerimientos asociados.', 'danger');
+            } else {
+                setFlashMessage('No se pudo eliminar la categoría: ' . $e->getMessage(), 'danger');
+            }
+            Logger::error('Error al eliminar categoría', ['error' => $e->getMessage(), 'categoryId' => $categoryId]);
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        // Si la eliminación no fue exitosa, verificar si hay requerimientos asociados
+        if (!$result) {
+            // Comprobar si existen requerimientos asociados a la categoría
+            if (method_exists($this->categoryModel, 'hasRequirementsForEventCategory') && $this->categoryModel->hasRequirementsForEventCategory($categoryId)) {
+                setFlashMessage('No se puede eliminar la categoría porque hay requerimientos asociados.', 'danger');
+            } else {
+                setFlashMessage('No se pudo eliminar la categoría', 'danger');
+            }
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        setFlashMessage('Categoría eliminada correctamente', 'success');
+        redirect(BASE_URL . '/events/categories/' . $eventId);
+        exit;
+    }
+
+    /**
+     * Editar una subcategoría de evento
+     * @param int $subcategoryId
+     * @param int $eventId
+     * @return void
+     */
+    public function editEventSubcategory($subcategoryId, $eventId) {
+        Logger::debug('Entrando a editEventSubcategory', ['subcategoryId' => $subcategoryId, 'eventId' => $eventId, 'POST' => $_POST]);
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Logger::warning('Método no permitido en editEventSubcategory', ['method' => $_SERVER['REQUEST_METHOD']]);
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        $name = isset($_POST['subcategory_name']) ? trim($_POST['subcategory_name']) : '';
+        if ($name === '') {
+            Logger::warning('Nombre de subcategoría vacío en editEventSubcategory', ['POST' => $_POST]);
+            setFlashMessage('El nombre de la subcategoría es obligatorio', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        try {
+            $result = $this->categoryModel->updateEventSubcategory($subcategoryId, $name);
+        } catch (PDOException $e) {
+            setFlashMessage('No se pudo actualizar la subcategoría: ' . $e->getMessage(), 'danger');
+            Logger::error('Error al actualizar subcategoría', ['error' => $e->getMessage(), 'subcategoryId' => $subcategoryId]);
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        if ($result) {
+            setFlashMessage('Subcategoría actualizada correctamente', 'success');
+        } else {
+            setFlashMessage('No se pudo actualizar la subcategoría', 'danger');
+        }
+        Logger::debug('Redirigiendo tras editar subcategoría', ['eventId' => $eventId]);
+        redirect(BASE_URL . '/events/categories/' . $eventId);
+        exit;
+    }
+
+    /**
+     * Eliminar una subcategoría de evento
+     * @param int $subcategoryId
+     * @return void
+     */
+    public function deleteEventSubcategory($subcategoryId, $eventId) {
+        Logger::debug('Entrando a deleteEventSubcategory', ['subcategoryId' => $subcategoryId, 'eventId' => $eventId, 'POST' => $_POST]);
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            Logger::warning('Método no permitido en deleteEventSubcategory', ['method' => $_SERVER['REQUEST_METHOD']]);
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        try {
+            $result = $this->categoryModel->deleteEventSubcategory($subcategoryId);
+        } catch (PDOException $e) {
+            setFlashMessage('No se pudo eliminar la subcategoría: ' . $e->getMessage(), 'danger');
+            Logger::error('Error al eliminar subcategoría', ['error' => $e->getMessage(), 'subcategoryId' => $subcategoryId]);
+            redirect(BASE_URL . '/events/categories/' . $eventId);
+            exit;
+        }
+        if ($result) {
+            setFlashMessage('Subcategoría eliminada correctamente', 'success');
+        } else {
+            setFlashMessage('No se pudo eliminar la subcategoría', 'danger');
+        }
+        Logger::debug('Redirigiendo tras eliminar subcategoría', ['eventId' => $eventId]);
+        redirect(BASE_URL . '/events/categories/' . $eventId);
+        exit;
+    }
+} // End of EventController class
