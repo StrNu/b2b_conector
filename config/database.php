@@ -82,6 +82,26 @@ class Database {
         return $stmt ? $stmt->fetch() : false;
     }
 
+    /**
+         * Método para obtener un único valor escalar de una consulta
+         * 
+         * @param string $sql Consulta SQL
+         * @param array $params Parámetros para la consulta preparada
+         * @return mixed Valor escalar o false en caso de error
+         */
+        public function fetchOne($sql, $params = []) {
+            try {
+                $stmt = $this->query($sql, $params);
+                return $stmt ? $stmt->fetchColumn() : false;
+            } catch(PDOException $e) {
+                Logger::error("Error en fetchOne: " . $e->getMessage(), [
+                    'sql' => $sql,
+                    'params' => $params
+                ]);
+                return false;
+            }
+        }
+
     // Método para obtener todos los registros
     public function resultSet($sql, $params = []) {
         $stmt = $this->query($sql, $params);
@@ -109,5 +129,24 @@ class Database {
     public function rollback() {
         Logger::warning("Revirtiendo transacción de base de datos");
         return $this->conn->rollback();
+    }
+
+    // Método para crear la tabla de matches potenciales si no existe
+    public function createPotentialMatchesTable() {
+        $sql = "CREATE TABLE IF NOT EXISTS matches_potenciales (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            event_id INT NOT NULL,
+            buyer_id INT NOT NULL,
+            supplier_id INT NOT NULL,
+            strength_match DECIMAL(5,2) NOT NULL,
+            categorias_coincidentes JSON DEFAULT NULL,
+            dias_coincidentes JSON DEFAULT NULL,
+            estado VARCHAR(20) DEFAULT 'potencial',
+            fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+            INDEX(event_id),
+            INDEX(buyer_id),
+            INDEX(supplier_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
+        $this->query($sql);
     }
 }

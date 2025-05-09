@@ -29,6 +29,11 @@ class Event {
     private $contact_name;
     private $contact_phone;
     private $contact_email;
+    private $event_id;
+    private $event_logo;
+    private $company_logo;
+    private $created_at;
+    private $updated_at;
     
     /**
      * Constructor
@@ -391,11 +396,11 @@ public function count($filters = []) {
         $query = "SELECT * FROM {$this->table} WHERE end_date >= :today AND is_active = 1 ORDER BY start_date ASC";
         $params = ['today' => $today];
         
-        // Aplicar paginación
-        if ($pagination) {
+        // Aplicar paginación de forma segura
+        if ($pagination && isset($pagination['offset'], $pagination['per_page'])) {
             $query .= " LIMIT :offset, :limit";
-            $params['offset'] = $pagination['offset'];
-            $params['limit'] = $pagination['per_page'];
+            $params['offset'] = (int)$pagination['offset']; // Asegurar que es un entero
+            $params['limit'] = (int)$pagination['per_page'];  // Asegurar que es un entero
         }
         
         return $this->db->resultSet($query, $params);
@@ -656,93 +661,67 @@ public function count($filters = []) {
      */
     public function generateTimeSlots($eventId = null, $date = null) {
         $id = $eventId ?? $this->id;
-        
         if (!$id) {
             return [];
         }
-        
-        // Si no se especifica fecha, usamos la fecha de inicio del evento
         if (!$date) {
             $date = $this->start_date;
         }
-        
-        // Formatear fecha si es necesario
         if (strpos($date, '/') !== false) {
             $date = dateToDatabase($date);
         }
-        
-        // Obtener información del evento
         if (!$this->findById($id)) {
             return [];
         }
-        
-        // Obtener breaks del evento
         $breaks = $this->getBreaks($id);
-        
-        // Duración de las reuniones en minutos
         $duration = $this->meeting_duration ?? DEFAULT_MEETING_DURATION;
-        
-        // Convertir horas de inicio y fin a minutos desde el inicio del día
         $startTimeParts = explode(':', $this->start_time);
         $endTimeParts = explode(':', $this->end_time);
-        
         $startMinutes = (int)$startTimeParts[0] * 60 + (int)$startTimeParts[1];
         $endMinutes = (int)$endTimeParts[0] * 60 + (int)$endTimeParts[1];
-        
-        // Convertir breaks a minutos desde el inicio del día
         $breakIntervals = [];
         foreach ($breaks as $break) {
             $startParts = explode(':', $break['start_time']);
             $endParts = explode(':', $break['end_time']);
-            
             $breakStart = (int)$startParts[0] * 60 + (int)$startParts[1];
             $breakEnd = (int)$endParts[0] * 60 + (int)$endParts[1];
-            
             $breakIntervals[] = [
                 'start' => $breakStart,
                 'end' => $breakEnd
             ];
         }
-        
-        // Generar slots
         $slots = [];
         $currentTime = $startMinutes;
-        
+        $availableTables = $this->available_tables ?? 1;
         while ($currentTime + $duration <= $endMinutes) {
             $slotStart = $currentTime;
             $slotEnd = $currentTime + $duration;
-            
-            // Verificar si el slot coincide con algún break
             $isBreak = false;
             foreach ($breakIntervals as $break) {
-                // Si el slot se superpone con un break
                 if (!($slotEnd <= $break['start'] || $slotStart >= $break['end'])) {
                     $isBreak = true;
                     break;
                 }
             }
-            
             if (!$isBreak) {
-                // Formatear las horas
                 $startHour = floor($slotStart / 60);
                 $startMinute = $slotStart % 60;
                 $endHour = floor($slotEnd / 60);
                 $endMinute = $slotEnd % 60;
-                
                 $startFormatted = sprintf('%02d:%02d:00', $startHour, $startMinute);
                 $endFormatted = sprintf('%02d:%02d:00', $endHour, $endMinute);
-                
-                $slots[] = [
-                    'start' => $startFormatted,
-                    'end' => $endFormatted,
-                    'start_datetime' => $date . ' ' . $startFormatted,
-                    'end_datetime' => $date . ' ' . $endFormatted
-                ];
+                for ($table = 1; $table <= $availableTables; $table++) {
+                    $slots[] = [
+                        'start' => $startFormatted,
+                        'end' => $endFormatted,
+                        'start_datetime' => $date . ' ' . $startFormatted,
+                        'end_datetime' => $date . ' ' . $endFormatted,
+                        'table_number' => $table
+                    ];
+                }
             }
-            
             $currentTime += $duration;
         }
-        
         return $slots;
     }
     

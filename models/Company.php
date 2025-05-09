@@ -231,8 +231,8 @@ class Company {
             $this->db->query($query, ['id' => $companyId]);
             
             // Eliminar matches donde la empresa es compradora o proveedora
-            $query = "DELETE FROM matches WHERE buyer_id = :id OR supplier_id = :id";
-            $this->db->query($query, ['id' => $companyId]);
+            $query = "DELETE FROM matches WHERE buyer_id = :buyer_id OR supplier_id = :supplier_id";
+            $this->db->query($query, ['buyer_id' => $companyId, 'supplier_id' => $companyId]);
             
             // Eliminar requerimientos si es comprador
             $query = "DELETE FROM requirements WHERE buyer_id = :id";
@@ -380,20 +380,21 @@ class Company {
      * @param int $companyId ID de la empresa
      * @return bool|string Ruta del logo guardado o false en caso de error
      */
-    public function uploadLogo($file, $companyId = null) {
-        $id = $companyId ?? $this->id;
-        
-        if (!$id || !$file || $file['error'] !== UPLOAD_ERR_OK) {
+    public function uploadLogo($file, $companyId) { // Se hace $companyId obligatorio para este contexto
+        if (!$companyId || !$file || $file['error'] !== UPLOAD_ERR_OK) {
+            Logger::warning('UploadLogo: No ID, no file, or upload error.', ['id' => $companyId, 'file_error' => $file['error'] ?? 'N/A']);
             return false;
         }
         
         // Validar tipo de archivo
         if (!isAllowedExtension($file['name'], ALLOWED_EXTENSIONS)) {
+            Logger::warning('UploadLogo: Invalid extension.', ['filename' => $file['name']]);
             return false;
         }
         
         // Validar tamaño
         if ($file['size'] > MAX_UPLOAD_SIZE) {
+            Logger::warning('UploadLogo: File too large.', ['filesize' => $file['size']]);
             return false;
         }
         
@@ -403,20 +404,37 @@ class Company {
         
         // Crear directorio si no existe
         if (!is_dir(LOGO_DIR)) {
-            mkdir(LOGO_DIR, 0755, true);
+            if (!mkdir(LOGO_DIR, 0755, true)) {
+                Logger::error('UploadLogo: Failed to create logo directory.', ['path' => LOGO_DIR]);
+                return false;
+            }
         }
         
         // Mover archivo
         if (move_uploaded_file($file['tmp_name'], $logoPath)) {
-            // Actualizar ruta en la base de datos
-            $data = ['company_logo' => $logoName];
+            // Actualizar ruta en la base de datos directamente
+            $query = "UPDATE {$this->table} SET company_logo = :logo WHERE company_id = :id";
+            $params = ['logo' => $logoName, 'id' => $companyId];
             
-            if ($this->update($data)) {
+            if ($this->db->query($query, $params)) {
+                // Si la instancia actual del modelo corresponde al companyId, actualizamos su propiedad
+                if ($this->id == $companyId) {
+                    $this->company_logo = $logoName;
+                }
+                Logger::info("Logo '{$logoName}' updated in DB for company ID {$companyId}.");
                 return $logoName;
+            } else {
+                Logger::error("UploadLogo: Failed to update logo path in DB for company ID {$companyId}.");
+                // Si falla la actualización en BD, eliminamos el archivo subido para no dejar huérfanos
+                if (file_exists($logoPath)) {
+                    unlink($logoPath);
+                }
+                return false;
             }
+        } else {
+            Logger::error('UploadLogo: Failed to move uploaded file.', ['tmp_name' => $file['tmp_name'], 'destination' => $logoPath]);
+            return false;
         }
-        
-        return false;
     }
     
     /**
@@ -858,12 +876,13 @@ class Company {
                   JOIN company b ON m.buyer_id = b.company_id 
                   JOIN company s ON m.supplier_id = s.company_id 
                   WHERE es.event_id = :event_id 
-                  AND (m.buyer_id = :company_id OR m.supplier_id = :company_id) 
+                  AND (m.buyer_id = :company_id1 OR m.supplier_id = :company_id2) 
                   ORDER BY es.start_datetime";
         
         $params = [
             'event_id' => $eventId,
-            'company_id' => $id
+            'company_id1' => $id,
+            'company_id2' => $id
         ];
         
         return $this->db->resultSet($query, $params);
@@ -890,12 +909,13 @@ class Company {
                   JOIN company b ON m.buyer_id = b.company_id 
                   JOIN company s ON m.supplier_id = s.company_id 
                   WHERE m.event_id = :event_id 
-                  AND (m.buyer_id = :company_id OR m.supplier_id = :company_id) 
+                  AND (m.buyer_id = :company_id1 OR m.supplier_id = :company_id2) 
                               ORDER BY m.match_strength DESC";
 
         $params = [
             'event_id' => $eventId,
-            'company_id' => $id
+            'company_id1' => $id,
+            'company_id2' => $id
         ];
 
         return $this->db->resultSet($query, $params);
@@ -1026,4 +1046,141 @@ public function getUpcomingEvents($companyId = null, $limit = 3) {
     Logger::info("Se encontraron " . count($upcomingEvents) . " próximos eventos para la empresa ID: $companyId");
     return $upcomingEvents;
 }
+
+    /**
+     * Obtener el ID del evento asociado a la empresa
+     * 
+     * @return int|null ID del evento o null si no está definido
+     */
+    public function getEventId() {
+        return $this->event_id ?? null;
+    }
+
+    /**
+     * Obtener el rol de la empresa actual
+     * @return string|null
+     */
+    public function getRole() {
+        return $this->role ?? null;
+    }
+
+    /**
+     * Obtener el nombre de la empresa actual
+     * @return string|null
+     */
+    public function getCompanyName() {
+        return $this->company_name;
+    }
+
+    /**
+     * Obtener el nombre del contacto de la empresa
+     * @return string|null
+     */
+    public function getContactFirstName() {
+        return $this->contact_first_name;
+    }
+
+    /**
+     * Obtener el apellido del contacto de la empresa
+     * @return string|null
+     */
+    public function getContactLastName() {
+        return $this->contact_last_name;
+    }
+
+    /**
+     * Obtener el email de la empresa
+     * @return string|null
+     */
+    public function getEmail() {
+        return $this->email;
+    }
+
+    /**
+     * Obtener el teléfono de la empresa
+     * @return string|null
+     */
+    public function getPhone() {
+        return $this->phone;
+    }
+
+    /**
+     * Obtener la dirección de la empresa
+     * @return string|null
+     */
+    public function getAddress() {
+        return $this->address;
+    }
+
+    /**
+     * Obtener la ciudad de la empresa
+     * @return string|null
+     */
+    public function getCity() {
+        return $this->city;
+    }
+
+    /**
+     * Obtener el país de la empresa
+     * @return string|null
+     */
+    public function getCountry() {
+        return $this->country;
+    }
+
+    /**
+     * Obtener el sitio web de la empresa
+     * @return string|null
+     */
+    public function getWebsite() {
+        return $this->website;
+    }
+
+    /**
+     * Obtener la descripción de la empresa
+     * @return string|null
+     */
+    public function getDescription() {
+        return $this->description;
+    }
+
+    /**
+     * Verificar si la empresa está activa
+     * @return bool
+     */
+    public function isActive() {
+        return $this->is_active;
+    }
+
+    /**
+     * Obtener el ID de la empresa actual
+     * @return int|null
+     */
+    public function getId() {
+        return $this->id;
+    }
+
+    /**
+     * Asignar propiedades del modelo desde un array de datos
+     * @param array $data
+     * @return void
+     */
+    private function setProperties($data) {
+        $this->id = $data['company_id'] ?? null;
+        $this->company_name = $data['company_name'] ?? null;
+        $this->address = $data['address'] ?? null;
+        $this->city = $data['city'] ?? null;
+        $this->country = $data['country'] ?? null;
+        $this->website = $data['website'] ?? null;
+        $this->company_logo = $data['company_logo'] ?? null;
+        $this->contact_first_name = $data['contact_first_name'] ?? null;
+        $this->contact_last_name = $data['contact_last_name'] ?? null;
+        $this->phone = $data['phone'] ?? null;
+        $this->email = $data['email'] ?? null;
+        $this->created_at = $data['created_at'] ?? null;
+        $this->is_active = $data['is_active'] ?? null;
+        $this->role = $data['role'] ?? null;
+        $this->event_id = $data['event_id'] ?? null;
+        $this->description = $data['description'] ?? null;
+    }
 }

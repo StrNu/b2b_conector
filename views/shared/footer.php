@@ -22,7 +22,9 @@
     window.BASE_URL = '<?= BASE_PUBLIC_URL ?>';
 </script>
     <script src="<?= BASE_PUBLIC_URL ?>/assets/js/main.js"></script>
+    <script src="<?= BASE_URL ?>/assets/js/components/autosearch.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="<?= BASE_URL ?>/assets/js/components/tabs.js"></script>
         <!-- JS base siempre cargado -->
     <script src="<?= BASE_PUBLIC_URL ?>/assets/js/utils/form-validation.js"></script>
 

@@ -309,6 +309,69 @@ class Category {
         return (bool) $this->is_active;
     }
 
+    // === EVENT CATEGORIES & SUBCATEGORIES ===
+    public function getEventCategories($eventId) {
+        $query = "SELECT * FROM event_categories WHERE event_id = :event_id ORDER BY name";
+        return $this->db->resultSet($query, [':event_id' => $eventId]);
+    }
+    public function getEventCategoryByName($eventId, $name) {
+        $query = "SELECT * FROM event_categories WHERE event_id = :event_id AND name = :name LIMIT 1";
+        return $this->db->single($query, [':event_id' => $eventId, ':name' => $name]);
+    }
+    public function addEventCategory($eventId, $name,  $isActive = 1) {
+        $query = "INSERT INTO event_categories (event_id, name, is_active) VALUES (:event_id, :name, :is_active)";
+        $this->db->query($query, [
+            ':event_id' => $eventId,
+            ':name' => $name,
+            ':is_active' => $isActive
+        ]);
+        return $this->db->lastInsertId();
+    }
+    public function addEventSubcategory($categoryId, $name, $isActive = 1) {
+        $query = "INSERT INTO event_subcategories (event_category_id, name, is_active) VALUES (:category_id, :name, :is_active)";
+        $this->db->query($query, [
+            ':category_id' => $categoryId,
+            ':name' => $name,
+            ':is_active' => $isActive
+        ]);
+        return $this->db->lastInsertId();
+    }
+    public function getEventSubcategories($categoryId) {
+        $query = "SELECT * FROM event_subcategories WHERE event_category_id = :category_id ORDER BY name";
+        return $this->db->resultSet($query, [':category_id' => $categoryId]);
+    }
+
+    // Obtener una subcategoría de evento por su ID
+    public function getEventSubcategory($subcategoryId) {
+        $query = "SELECT * FROM event_subcategories WHERE event_subcategory_id = :id LIMIT 1";
+        return $this->db->fetchOne($query, [':id' => $subcategoryId]);
+    }
+
+    // Obtener una categoría de evento por su ID
+    public function getEventCategory($categoryId) {
+        $query = "SELECT * FROM event_categories WHERE event_category_id = :id LIMIT 1";
+        $result = $this->db->fetchOne($query, [':id' => $categoryId]);
+        if (!$result || !is_array($result) || empty($result)) {
+            return null;
+        }
+        return $result;
+    }
+
+    // Eliminar una subcategoría de evento por su ID
+    public function deleteEventSubcategory($subcategoryId) {
+        $query = "DELETE FROM event_subcategories WHERE event_subcategory_id = :id";
+        return $this->db->query($query, [':id' => $subcategoryId]);
+    }
+
+    // Eliminar una categoría de evento por su ID
+    public function deleteEventCategory($categoryId) {
+        // Primero eliminar subcategorías asociadas
+        $this->db->query("DELETE FROM event_subcategories WHERE event_category_id = :category_id", [':category_id' => $categoryId]);
+        // Luego eliminar la categoría
+        $query = "DELETE FROM event_categories WHERE event_category_id = :id";
+        return $this->db->query($query, [':id' => $categoryId]);
+    }
+
     /**
  * Obtener estadísticas de categorías para un evento específico
  * 
@@ -374,5 +437,73 @@ public function getEventStats($eventId) {
     
     return $stats;
 }
+
+/**
+ * Editar una categoría de evento por su ID
+ * @param int $categoryId
+ * @param array $data
+ * @return bool
+ */
+public function editEventCategory($categoryId, $data) {
+    if (empty($categoryId) || empty($data) || !is_array($data)) {
+        return false;
+    }
+    $fields = [];
+    $params = [':id' => $categoryId];
+    foreach ($data as $key => $value) {
+        $fields[] = "$key = :$key";
+        $params[":$key"] = $value;
+    }
+    $query = "UPDATE event_categories SET " . implode(', ', $fields) . " WHERE event_category_id = :id";
+    return $this->db->query($query, $params);
+}
+
+/**
+ * Editar una subcategoría de evento por su ID
+ * @param int $subcategoryId
+ * @param array $data
+ * @return bool
+ */
+public function editEventSubcategory($subcategoryId, $data) {
+    if (empty($subcategoryId) || empty($data) || !is_array($data)) {
+        return false;
+    }
+    $fields = [];
+    $params = [':id' => $subcategoryId];
+    foreach ($data as $key => $value) {
+        $fields[] = "$key = :$key";
+        $params[":$key"] = $value;
+    }
+    $query = "UPDATE event_subcategories SET " . implode(', ', $fields) . " WHERE event_subcategory_id = :id";
+    return $this->db->query($query, $params);
+}
+
+/**
+     * Actualiza el nombre de una subcategoría de evento por su ID
+     * @param int $subcategoryId
+     * @param string $name
+     * @return bool
+     */
+    public function updateEventSubcategory($subcategoryId, $name) {
+        if (empty($subcategoryId) || $name === '' || $name === null) {
+            return false;
+        }
+        $query = "UPDATE event_subcategories SET name = :name WHERE event_subcategory_id = :id";
+        return $this->db->query($query, [':name' => $name, ':id' => $subcategoryId]);
+    }
+
+    /**
+     * Actualiza el nombre de una categoría de evento por su ID
+     * @param int $categoryId
+     * @param string $name
+     * @return bool
+     */
+    public function updateEventCategory($categoryId, $name) {
+        if (empty($categoryId) || $name === '' || $name === null) {
+            return false;
+        }
+        $query = "UPDATE event_categories SET name = :name WHERE event_category_id = :id";
+        return $this->db->query($query, [':name' => $name, ':id' => $categoryId]);
+    }
 
 }

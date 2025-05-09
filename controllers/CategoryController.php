@@ -48,28 +48,17 @@ class CategoryController {
      */
     public function index() {
         // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-            redirect(BASE_URL);
-            exit;
-        }
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
         
         // Obtener parámetros de paginación y filtros
         $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
         $perPage = 10;
         
         // Configurar filtros
-        $filters = [];
-        
-        // Filtrar por nombre si se especifica
-        if (isset($_GET['search']) && !empty($_GET['search'])) {
-            $filters['category_name'] = '%' . sanitize($_GET['search']) . '%';
-        }
-        
-        // Filtrar por estado si se especifica
-        if (isset($_GET['is_active']) && in_array($_GET['is_active'], ['1', '0'])) {
-            $filters['is_active'] = (int)$_GET['is_active'];
-        }
+        $filters = $this->buildFilters([
+            'search' => ['category_name', '%'],
+            'is_active' => ['is_active', '']
+        ]);
         
         // Obtener total de categorías según filtros
         $totalCategories = $this->categoryModel->count($filters);
@@ -82,9 +71,16 @@ class CategoryController {
         
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
+
+        // Configurar datos para la vista
+        $pageData = [
+            'pageTitle' => 'Categorías',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories', 'components/import_modal']
+        ];
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/categories/index.php');
+        $this->renderView('categories/index', compact('categories', 'pagination', 'csrfToken', 'pageData'));
     }
     
     /**
@@ -94,14 +90,11 @@ class CategoryController {
      */
     public function create() {
         // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para crear categorías', 'danger');
-            redirect(BASE_URL . '/categories');
-            exit;
-        }
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER], '/categories');
         
         // Verificar si se especificó un evento
         $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : null;
+        $event = null;
         
         if ($eventId) {
             // Verificar que el evento exista
@@ -116,9 +109,16 @@ class CategoryController {
         
         // Token CSRF para el formulario
         $csrfToken = generateCSRFToken();
+
+        // Configurar datos para la vista
+        $pageData = [
+            'pageTitle' => 'Crear Categoría',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories', 'components/import_modal']
+        ];
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/categories/create.php');
+        $this->renderView('categories/create', compact('event', 'eventId', 'csrfToken', 'pageData'));
     }
     
     /**
@@ -128,24 +128,10 @@ class CategoryController {
      */
     public function store() {
         // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para crear categorías', 'danger');
-            redirect(BASE_URL);
-            exit;
-        }
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
         
-        // Verificar método de solicitud
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            redirect(BASE_URL . '/categories/create');
-            exit;
-        }
-        
-        // Verificar token CSRF
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
-            redirect(BASE_URL . '/categories/create');
-            exit;
-        }
+        // Verificar método de solicitud y token CSRF
+        $this->validateRequest('POST', '/categories/create');
         
         // Validar datos del formulario
         $this->validator->setData($_POST);
@@ -169,72 +155,13 @@ class CategoryController {
             
             if ($eventId) {
                 // Crear categoría específica para el evento
-                $categoryData = [
-                    'event_id' => $eventId,
-                    'name' => sanitize($_POST['category_name']),
-                    'description' => sanitize($_POST['description'] ?? ''),
-                    'is_active' => isset($_POST['is_active']) ? 1 : 0
-                ];
-                
-                $query = "INSERT INTO event_categories (event_id, name, description, is_active) 
-                          VALUES (:event_id, :name, :description, :is_active)";
-                
-                $this->db->query($query, $categoryData);
-                $categoryId = $this->db->lastInsertId();
-                
-                // Crear subcategorías si se proporcionaron
-                if (isset($_POST['subcategories']) && !empty($_POST['subcategories'])) {
-                    $subcategories = explode("\n", trim($_POST['subcategories']));
-                    
-                    foreach ($subcategories as $subcategory) {
-                        $subcategory = trim($subcategory);
-                        if (!empty($subcategory)) {
-                            $subcategoryData = [
-                                'event_category_id' => $categoryId,
-                                'name' => $subcategory,
-                                'is_active' => 1
-                            ];
-                            
-                            $query = "INSERT INTO event_subcategories (event_category_id, name, is_active) 
-                                      VALUES (:event_category_id, :name, :is_active)";
-                            
-                            $this->db->query($query, $subcategoryData);
-                        }
-                    }
-                }
+                $categoryId = $this->createEventCategory($eventId);
                 
                 // Redireccionar a la vista del evento
                 $redirect = BASE_URL . '/events/view/' . $eventId;
             } else {
                 // Crear categoría global
-                $categoryData = [
-                    'category_name' => sanitize($_POST['category_name']),
-                    'is_active' => isset($_POST['is_active']) ? 1 : 0
-                ];
-                
-                $categoryId = $this->categoryModel->create($categoryData);
-                
-                if (!$categoryId) {
-                    throw new Exception('Error al crear la categoría');
-                }
-                
-                // Crear subcategorías si se proporcionaron
-                if (isset($_POST['subcategories']) && !empty($_POST['subcategories'])) {
-                    $subcategories = explode("\n", trim($_POST['subcategories']));
-                    
-                    foreach ($subcategories as $subcategory) {
-                        $subcategory = trim($subcategory);
-                        if (!empty($subcategory)) {
-                            $subcategoryData = [
-                                'subcategory_name' => $subcategory,
-                                'category_id' => $categoryId,
-                                'is_active' => 1
-                            ];
-                            
-                            $this->subcategoryModel->create($subcategoryData);
-                        }
-                    }
-                }
+                $categoryId = $this->createGlobalCategory();
                 
                 // Redireccionar a la lista de categorías
                 $redirect = BASE_URL . '/categories';
@@ -262,145 +189,152 @@ class CategoryController {
         }
     }
     
-    /**
-     * Importar categorías desde un archivo CSV
-     * 
-     * @param int $eventId ID del evento
-     * @return void
-     */
-    public function import($eventId) {
-        // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para importar categorías', 'danger');
-            redirect(BASE_URL . '/events/view/' . $eventId);
-            exit;
+   /**
+ * Importar categorías desde un archivo CSV
+ * 
+ * @param int $eventId ID del evento
+ * @return void
+ */
+public function import($eventId) {
+    // Verificar permisos
+    if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+        setFlashMessage('No tiene permisos para importar categorías', 'danger');
+        redirect(BASE_URL . '/events/view/' . $eventId);
+        exit;
+    }
+    
+    // Verificar método de solicitud
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        redirect(BASE_URL . '/events/view/' . $eventId);
+        exit;
+    }
+    
+    // Verificar token CSRF
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+        redirect(BASE_URL . '/events/view/' . $eventId);
+        exit;
+    }
+    
+    // Verificar que se haya subido un archivo
+    if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+        setFlashMessage('Debe seleccionar un archivo CSV válido', 'danger');
+        redirect(BASE_URL . '/events/view/' . $eventId);
+        exit;
+    }
+    
+    // Verificar que el archivo sea un CSV
+    $fileInfo = pathinfo($_FILES['csv_file']['name']);
+    if (strtolower($fileInfo['extension']) !== 'csv') {
+        setFlashMessage('El archivo debe ser un CSV (.csv)', 'danger');
+        redirect(BASE_URL . '/events/view/' . $eventId);
+        exit;
+    }
+    
+    // Procesar el archivo CSV
+    $file = $_FILES['csv_file']['tmp_name'];
+    $fileContents = file_get_contents($file);
+    $bom = pack('H*', 'EFBBBF');
+    if (strncmp($fileContents, $bom, 3) === 0) {
+        $fileContents = substr($fileContents, 3);
+    }
+    $delimiters = [',', ';', "\t", '|'];
+    $detectedDelimiter = ',';
+    $firstLine = strtok($fileContents, "\r\n");
+    foreach ($delimiters as $delimiter) {
+        $count = substr_count($firstLine, $delimiter);
+        if ($count > 0) {
+            $detectedDelimiter = $delimiter;
+            break;
         }
-        
-        // Verificar método de solicitud
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            redirect(BASE_URL . '/events/view/' . $eventId);
-            exit;
-        }
-        
-        // Verificar token CSRF
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
-            redirect(BASE_URL . '/events/view/' . $eventId);
-            exit;
-        }
-        
-        // Verificar que se haya subido un archivo
-        if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
-            setFlashMessage('Debe seleccionar un archivo CSV válido', 'danger');
-            redirect(BASE_URL . '/events/view/' . $eventId);
-            exit;
-        }
-        
-        // Verificar que el archivo sea un CSV
-        $fileInfo = pathinfo($_FILES['csv_file']['name']);
-        if (strtolower($fileInfo['extension']) !== 'csv') {
-            setFlashMessage('El archivo debe ser un CSV (.csv)', 'danger');
-            redirect(BASE_URL . '/events/view/' . $eventId);
-            exit;
-        }
-        
-        // Procesar el archivo CSV
-        $file = $_FILES['csv_file']['tmp_name'];
-        
-        if (($handle = fopen($file, "r")) !== FALSE) {
-            // Iniciar transacción
-            $this->db->beginTransaction();
-            
-            try {
-                $lineCount = 0;
-                $currentCategoryId = null;
-                $categoriesCreated = 0;
-                $subcategoriesCreated = 0;
-                
-                while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
-                    $lineCount++;
-                    
-                    // Saltar línea de encabezados
-                    if ($lineCount === 1 && (strtolower($data[0]) === 'tipo' || strtolower($data[0]) === 'type')) {
-                        continue;
-                    }
-                    
-                    // Verificar que haya al menos dos columnas (tipo y nombre)
-                    if (count($data) < 2) {
-                        continue;
-                    }
-                    
-                    // Limpiar los datos
-                    $type = trim($data[0]);
-                    $name = trim($data[1]);
-                    $description = isset($data[2]) ? trim($data[2]) : '';
-                    
-                    // Si está vacío el nombre, saltar
-                    if (empty($name)) {
-                        continue;
-                    }
-                    
-                    // Determinar si es categoría o subcategoría
-                    if (strtolower($type) === 'categoría' || strtolower($type) === 'categoria' || strtolower($type) === 'category') {
-                        // Insertar categoría
-                        $query = "INSERT INTO event_categories (event_id, name, description, is_active) 
-                                VALUES (:event_id, :name, :description, 1)";
-                        
-                        $params = [
-                            ':event_id' => $eventId,
-                            ':name' => $name,
-                            ':description' => $description
-                        ];
-                        
-                        $this->db->query($query, $params);
-                        $currentCategoryId = $this->db->lastInsertId();
-                        $categoriesCreated++;
-                        
-                    } elseif (strtolower($type) === 'subcategoría' || strtolower($type) === 'subcategoria' || strtolower($type) === 'subcategory') {
-                        // Verificar que exista una categoría actual
-                        if (!$currentCategoryId) {
-                            throw new Exception("Línea $lineCount: No hay una categoría padre para la subcategoría: $name");
+    }
+    Logger::debug("Delimitador detectado: " . $detectedDelimiter);
+    if (($handle = fopen($file, "r")) !== FALSE) {
+        $this->db->beginTransaction();
+        try {
+            $lineCount = 0;
+            $categoriesCreated = 0;
+            $subcategoriesCreated = 0;
+            $categories = [];
+            $headers = fgetcsv($handle, 1000, $detectedDelimiter);
+            $hasHeaders = false;
+            $possibleHeaders = ['category_name', 'categoria', 'category', 'tipo', 'type', 'name'];
+            $firstColumn = strtolower(trim($headers[0]));
+            foreach ($possibleHeaders as $header) {
+                if ($firstColumn === $header) {
+                    $hasHeaders = true;
+                    break;
+                }
+            }
+            if (!$hasHeaders) {
+                rewind($handle);
+            } else {
+                Logger::debug("Encabezados detectados: ", $headers);
+            }
+            while (($data = fgetcsv($handle, 1000, $detectedDelimiter)) !== FALSE) {
+                $lineCount++;
+                if (count($data) < 2 || empty(trim($data[0])) || empty(trim($data[1]))) {
+                    continue;
+                }
+                $categoryName = trim($data[0]);
+                $subcategoryName = trim($data[1]);
+                // --- Cambios aquí: Lanzar excepción si falla la inserción ---
+                if (!isset($categories[$categoryName])) {
+                    $existingCategory = $this->categoryModel->getEventCategoryByName($eventId, $categoryName);
+                    if ($existingCategory) {
+                        $categories[$categoryName] = $existingCategory['event_category_id'];
+                    } else {
+                        $categoryId = $this->categoryModel->createEventCategory($eventId, $categoryName);
+                        if (!$categoryId) {
+                            throw new Exception("Error al crear la categoría: $categoryName");
                         }
-                        
-                        // Insertar subcategoría
-                        $query = "INSERT INTO event_subcategories (event_category_id, name, description, is_active) 
-                                VALUES (:event_category_id, :name, :description, 1)";
-                        
-                        $params = [
-                            ':event_category_id' => $currentCategoryId,
-                            ':name' => $name,
-                            ':description' => $description
-                        ];
-                        
-                        $this->db->query($query, $params);
-                        $subcategoriesCreated++;
+                        $categories[$categoryName] = $categoryId;
+                        $categoriesCreated++;
+                        Logger::debug("Categoría creada: $categoryName, ID: $categoryId");
                     }
                 }
-                
-                // Confirmar transacción
-                $this->db->commit();
-                
-                // Mensaje de éxito
-                $message = "Importación exitosa: $categoriesCreated categorías y $subcategoriesCreated subcategorías creadas.";
-                setFlashMessage($message, 'success');
-                
-            } catch (Exception $e) {
-                // Revertir en caso de error
-                $this->db->rollback();
-                Logger::error("Error al importar categorías: " . $e->getMessage(), [
-                    'event_id' => $eventId,
-                    'file' => $_FILES['csv_file']['name']
-                ]);
-                setFlashMessage('Error al importar categorías: ' . $e->getMessage(), 'danger');
+                $categoryId = $categories[$categoryName];
+                if (empty($categoryId)) {
+                    throw new Exception("ID de categoría no válido para subcategoría: $subcategoryName");
+                }
+                $existingSubcategories = $this->categoryModel->getEventSubcategories($categoryId);
+                $exists = false;
+                foreach ($existingSubcategories as $subcat) {
+                    if (strcasecmp($subcat['name'], $subcategoryName) === 0) {
+                        $exists = true;
+                        break;
+                    }
+                }
+                if (!$exists) {
+                    $subcategoryId = $this->categoryModel->createEventSubcategory($categoryId, $subcategoryName);
+                    if (!$subcategoryId) {
+                        throw new Exception("Error al crear la subcategoría: $subcategoryName");
+                    }
+                    $subcategoriesCreated++;
+                    Logger::debug("Subcategoría creada: $subcategoryName para categoría ID: $categoryId");
+                }
             }
-            
-            fclose($handle);
-        } else {
-            setFlashMessage('Error al abrir el archivo CSV', 'danger');
+            // --- Fin cambios ---
+            $this->db->commit();
+            if ($categoriesCreated > 0 || $subcategoriesCreated > 0) {
+                setFlashMessage("Importación exitosa: $categoriesCreated categorías y $subcategoriesCreated subcategorías creadas.", 'success');
+            } else {
+                setFlashMessage("No se crearon nuevas categorías o subcategorías. Es posible que todas ya existan o que haya habido errores en el proceso.", 'warning');
+            }
+        } catch (Exception $e) {
+            $this->db->rollback();
+            Logger::error("Error al importar categorías: " . $e->getMessage(), [
+                'event_id' => $eventId,
+                'file' => $_FILES['csv_file']['name']
+            ]);
+            setFlashMessage('Error al importar categorías: ' . $e->getMessage(), 'danger');
         }
-        
-        redirect(BASE_URL . '/events/view/' . $eventId);
+        fclose($handle);
+    } else {
+        setFlashMessage('Error al abrir el archivo CSV', 'danger');
     }
+    redirect(BASE_URL . '/events/view/' . $eventId);
+}
     
     /**
      * Mostrar categorías y subcategorías de un evento específico
@@ -410,11 +344,7 @@ class CategoryController {
      */
     public function showEventCategories($eventId) {
         // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-            redirect(BASE_URL);
-            exit;
-        }
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
         
         // Verificar que el evento exista
         if (!$this->eventModel->findById($eventId)) {
@@ -423,31 +353,28 @@ class CategoryController {
             exit;
         }
         
-        // Obtener categorías del evento
-        $query = "SELECT * FROM event_categories WHERE event_id = :event_id ORDER BY name";
-        $categories = $this->db->resultSet($query, [':event_id' => $eventId]);
-        
-        // Obtener subcategorías para cada categoría
-        $categoriesWithSubcategories = [];
-        
-        foreach ($categories as $category) {
-            $query = "SELECT * FROM event_subcategories 
-                      WHERE event_category_id = :category_id 
-                      ORDER BY name";
-                      
-            $subcategories = $this->db->resultSet($query, [':category_id' => $category['event_category_id']]);
-            
-            $categoriesWithSubcategories[] = [
-                'category' => $category,
-                'subcategories' => $subcategories
-            ];
-        }
+        // Obtener categorías del evento con sus subcategorías
+        $categoriesWithSubcategories = $this->getEventCategoriesWithSubcategories($eventId);
         
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
+
+        // Configurar datos para la vista
+        $pageData = [
+            'pageTitle' => 'Categorías del Evento',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories', 'components/import_modal']
+        ];
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/categories/event_categories.php');
+        //$this->renderView('categories/event_categories', compact('categoriesWithSubcategories', 'eventId', 'csrfToken', 'pageData'));
+        $this->renderView('events/categories', compact(
+            'categoriesWithSubcategories', 
+            'eventId', 
+            'eventModel',
+            'csrfToken', 
+            'pageData'
+        ));
     }
     
     /**
@@ -458,24 +385,10 @@ class CategoryController {
      */
     public function deleteEventCategory($categoryId) {
         // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para eliminar categorías', 'danger');
-            redirect(BASE_URL);
-            exit;
-        }
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
         
-        // Verificar método de solicitud
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            redirect(BASE_URL . '/events');
-            exit;
-        }
-        
-        // Verificar token CSRF
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
-            redirect(BASE_URL . '/events');
-            exit;
-        }
+        // Verificar método de solicitud y token CSRF
+        $this->validateRequest('POST', '/events');
         
         // Obtener información de la categoría
         $query = "SELECT * FROM event_categories WHERE event_category_id = :id LIMIT 1";
@@ -525,6 +438,22 @@ class CategoryController {
         redirect(BASE_URL . '/events/view/' . $eventId);
     }
     
+    // MÉTODOS DESACTIVADOS PARA EVITAR CONFLICTOS CON EventController
+    /*
+    public function editCategory($categoryId) {
+        // ...método original comentado...
+    }
+    public function deleteCategory($categoryId) {
+        // ...método original comentado...
+    }
+    public function editSubcategory($subcategoryId) {
+        // ...método original comentado...
+    }
+    public function deleteSubcategory($subcategoryId) {
+        // ...método original comentado...
+    }
+    */
+    
     /**
      * Obtener subcategorías por AJAX
      * 
@@ -533,9 +462,7 @@ class CategoryController {
     public function getSubcategories() {
         // Verificar si la solicitud es AJAX
         if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) !== 'xmlhttprequest') {
-            header('HTTP/1.1 400 Bad Request');
-            echo json_encode(['error' => 'Solicitud no válida']);
-            exit;
+            $this->sendJsonResponse(['error' => 'Solicitud no válida'], 400);
         }
         
         // Verificar que se envió un ID de categoría
@@ -543,29 +470,390 @@ class CategoryController {
         $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
         
         if (!$categoryId) {
-            header('HTTP/1.1 400 Bad Request');
-            echo json_encode(['error' => 'ID de categoría no válido']);
+            $this->sendJsonResponse(['error' => 'ID de categoría no válido'], 400);
+        }
+        
+        // Obtener subcategorías según el tipo (evento o global)
+        $subcategories = $this->getSubcategoriesByType($categoryId, $eventId);
+        
+        // Devolver subcategorías como JSON
+        $this->sendJsonResponse([
+            'success' => true,
+            'subcategories' => $subcategories
+        ]);
+    }
+    
+    /*
+     * Métodos auxiliares
+     */
+    
+    /**
+     * Verificar permisos del usuario
+     * 
+     * @param array $roles Roles permitidos
+     * @param string $redirect URL de redirección en caso de no tener permisos
+     * @return void
+     */
+    private function checkPermission($roles, $redirect = BASE_URL) {
+        if (!hasRole($roles)) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect($redirect);
+            exit;
+        }
+    }
+    
+    /**
+     * Validar método de solicitud y token CSRF
+     * 
+     * @param string $method Método HTTP esperado
+     * @param string $redirect URL de redirección en caso de error
+     * @return void
+     */
+    private function validateRequest($method, $redirect) {
+        // Verificar método de solicitud
+        if ($_SERVER['REQUEST_METHOD'] !== $method) {
+            redirect(BASE_URL . $redirect);
             exit;
         }
         
-        // Verificar si es una categoría específica de evento
+        // Verificar token CSRF
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+            redirect(BASE_URL . $redirect);
+            exit;
+        }
+    }
+    
+    /**
+     * Validar archivo CSV subido
+     * 
+     * @return bool True si el archivo es válido, false en caso contrario
+     */
+    private function validateCsvFile() {
+        // Verificar que se haya subido un archivo
+        if (!isset($_FILES['csv_file']) || $_FILES['csv_file']['error'] !== UPLOAD_ERR_OK) {
+            setFlashMessage('Debe seleccionar un archivo CSV válido', 'danger');
+            return false;
+        }
+        
+        // Verificar que el archivo sea un CSV
+        $fileInfo = pathinfo($_FILES['csv_file']['name']);
+        if (strtolower($fileInfo['extension']) !== 'csv') {
+            setFlashMessage('El archivo debe ser un CSV (.csv)', 'danger');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    /**
+     * Procesar datos del CSV
+     * 
+     * @param resource $handle Manejador del archivo CSV
+     * @param int $eventId ID del evento
+     * @return array Estadísticas de procesamiento
+     */
+    private function processCsvData($handle, $eventId) {
+        $lineCount = 0;
+        $currentCategoryId = null;
+        $categoriesCreated = 0;
+        $subcategoriesCreated = 0;
+        
+        while (($data = fgetcsv($handle, 1000, ",")) !== FALSE) {
+            $lineCount++;
+            
+            // Saltar línea de encabezados
+            if ($lineCount === 1 && $this->isHeaderRow($data)) {
+                continue;
+            }
+            
+            // Verificar que haya al menos dos columnas
+            if (count($data) < 2 || empty(trim($data[1]))) {
+                continue;
+            }
+            
+            // Procesar fila según el tipo (categoría o subcategoría)
+            if ($this->isCategory($data[0])) {
+                // Crear categoría
+                $currentCategoryId = $this->insertEventCategory($eventId, $data, $categoriesCreated);
+            } elseif ($this->isSubcategory($data[0])) {
+                // Verificar que exista una categoría actual
+                if (!$currentCategoryId) {
+                    throw new Exception("Línea $lineCount: No hay una categoría padre para la subcategoría: " . trim($data[1]));
+                }
+                
+                // Crear subcategoría
+                $this->insertEventSubcategory($currentCategoryId, $data, $subcategoriesCreated);
+            }
+        }
+        
+        return [
+            'categories' => $categoriesCreated,
+            'subcategories' => $subcategoriesCreated
+        ];
+    }
+    
+    /**
+     * Verificar si una fila es encabezado
+     * 
+     * @param array $data Datos de la fila
+     * @return bool True si es fila de encabezado
+     */
+    private function isHeaderRow($data) {
+        return strtolower($data[0]) === 'tipo' || 
+               strtolower($data[0]) === 'type' || 
+               strtolower($data[0]) === 'category_name' || 
+               strtolower($data[0]) === 'categoria';
+    }
+    
+    /**
+     * Verificar si el tipo indica una categoría
+     * 
+     * @param string $type Tipo de fila
+     * @return bool True si es una categoría
+     */
+    private function isCategory($type) {
+        $type = strtolower(trim($type));
+        return $type === 'categoría' || $type === 'categoria' || $type === 'category';
+    }
+    
+    /**
+     * Verificar si el tipo indica una subcategoría
+     * 
+     * @param string $type Tipo de fila
+     * @return bool True si es una subcategoría
+     */
+    private function isSubcategory($type) {
+        $type = strtolower(trim($type));
+        return $type === 'subcategoría' || $type === 'subcategoria' || $type === 'subcategory';
+    }
+    
+    /**
+     * Insertar categoría para un evento
+     * 
+     * @param int $eventId ID del evento
+     * @param array $data Datos de la categoría
+     * @param int &$counter Contador de categorías creadas (por referencia)
+     * @return int ID de la categoría creada
+     */
+    private function insertEventCategory($eventId, $data, &$counter) {
+        $name = trim($data[1]);
+        $description = isset($data[2]) ? trim($data[2]) : '';
+        $categoryId = $this->categoryModel->createEventCategory($eventId, $name, $description);
+        $counter++;
+        return $categoryId;
+    }
+    
+    /**
+     * Insertar subcategoría para una categoría de evento
+     * 
+     * @param int $categoryId ID de la categoría
+     * @param array $data Datos de la subcategoría
+     * @param int &$counter Contador de subcategorías creadas (por referencia)
+     * @return int ID de la subcategoría creada
+     */
+    private function insertEventSubcategory($categoryId, $data, &$counter) {
+        $name = trim($data[1]);
+        $description = isset($data[2]) ? trim($data[2]) : '';
+        $this->categoryModel->createEventSubcategory($categoryId, $name, $description);
+        $counter++;
+        return true;
+    }
+    
+    /**
+     * Construir filtros para consultas
+     * 
+     * @param array $filterMap Mapeo de parámetros GET a campos de la base de datos
+     * @return array Filtros procesados
+     */
+    private function buildFilters($filterMap) {
+        $filters = [];
+        
+        foreach ($filterMap as $param => $settings) {
+            [$field, $prefix] = $settings;
+            
+            if (isset($_GET[$param]) && $_GET[$param] !== '') {
+                if ($prefix) {
+                    $filters[$field] = $prefix . sanitize($_GET[$param]) . $prefix;
+                } else {
+                    $filters[$field] = (int)$_GET[$param];
+                }
+            }
+        }
+        
+        return $filters;
+    }
+    
+    /**
+     * Crear categoría específica para un evento
+     * 
+     * @param int $eventId ID del evento
+     * @return int ID de la categoría creada
+     */
+    private function createEventCategory($eventId) {
+        $categoryData = [
+            'event_id' => $eventId,
+            'name' => sanitize($_POST['category_name']),
+            'description' => sanitize($_POST['description'] ?? ''),
+            'is_active' => isset($_POST['is_active']) ? 1 : 0
+        ];
+        
+        $query = "INSERT INTO event_categories (event_id, name, description, is_active) 
+                  VALUES (:event_id, :name, :description, :is_active)";
+        
+        $this->db->query($query, $categoryData);
+        $categoryId = $this->db->lastInsertId();
+        
+        // Crear subcategorías si se proporcionaron
+        if (isset($_POST['subcategories']) && !empty($_POST['subcategories'])) {
+            $this->createSubcategoriesForEvent($categoryId, $_POST['subcategories']);
+        }
+        
+        return $categoryId;
+    }
+    
+    /**
+     * Crear subcategorías para una categoría de evento
+     * 
+     * @param int $categoryId ID de la categoría
+     * @param string $subcategoriesText Texto con subcategorías (una por línea)
+     * @return void
+     */
+    private function createSubcategoriesForEvent($categoryId, $subcategoriesText) {
+        $subcategories = explode("\n", trim($subcategoriesText));
+        
+        foreach ($subcategories as $subcategory) {
+            $subcategory = trim($subcategory);
+            if (!empty($subcategory)) {
+                $subcategoryData = [
+                    'event_category_id' => $categoryId,
+                    'name' => $subcategory,
+                    'is_active' => 1
+                ];
+                
+                $query = "INSERT INTO event_subcategories (event_category_id, name, is_active) 
+                          VALUES (:event_category_id, :name, :is_active)";
+                
+                $this->db->query($query, $subcategoryData);
+            }
+        }
+    }
+    
+    /**
+     * Crear categoría global
+     * 
+     * @return int ID de la categoría creada
+     */
+    private function createGlobalCategory() {
+        $categoryData = [
+            'category_name' => sanitize($_POST['category_name']),
+            'is_active' => isset($_POST['is_active']) ? 1 : 0
+        ];
+        
+        $categoryId = $this->categoryModel->create($categoryData);
+        
+        if (!$categoryId) {
+            throw new Exception('Error al crear la categoría');
+        }
+        
+        // Crear subcategorías si se proporcionaron
+        if (isset($_POST['subcategories']) && !empty($_POST['subcategories'])) {
+            $this->createSubcategoriesForGlobal($categoryId, $_POST['subcategories']);
+        }
+        
+        return $categoryId;
+    }
+    
+    /**
+     * Crear subcategorías para una categoría global
+     * 
+     * @param int $categoryId ID de la categoría
+     * @param string $subcategoriesText Texto con subcategorías (una por línea)
+     * @return void
+     */
+    private function createSubcategoriesForGlobal($categoryId, $subcategoriesText) {
+        $subcategories = explode("\n", trim($subcategoriesText));
+        
+        foreach ($subcategories as $subcategory) {
+            $subcategory = trim($subcategory);
+            if (!empty($subcategory)) {
+                $subcategoryData = [
+                    'subcategory_name' => $subcategory,
+                    'category_id' => $categoryId,
+                    'is_active' => 1
+                ];
+                
+                $this->subcategoryModel->create($subcategoryData);
+            }
+        }
+    }
+    
+    /**
+     * Obtener categorías de un evento con sus subcategorías
+     * 
+     * @param int $eventId ID del evento
+     * @return array Categorías con subcategorías
+     */
+    private function getEventCategoriesWithSubcategories($eventId) {
+        $categories = $this->categoryModel->getEventCategories($eventId);
+        $categoriesWithSubcategories = [];
+        foreach ($categories as $category) {
+            $subcategories = $this->categoryModel->getEventSubcategories($category['event_category_id']);
+            $categoriesWithSubcategories[] = [
+                'category' => $category,
+                'subcategories' => $subcategories
+            ];
+        }
+        return $categoriesWithSubcategories;
+    }
+    
+    /**
+     * Obtener subcategorías según el tipo (evento o global)
+     * 
+     * @param int $categoryId ID de la categoría
+     * @param int $eventId ID del evento (0 para categorías globales)
+     * @return array Lista de subcategorías
+     */
+    private function getSubcategoriesByType($categoryId, $eventId) {
         if ($eventId) {
+            // Subcategorías de evento
             $query = "SELECT * FROM event_subcategories 
                       WHERE event_category_id = :category_id 
                       ORDER BY name";
                       
-            $subcategories = $this->db->resultSet($query, [':category_id' => $categoryId]);
+            return $this->db->resultSet($query, [':category_id' => $categoryId]);
         } else {
-            // Obtener subcategorías para una categoría global
-            $subcategories = $this->subcategoryModel->getByCategory($categoryId, true);
+            // Subcategorías globales
+            return $this->subcategoryModel->getByCategory($categoryId, true);
+        }
+    }
+    
+    /**
+     * Enviar respuesta JSON
+     * 
+     * @param array $data Datos a enviar
+     * @param int $statusCode Código de estado HTTP
+     * @return void
+     */
+    private function sendJsonResponse($data, $statusCode = 200) {
+        if ($statusCode !== 200) {
+            http_response_code($statusCode);
         }
         
-        // Devolver subcategorías como JSON
         header('Content-Type: application/json');
-        echo json_encode([
-            'success' => true,
-            'subcategories' => $subcategories
-        ]);
+        echo json_encode($data);
         exit;
+    }
+    
+    /**
+     * Renderizar vista
+     * 
+     * @param string $view Ruta de la vista relativa a la carpeta views
+     * @param array $data Datos para la vista
+     * @return void
+     */
+    private function renderView($view, $data = []) {
+        extract($data);
+        include(VIEW_DIR . '/' . $view . '.php');
     }
 }

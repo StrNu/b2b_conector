@@ -1,0 +1,98 @@
+input, select, textarea {
+  font-size: 0.95rem;
+  padding: 0.35em 0.6em;
+  border: 1px solid #e5e7eb; /* very light gray border */
+  border-radius: 6px;
+  background: #fff;
+  color: #232326;
+  box-sizing: border-box;
+  margin-bottom: 0.5em;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: #bdbdbd;
+  box-shadow: 0 0 0 2px #ededed;
+}
+form input, form select, form textarea, .form-control, .form-control-sm {
+  font-size: 0.93rem;
+  height: 2rem;
+  padding: 0.2rem 0.5rem;
+  line-height: 1.2 !important;
+  margin-right: 0.5rem !important;
+  margin-bottom: 0 !important;
+  box-sizing: border-box;
+}
+form .form-control, form .form-control-sm {
+  min-width: 0;
+  width: 100%;
+}
+form label {
+  font-size: 0.9rem;
+  color: #444;
+  margin-bottom: 0.15em;
+  font-weight: 500;
+}
+.flex.flex-wrap.gap-2.items-end.bg-gray-50.p-3.rounded.shadow-sm > div {
+  margin-bottom: 0 !important;
+  margin-right: 0.75rem !important;
+}
+.flex.flex-wrap.gap-2.items-end.bg-gray-50.p-3.rounded.shadow-sm > div:last-child {
+  margin-right: 0 !important;
+}
+button, input[type="submit"], .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.93rem;
+  padding: 0.35em 0.9em;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #f7f7f7;
+  color: #232326;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.18s, border 0.18s;
+  box-shadow: none;
+}
+button i, .btn i {
+  font-size: 1em;
+  margin-right: 0.3em;
+}
+.btn-primary, .btn.btn-primary {
+  background: #35363a;
+  color: #fff;
+  border: 1px solid #35363a;
+}
+.btn-primary:hover, .btn.btn-primary:hover {
+  background: #232326;
+  border-color: #232326;
+}
+.btn-secondary, .btn.btn-secondary {
+  background: #ededed;
+  color: #35363a;
+  border: 1px solid #e5e7eb;
+}
+.btn-secondary:hover, .btn.btn-secondary:hover {
+  background: #e0e0e0;
+}
+.btn-danger, .btn.btn-danger {
+  background: #fbe9e7;
+  color: #d32f2f;
+  border: 1px solid #fbe9e7;
+}
+.btn-danger:hover, .btn.btn-danger:hover {
+  background: #d32f2f;
+  color: #fff;
+  border-color: #d32f2f;
+}
+.btn-xs {
+  font-size: 0.85rem;
+  padding: 0.18em 0.7em;
+  border-radius: 5px;
+}
+.error-message {
+  color: #d32f2f;
+  font-size: 0.85rem;
+  margin-top: 2px;
+}

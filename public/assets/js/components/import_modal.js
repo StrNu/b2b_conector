@@ -1,43 +1,27 @@
-/**
- * Funcionalidad para el modal de importación de categorías
- */
-
-// Función para abrir el modal de importación
-function openImportModal() {
+function openImportCategoriesModal() {
+    // Asumiendo que el modal tiene un ID "importCategoriesModal"
     const modal = document.getElementById('importCategoriesModal');
     if (modal) {
-        modal.classList.add('show');
-        document.body.classList.add('modal-open');
+        modal.classList.remove('hidden');
     }
 }
 
-// Función para cerrar el modal de importación
-function closeImportModal() {
+// También puedes agregar una función para cerrar el modal
+function closeImportCategoriesModal() {
     const modal = document.getElementById('importCategoriesModal');
     if (modal) {
-        modal.classList.remove('show');
-        document.body.classList.remove('modal-open');
+        modal.classList.add('hidden');
     }
 }
 
-// Inicializar eventos cuando el DOM esté cargado
+// Escuchar clics fuera del contenido del modal para cerrarlo
 document.addEventListener('DOMContentLoaded', function() {
-    // Configurar cierre de modal al hacer clic fuera del contenido
     const modal = document.getElementById('importCategoriesModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
-                closeImportModal();
+                closeImportCategoriesModal();
             }
-        });
-    }
-    
-    // Configurar botón de apertura si existe
-    const importButton = document.getElementById('importCategoriesButton');
-    if (importButton) {
-        importButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            openImportModal();
         });
     }
 });

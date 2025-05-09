@@ -1,4 +1,6 @@
 <?php
+require_once(__DIR__ . '/../models/Event.php');
+
 /**
  * Controlador para gestionar las empresas
  * 
@@ -508,40 +510,44 @@ class CompanyController {
             redirect(BASE_URL . '/companies');
             exit;
         }
-        
+
         // Verificar método de solicitud
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             redirect(BASE_URL . '/companies');
             exit;
         }
-        
+
         // Verificar token CSRF
         if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
             setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
             redirect(BASE_URL . '/companies');
             exit;
         }
-        
+
         // Buscar empresa por ID
         if (!$this->companyModel->findById($id)) {
             setFlashMessage('Empresa no encontrada', 'danger');
             redirect(BASE_URL . '/companies');
             exit;
         }
-        
+
         // Eliminar la empresa
         try {
             $deleted = $this->companyModel->delete($id);
-            
             if ($deleted) {
                 setFlashMessage('Empresa eliminada exitosamente', 'success');
+                // Redirigir a la lista de empresas del evento si se envió event_id
+                $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : null;
+                if ($eventId) {
+                    redirect(BASE_URL . '/events/companies/' . $eventId);
+                    exit;
+                }
             } else {
                 throw new Exception('Error al eliminar la empresa');
             }
         } catch (Exception $e) {
             setFlashMessage('Error al eliminar la empresa: ' . $e->getMessage(), 'danger');
         }
-        
         redirect(BASE_URL . '/companies');
     }
     
@@ -1233,5 +1239,4 @@ class CompanyController {
         exit;
     }
 }
-                
-        
+

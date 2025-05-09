@@ -149,34 +149,35 @@ class Assistant {
      * @return bool True si la actualización fue exitosa, false en caso contrario
      */
     public function update($data) {
+        // Si se recibe un id como primer parámetro (por compatibilidad), ajústalo
+        if (is_numeric($data)) {
+            $args = func_get_args();
+            $id = $args[0];
+            $data = $args[1] ?? [];
+            $this->findById($id);
+        }
         if (!isset($this->id) || !$this->id) {
             return false;
         }
-        
         // Validar email si se proporciona
         if (isset($data['email']) && !filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
             return false;
         }
-        
         // Verificar que el email no esté duplicado en la misma empresa si se está actualizando
         if (isset($data['email']) && isset($data['company_id']) && 
             $data['email'] !== $this->email &&
             $this->exists($data['email'], $data['company_id'])) {
             return false;
         }
-        
         // Generar sentencia de actualización
         $updateFields = [];
         foreach ($data as $key => $value) {
             $updateFields[] = "$key = :$key";
         }
-        
         $query = "UPDATE {$this->table} 
                   SET " . implode(', ', $updateFields) . " 
                   WHERE assistant_id = :id";
-        
         $data['id'] = $this->id;
-        
         return $this->db->query($query, $data) ? true : false;
     }
     
@@ -278,6 +279,21 @@ class Assistant {
         }
         
         return (int) $this->db->query($query, $params)->fetchColumn();
+    }
+    
+    /**
+     * Obtener asistentes por evento
+     * 
+     * @param int $eventId ID del evento
+     * @return array Lista de asistentes del evento
+     */
+    public function getByEvent($eventId) {
+        $query = "SELECT a.*, c.company_name, c.event_id
+                  FROM {$this->table} a
+                  JOIN company c ON a.company_id = c.company_id
+                  WHERE c.event_id = :event_id
+                  ORDER BY a.first_name ASC, a.last_name ASC";
+        return $this->db->resultSet($query, ['event_id' => $eventId]);
     }
     
     /**
