@@ -10,6 +10,8 @@
  * @version 1.0
  */
 
+require_once(MODEL_DIR . '/Company.php');
+
 class AppointmentController {
     private $db;
     private $appointmentModel;
@@ -104,7 +106,7 @@ class AppointmentController {
         // Configurar paginación
         $pagination = paginate($totalAppointments, $page, $perPage);
         
-        // Obtener citas para la página actual con filtros aplicados
+        // Obtener citas para la página current con filtros aplicados
         $appointments = [];
         
         if (isset($companyId)) {
@@ -335,8 +337,10 @@ class AppointmentController {
             ];
             
             $appointmentId = $this->appointmentModel->create($appointmentData);
-            
+            // Actualizar campo programed del match
             if ($appointmentId) {
+                $this->matchModel->findById($matchId);
+                $this->matchModel->update(['programed' => 1]);
                 setFlashMessage('Cita creada exitosamente', 'success');
                 redirect(BASE_URL . '/appointments/view/' . $appointmentId);
             } else {
@@ -560,8 +564,13 @@ class AppointmentController {
         // Eliminar la cita
         try {
             $deleted = $this->appointmentModel->delete($id);
-            
+            // Si se eliminó la cita, actualizar el campo programed del match a 0
             if ($deleted) {
+                $matchId = $this->appointmentModel->getMatchId();
+                if ($matchId) {
+                    $this->matchModel->findById($matchId);
+                    $this->matchModel->update(['programed' => 0]);
+                }
                 setFlashMessage('Cita eliminada exitosamente', 'success');
             } else {
                 throw new Exception('Error al eliminar la cita');
@@ -1263,4 +1272,98 @@ public function viewByDate($date, $eventId = null) {
     // Cargar vista
     include(VIEW_DIR . '/appointments/date_schedule.php');
 }
+
+/**
+     * Programar automáticamente una cita para un match (desde la vista de matches)
+     * URL: /b2b_conector/index.php?controller=Appointment&action=schedule
+     * Método: POST
+     */
+    public function schedule() {
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Solo aceptar POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Verificar token CSRF
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $matchId = isset($_POST['match_id']) ? (int)$_POST['match_id'] : null;
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : null;
+        if (!$matchId) {
+            setFlashMessage('Match no especificado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Si no viene el event_id, obtenerlo desde el match
+        if (!$eventId) {
+            if (!$this->matchModel->findById($matchId)) {
+                setFlashMessage('Match no encontrado', 'danger');
+                redirect(BASE_URL . '/events');
+                exit;
+            }
+            $eventId = $this->matchModel->getEventId();
+        }
+        // Verificar que el match pertenece al evento
+        if (!$this->matchModel->findById($matchId) || $this->matchModel->getEventId() != $eventId) {
+            setFlashMessage('El match no pertenece a este evento', 'danger');
+            redirect(BASE_URL . '/events/matches/' . $eventId);
+            exit;
+        }
+        // Intentar programar la cita
+        $appointmentId = $this->appointmentModel->scheduleMatch($eventId, $matchId);
+        if ($appointmentId) {
+            setFlashMessage('Cita programada exitosamente', 'success');
+        } else {
+            setFlashMessage('No se pudo programar la cita (no hay slots disponibles o ya existe una cita para este match)', 'danger');
+        }
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+        exit;
+    }
+    
+    /**
+     * Programar automáticamente todas las citas posibles para los matches de un evento
+     */
+    public function scheduleAll() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Solicitud inválida', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        if (!$eventId) {
+            setFlashMessage('Evento no especificado.', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Programar todas las citas posibles para los matches aceptados del evento
+        $result = $this->appointmentModel->generateSchedules($eventId);
+        if ($result['success']) {
+            // Actualizar campo programed de todos los matches programados
+            $matches = $this->matchModel->getByEvent($eventId, 'accepted');
+            foreach ($matches as $match) {
+                if ($this->appointmentModel->existsForMatch($match['match_id'])) {
+                    $this->matchModel->findById($match['match_id']);
+                    $this->matchModel->update(['programed' => 1]);
+                }
+            }
+            if (isset($result['scheduled']) && (int)$result['scheduled'] > 0) {
+                setFlashMessage($result['scheduled'] . ' nuevas citas programadas.', 'success');
+            } else {
+                setFlashMessage('No hay citas que programar.', 'info');
+            }
+        } else {
+            setFlashMessage('No se pudieron programar todas las citas: ' . $result['message'], 'danger');
+        }
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+        exit;
+    }
 }
