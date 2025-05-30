@@ -46,7 +46,8 @@ class PublicRegistrationController {
 
     // Procesar registro público
     public function storeBuyersRegistration($eventId) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        // Eliminamos la verificación de CSRF para registro público
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             setFlashMessage('Solicitud inválida', 'danger');
             header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
             exit;
@@ -71,6 +72,18 @@ class PublicRegistrationController {
                 'is_active' => 1,
                 'created_at' => date('Y-m-d H:i:s'),
             ];
+
+            // Validar y normalizar teléfono (permite lada entre paréntesis o con +, default México)
+            $phone = trim($_POST['phone'] ?? '');
+            if ($phone === '') {
+                $phone = '+52'; // Default México
+            } elseif (!preg_match('/^(\+\d{1,3}|\(\d{2,4}\))? ?[\d\s-]{6,}$/', $phone)) {
+                // Permite +lada, (lada), espacios y guiones
+                setFlashMessage('El teléfono no es válido. Ejemplo: +52 222 123 4567 o (52) 222 123 4567', 'danger');
+                header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
+                exit;
+            }
+            $companyData['phone'] = $phone;
 
             // Manejo de subida de logo
             $uploadedLogoName = null;
@@ -110,32 +123,41 @@ class PublicRegistrationController {
                 $companyData['company_logo'] = $uploadedLogoName;
             }
 
-            $companyId = $this->companyModel->create($companyData);
+            $companyId = $this->companyModel->createForEvent($companyData);
             if (!$companyId) throw new Exception('No se pudo registrar la empresa.');
 
             // 2. Crear usuario en event_users
             $username = trim($_POST['username'] ?? '');
             $password = trim($_POST['password'] ?? '');
             if ($username && $password) {
-                $userData = [
-                    'username' => $username,
-                    'password' => password_hash($password, PASSWORD_DEFAULT),
+                $this->userModel->createEventUser([
                     'company_id' => $companyId,
                     'event_id' => $eventId,
                     'role' => 'buyer',
+                    'is_active' => 1,
                     'created_at' => date('Y-m-d H:i:s'),
-                ];
-                $this->userModel->create($userData); // Asume método create en User.php
+                    'email' => $username,
+                    'password' => $password,
+                ]);
             }
 
             // 3. Guardar asistentes en assistants
             if (!empty($_POST['assistants']) && is_array($_POST['assistants'])) {
                 foreach ($_POST['assistants'] as $assistant) {
                     if (!empty($assistant['first_name']) && !empty($assistant['last_name']) && !empty($assistant['email'])) {
+                        $assistantPhone = trim($assistant['phone'] ?? '');
+                        if ($assistantPhone === '') {
+                            $assistantPhone = '+52';
+                        } elseif (!preg_match('/^(\+\d{1,3}|\(\d{2,4}\))? ?[\d\s-]{6,}$/', $assistantPhone)) {
+                            setFlashMessage('El teléfono del asistente no es válido. Ejemplo: +52 222 123 4567 o (52) 222 123 4567', 'danger');
+                            header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
+                            exit;
+                        }
                         $assistantData = [
                             'first_name' => trim($assistant['first_name']),
                             'last_name' => trim($assistant['last_name']),
                             'email' => trim($assistant['email']),
+                            'mobile_phone' => $assistantPhone, // CORRECTO: usar mobile_phone
                         ];
                         $this->companyModel->addAssistant($assistantData, $companyId);
                     }
@@ -145,12 +167,17 @@ class PublicRegistrationController {
             // 4. Guardar productos/servicios en requirements
             if (!empty($_POST['requirements']) && is_array($_POST['requirements'])) {
                 $this->companyModel->findById($companyId); // Para setear el rol
-                foreach ($_POST['requirements'] as $subcategoryId) {
-                    $reqData = [
-                        'subcategory_id' => (int)$subcategoryId,
-                        'created_at' => date('Y-m-d H:i:s'),
-                    ];
-                    $this->companyModel->addRequirement($reqData, $companyId);
+                foreach ($_POST['requirements'] as $eventSubcategoryId => $req) {
+                    if (isset($req['selected']) && $req['selected']) {
+                        $reqData = [
+                            'subcategory_id' => (int)$eventSubcategoryId, // event_subcategory_id
+                            'budget_usd' => isset($req['budget']) && $req['budget'] !== '' ? (float)$req['budget'] : null,
+                            'quantity' => isset($req['quantity']) && $req['quantity'] !== '' ? (int)$req['quantity'] : null,
+                            'unit_of_measurement' => isset($req['unit']) ? trim($req['unit']) : null,
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ];
+                        $this->companyModel->addRequirement($reqData, $companyId);
+                    }
                 }
             }
 

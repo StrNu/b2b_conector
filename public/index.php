@@ -35,27 +35,32 @@ require_once UTILS_DIR . '/Validator.php';
 session_start();
 Logger::debug('Session started. Session ID: ' . session_id());
 
+// --- DEBUG: Log de sesión y CSRF ---
+if (isset($_SESSION)) {
+    Logger::debug('[DEBUG] session_id: ' . session_id() . ' | csrf_token: ' . (isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '[NO CSRF TOKEN]'));
+} else {
+    Logger::debug('[DEBUG] session_id: ' . session_id() . ' | $_SESSION no está definido');
+}
+
 // --- 5. Routing ---
 // Procesar la URL
 $rawUrl = isset($_GET['url']) ? trim($_GET['url'], '/') : '';
 $url = filter_var($rawUrl, FILTER_SANITIZE_URL);
 $urlParts = explode('/', $url);
 
-// --- Routing especial para /events/companies/{event_id}/(view|edit|delete)/{company_id} ---
+// --- Routing especial para /events/companies/{event_id}/(view|edit|delete|full_registration)/{company_id} ---
 if (
     isset($urlParts[0], $urlParts[1], $urlParts[2], $urlParts[3], $urlParts[4]) &&
     $urlParts[0] === 'events' &&
     $urlParts[1] === 'companies' &&
     is_numeric($urlParts[2]) &&
-    in_array($urlParts[3], ['view', 'edit', 'delete']) &&
+    in_array($urlParts[3], ['view', 'edit', 'delete', 'full_registration']) &&
     is_numeric($urlParts[4])
 ) {
     require_once MODEL_DIR . '/Event.php';
     require_once MODEL_DIR . '/Company.php';
     require_once MODEL_DIR . '/Match.php';
     require_once MODEL_DIR . '/Category.php';
-    require_once MODEL_DIR . '/Assistant.php';
-    require_once MODEL_DIR . '/Appointment.php';
     require_once CONTROLLER_DIR . '/EventController.php';
     $controllerInstance = new EventController();
     $eventId = (int)$urlParts[2];
@@ -70,23 +75,24 @@ if (
     } elseif ($actionType === 'delete') {
         $controllerInstance->deleteCompany($eventId, $companyId);
         exit;
+    } elseif ($actionType === 'full_registration') {
+        $controllerInstance->viewFullRegistration($eventId, $companyId);
+        exit;
     }
 }
 
-// --- Routing especial para /events/companies/{event_id}/create ---
+// --- Routing para alta de empresa desde evento ---
 if (
     isset($urlParts[0], $urlParts[1], $urlParts[2], $urlParts[3]) &&
     $urlParts[0] === 'events' &&
     $urlParts[1] === 'companies' &&
     is_numeric($urlParts[2]) &&
-    $urlParts[3] === 'create'
+    $urlParts[3] === 'create-company'
 ) {
     require_once MODEL_DIR . '/Event.php';
     require_once MODEL_DIR . '/Company.php';
     require_once MODEL_DIR . '/Match.php';
-    require_once MODEL_DIR . '/Category.php';
-    require_once MODEL_DIR . '/Assistant.php';
-    require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/Category.php'; // Asegura que la clase Category esté disponible
     require_once CONTROLLER_DIR . '/EventController.php';
     $controllerInstance = new EventController();
     $eventId = (int)$urlParts[2];
@@ -158,6 +164,19 @@ if (isset($urlParts[0]) && in_array($urlParts[0], $publicViews)) {
     }
 }
 
+// --- Ruta para cambio de contraseña de compradores (evento) ---
+if (isset($urlParts[0]) && $urlParts[0] === 'auth' && isset($urlParts[1]) && $urlParts[1] === 'change_password_event') {
+    require_once CONTROLLER_DIR . '/AuthController.php';
+    require_once MODEL_DIR . '/User.php';
+    $controller = new AuthController();
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $controller->changePasswordEvent();
+    } else {
+        $controller->changePasswordEventForm();
+    }
+    exit;
+}
+
 // Determinar controlador, acción y parámetros
 $controllerSlug = !empty($urlParts[0]) ? $urlParts[0] : 'auth'; // 'auth' como default
 // Establecer la acción predeterminada según el controlador
@@ -183,6 +202,25 @@ Logger::debug("Routing request", [
     'method' => $_SERVER['REQUEST_METHOD']
 ]);
 
+// --- Routing manual para generación de matches desde la vista de matches ---
+if (
+    isset($urlParts[0], $urlParts[1]) &&
+    $urlParts[0] === 'matches' &&
+    in_array($urlParts[1], ['generateForBuyer', 'generateForSupplier'])
+) {
+    require_once CONTROLLER_DIR . '/MatchController.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Event.php';
+    $controller = new MatchController();
+    if ($urlParts[1] === 'generateForBuyer') {
+        $controller->generateForBuyer();
+    } else {
+        $controller->generateForSupplier();
+    }
+    return; // Cambia exit por return para evitar que el flujo continúe y cause el warning
+}
+
 // Mapa de controladores (slug => NombreClase)
 $controllerMap = [
     'auth' => 'AuthController',
@@ -192,12 +230,11 @@ $controllerMap = [
     'categories' => 'CategoryController',
     'matches' => 'MatchController',
     'appointments' => 'AppointmentController',
-    'users' => 'UserController'
+    'users' => 'UserController',
+    'agendas' => 'AgendaController', // <-- Añadido para rutas /agendas
+    'category_import' => 'CategoryImportController', // <-- Añadido para importación de categorías
     // Añade más según sea necesario
 ];
-
-$controllerName = $controllerMap[$controllerSlug] ?? ucfirst($controllerSlug) . 'Controller'; // Usa ?? para default
-$controllerFile = CONTROLLER_DIR . '/' . $controllerName . '.php';
 
 // --- 6. Cargar Modelos Base y Verificar Autenticación ---
 require_once MODEL_DIR . '/User.php'; // Modelo de usuario siempre necesario
@@ -211,17 +248,58 @@ $publicRoutes = [ // Rutas que NO requieren autenticación
     // Permitir acceso público a cualquier buyers_registration
     // Esto permite /buyers_registration/{event_id} y /buyers_registration/{event_id}/store
     'buyers_registration',
+    // Permitir acceso público a cualquier suppliers_registration
+    // Esto permite /suppliers_registration/{event_id} y /suppliers_registration/{event_id}/store
+    'suppliers_registration',
 ];
 
 $publicPaths = [
     'assets/', // Para todos los archivos en la carpeta assets
     'public/',  // Para todos los archivos en la carpeta public
     'buyers_registration', // Asegura que cualquier ruta que empiece así sea pública
+    'suppliers_registration', // Asegura que cualquier ruta que empiece así sea pública
 ];
 
-// Antes de la comprobación de autenticación, permitir rutas que empiecen con buyers_registration
-if (isset($urlParts[0]) && strpos($urlParts[0], 'buyers_registration') === 0) {
+// Antes de la comprobación de autenticación, permitir rutas que empiecen con buyers_registration o suppliers_registration
+if (isset($urlParts[0]) && (strpos($urlParts[0], 'buyers_registration') === 0 || strpos($urlParts[0], 'suppliers_registration') === 0)) {
     $isPublicPath = true;
+}
+
+// --- Routing público para registro de proveedores: /suppliers_registration/{event_id} y /suppliers_registration/{event_id}/store ---
+if (
+    isset($urlParts[0]) && $urlParts[0] === 'suppliers_registration'
+) {
+    Logger::debug('Entrando a bloque suppliers_registration', ['urlParts' => $urlParts]);
+    // Si es suppliers_registration/{event_id} o suppliers_registration/{event_id}/store
+    if (
+        isset($urlParts[1]) && is_numeric($urlParts[1]) &&
+        (!isset($urlParts[2]) || $urlParts[2] === 'store')
+    ) {
+        Logger::debug('Dentro del if de suppliers_registration', ['urlParts' => $urlParts]);
+        require_once __DIR__ . '/../models/Category.php';
+        require_once CONTROLLER_DIR . '/RegistrationController.php';
+        require_once MODEL_DIR . '/Event.php';
+        require_once MODEL_DIR . '/Company.php';
+        require_once MODEL_DIR . '/AttendanceDay.php';
+        require_once MODEL_DIR . '/Assistant.php';
+        require_once MODEL_DIR . '/User.php';
+        $controller = new RegistrationController();
+        $eventId = (int)$urlParts[1];
+        if (isset($urlParts[2]) && $urlParts[2] === 'store') {
+            Logger::debug('suppliers_registration: ejecutando storeSuppliersRegistration', ['eventId' => $eventId]);
+            $controller->storeSuppliersRegistration($eventId);
+        } else {
+            Logger::debug('suppliers_registration: ejecutando suppliersRegistration', ['eventId' => $eventId]);
+            $controller->suppliersRegistration($eventId);
+        }
+        Logger::debug('Saliendo del bloque suppliers_registration');
+        exit;
+    } else {
+        Logger::warning('Ruta suppliers_registration inválida', ['urlParts' => $urlParts]);
+        header('HTTP/1.0 404 Not Found');
+        echo 'Error 404: Ruta de registro de proveedores no válida.';
+        exit;
+    }
 }
 
 // Verificar primero si la solicitud es para un recurso estático (css, js, images)
@@ -297,111 +375,109 @@ if (!in_array($currentRoute, $publicRoutes) && !$isPublicPath && !isAuthenticate
 }
 
 // --- 7. Despachar al Controlador ---
+$controllerName = $controllerMap[$controllerSlug] ?? ucfirst($controllerSlug) . 'Controller';
+$controllerFile = CONTROLLER_DIR . '/' . $controllerName . '.php';
+
+// Permitir /agendas/{event_id} como alias de /agendas/index/{event_id}
+if ($controllerName === 'AgendaController' && isset($action) && is_numeric($action)) {
+    array_unshift($params, $action); // Pone el event_id como primer parámetro
+    $action = 'index';
+}
+
+// Asegurarse que el archivo del controlador existe antes de incluirlo
 if (file_exists($controllerFile)) {
     require_once $controllerFile;
-
-    // Log para depuración antes de despachar al controlador
-    Logger::debug('Antes de despachar al controlador', [
-        'controllerName' => $controllerName,
-        'controllerFile' => $controllerFile,
-        'action' => $action,
-        'params' => $params
-    ]);
-
-     // Cargar modelos adicionales según el controlador
-     if ($controllerName === 'EventController') {
-        require_once '../models/Event.php';
-        require_once '../models/Company.php';
-        require_once '../models/Match.php';
-        require_once '../models/Category.php';
-        require_once '../models/Assistant.php';
-        require_once '../models/Appointment.php';
-        require_once '../models/Requirement.php';
-        require_once '../models/AttendanceDay.php';
-        require_once '../models/User.php';
-    } elseif ($controllerName === 'DashboardController') {
-        require_once '../models/Event.php';
-        require_once '../models/Company.php';
-        require_once '../models/Match.php';
-        require_once '../models/Appointment.php';
-        require_once '../models/User.php';
-        require_once '../models/Category.php';
-    } elseif ($controllerName === 'CompanyController') {
-        require_once '../models/Company.php';
-        require_once '../models/Event.php';
-        require_once '../models/Match.php';
-        require_once '../models/Appointment.php';
-    } elseif ($controllerName === 'MatchController') {
-        require_once '../models/Match.php';
-        require_once '../models/Company.php';
-        require_once '../models/Event.php';
-    } elseif ($controllerName === 'AppointmentController') {
-        require_once '../models/Appointment.php';
-        require_once '../models/Match.php';
-        require_once '../models/Event.php';
-    } elseif ($controllerName === 'CategoryController') {
-        require_once '../models/Category.php';
-        require_once '../models/Subcategory.php';
-        require_once '../models/Event.php';
-    } elseif ($controllerName === 'RegistrationController') {
-        require_once '../models/Event.php';
-        require_once '../models/Company.php';
-        require_once '../models/Category.php';
-        require_once '../models/Requirement.php';
-        require_once '../models/AttendanceDay.php';
-        require_once '../models/Assistant.php';
-        require_once '../models/User.php';
-    }
-
-    if (class_exists($controllerName)) {
-        $controllerInstance = new $controllerName();
-
-        if (method_exists($controllerInstance, $action)) {
-            Logger::info("Dispatching to controller action.", ['controller' => $controllerName, 'action' => $action]);
-            // Validación de número de parámetros requeridos
-            $reflection = new ReflectionMethod($controllerInstance, $action);
-            if (count($params) < $reflection->getNumberOfRequiredParameters()) {
-                Logger::error("Not enough parameters for action", [
-                    'controller' => $controllerName,
-                    'action' => $action,
-                    'params' => $params,
-                    'required' => $reflection->getNumberOfRequiredParameters()
-                ]);
-                header("HTTP/1.0 400 Bad Request");
-                echo "Error: Faltan parámetros en la URL para la acción solicitada.";
-                exit;
-            }
-            try {
-                // Llamar a la acción del controlador
-                call_user_func_array([$controllerInstance, $action], is_array($params) ? $params : []);
-                Logger::info("Request handled successfully.");
-            } catch (Exception $e) {
-                Logger::exception($e, ['controller' => $controllerName, 'action' => $action]);
-                // Mostrar página de error genérica o manejar de otra forma
-                header("HTTP/1.1 500 Internal Server Error");
-                // include VIEW_DIR . '/errors/500.php'; // O una vista de error
-                 echo "Ocurrió un error inesperado procesando su solicitud.";
-                 exit;
-            }
-        } else {
-            Logger::error("Action not found in controller.", ['controller' => $controllerName, 'action' => $action]);
-            header("HTTP/1.0 404 Not Found");
-            echo "Error 404: Acción no encontrada ($action).";
-            // include VIEW_DIR . '/errors/404.php';
-            exit;
-        }
-    } else {
-        Logger::error("Controller class not found.", ['controller' => $controllerName, 'file' => $controllerFile]);
-        header("HTTP/1.0 404 Not Found");
-        echo "Error 404: Controlador no encontrado ($controllerName).";
-        // include VIEW_DIR . '/errors/404.php';
-        exit;
-    }
 } else {
-    Logger::error("Controller file not found.", ['controller' => $controllerName, 'file' => $controllerFile]);
-    header("HTTP/1.0 404 Not Found");
-    echo "Error 404: Archivo del controlador no encontrado.";
-    // include VIEW_DIR . '/errors/404.php';
+    Logger::error("Controlador no encontrado: " . $controllerFile);
+    header('HTTP/1.0 404 Not Found');
+    echo 'Error 404: Controlador no encontrado.';
+    exit;
+}
+
+// Cargar modelos adicionales según el controlador
+if ($controllerName === 'EventController') {
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Assistant.php';
+    require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/Requirement.php';
+    require_once MODEL_DIR . '/AttendanceDay.php';
+    require_once MODEL_DIR . '/User.php';
+} elseif ($controllerName === 'DashboardController') {
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/User.php';
+    require_once MODEL_DIR . '/Category.php';
+} elseif ($controllerName === 'CompanyController') {
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Appointment.php';
+} elseif ($controllerName === 'MatchController') {
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Appointment.php';
+} elseif ($controllerName === 'AppointmentController') {
+    require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Event.php';
+} elseif ($controllerName === 'CategoryController') {
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Subcategory.php';
+    require_once MODEL_DIR . '/Event.php';
+} elseif ($controllerName === 'RegistrationController') {
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Requirement.php';
+    require_once MODEL_DIR . '/AttendanceDay.php';
+    require_once MODEL_DIR . '/Assistant.php';
+    require_once MODEL_DIR . '/User.php';
+} elseif ($controllerName === 'AgendaController') {
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Appointment.php';
+} elseif ($controllerName === 'CategoryImportController') {
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Event.php';
+}
+
+// Crear instancia del controlador
+$controllerInstance = new $controllerName();
+
+// Verificar si la acción existe en el controlador
+if (!method_exists($controllerInstance, $action)) {
+    Logger::error("Acción no encontrada: " . $action);
+    header('HTTP/1.0 404 Not Found');
+    echo 'Error 404: Acción no encontrada.';
+    exit;
+}
+
+// Llamar a la acción del controlador con los parámetros
+try {
+    call_user_func_array([$controllerInstance, $action], $params);
+} catch (Exception $e) {
+    Logger::error("Error en la acción del controlador: " . $e->getMessage());
+    header('HTTP/1.0 500 Internal Server Error');
+    echo 'Error 500: Error interno del servidor.';
+    exit;
+}
+
+// Ruta especial para programar todas las citas de un evento
+if (
+    isset($urlParts[0], $urlParts[1]) &&
+    $urlParts[0] === 'appointments' &&
+    $urlParts[1] === 'scheduleAll'
+) {
+    require_once CONTROLLER_DIR . '/AppointmentController.php';
+    $controller = new AppointmentController();
+    $controller->scheduleAll();
     exit;
 }
 

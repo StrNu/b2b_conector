@@ -184,3 +184,15 @@
     </div>
 </div>
 <?php include(VIEW_DIR . '/shared/footer.php'); ?>
+<!-- Flatpickr CSS & JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        flatpickr('.datepicker', {
+            dateFormat: 'Y-m-d',
+            allowInput: true,
+            locale: 'es'
+        });
+    });
+</script>

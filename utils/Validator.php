@@ -207,4 +207,11 @@ class Validator {
         $this->errors = [];
         return $this;
     }
+
+    /**
+     * Agregar un error manualmente
+     */
+    public function addError($field, $message) {
+        $this->errors[$field] = $message;
+    }
 }

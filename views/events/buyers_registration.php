@@ -16,7 +16,7 @@
                 </div>
                 <div>
                     <label class="label">Sitio Web</label>
-                    <input type="url" name="website" class="form-control" placeholder="www.example.com">
+                    <input type="text" name="website" class="form-control" placeholder="www.example.com">
                 </div>
             </div>
             <div class="mb-2">
@@ -128,24 +128,61 @@
         <!-- Productos o Servicios de Interés -->
         <fieldset class="card mb-4">
             <legend class="font-semibold flex items-center gap-2 mb-2"><i class="fas fa-box"></i> Productos o Servicios de Interés</legend>
-            <p class="text-gray-500 text-sm mb-2">A continuación, seleccione los productos o servicios que le interesan. Puede indicar un presupuesto aproximado y la cantidad requerida.</p>
+            <p class="text-gray-500 text-sm mb-2">Seleccione los productos o servicios que le interesan. Puede indicar un presupuesto aproximado y la cantidad requerida.</p>
             <div class="mb-2">
-                <div class="flex flex-wrap gap-2 mb-2">
-                    <?php foreach ($categories as $cat): ?>
-                        <button type="button" class="tab-btn btn btn-light" data-tab="cat-<?= (int)$cat['event_category_id'] ?>">
+                <div class="flex flex-wrap gap-1 mb-2">
+                    <?php foreach ($categories as $i => $cat): ?>
+                        <button type="button" class="tab-btn btn btn-light px-2 py-1 text-xs md:text-sm <?= $i === 0 ? 'active' : '' ?>" data-tab="cat-<?= (int)$cat['event_category_id'] ?>">
                             <?= htmlspecialchars($cat['name']) ?>
                         </button>
                     <?php endforeach; ?>
                 </div>
-                <?php foreach ($categories as $cat): ?>
-                    <div class="tab-panel <?= $cat === $categories[0] ? '' : 'hidden' ?>" id="cat-<?= (int)$cat['event_category_id'] ?>">
+                <?php foreach ($categories as $i => $cat): ?>
+                    <div class="tab-panel <?= $i === 0 ? '' : 'hidden' ?>" id="cat-<?= (int)$cat['event_category_id'] ?>">
                         <?php if (!empty($subcategories[$cat['event_category_id']])): ?>
-                            <?php foreach ($subcategories[$cat['event_category_id']] as $sub): ?>
-                                <label class="flex items-center gap-2 mb-1">
-                                    <input type="checkbox" name="requirements[]" value="<?= (int)$sub['event_subcategory_id'] ?>">
-                                    <span><?= htmlspecialchars($sub['name']) ?></span>
-                                </label>
-                            <?php endforeach; ?>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full text-xs md:text-sm border">
+                                    <thead>
+                                        <tr class="bg-gray-100">
+                                            <th class="p-2 text-left">Requerimiento</th>
+                                            <th class="p-2 text-left">Presupuesto en dólares</th>
+                                            <th class="p-2 text-left">Cantidad</th>
+                                            <th class="p-2 text-left">Unidad de medida</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <?php foreach ($subcategories[$cat['event_category_id']] as $sub): ?>
+                                        <tr class="border-b">
+                                            <td class="p-2">
+                                                <label class="flex items-center gap-2">
+                                                    <input type="checkbox" name="requirements[<?= (int)$sub['event_subcategory_id'] ?>][selected]" value="1" class="req-checkbox">
+                                                    <span><?= htmlspecialchars($sub['name']) ?></span>
+                                                </label>
+                                            </td>
+                                            <td class="p-2">
+                                                <div class="flex items-center gap-1">
+                                                    <span class="text-gray-400">$</span>
+                                                    <input type="number" step="0.01" min="0" name="requirements[<?= (int)$sub['event_subcategory_id'] ?>][budget]" class="form-control w-24 req-budget" disabled>
+                                                </div>
+                                            </td>
+                                            <td class="p-2">
+                                                <input type="number" min="1" name="requirements[<?= (int)$sub['event_subcategory_id'] ?>][quantity]" class="form-control w-16 req-qty" disabled>
+                                            </td>
+                                            <td class="p-2">
+                                                <select name="requirements[<?= (int)$sub['event_subcategory_id'] ?>][unit]" class="form-control req-unit" disabled>
+                                                    <option value="">Selecciona</option>
+                                                    <option value="pieza">Pieza</option>
+                                                    <option value="kg">Kg</option>
+                                                    <option value="ton">Tonelada</option>
+                                                    <option value="servicio">Servicio</option>
+                                                    <option value="otro">Otro</option>
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         <?php else: ?>
                             <span class="text-xs text-gray-400">No hay subcategorías para esta categoría.</span>
                         <?php endif; ?>
@@ -232,5 +269,17 @@ if (logoUploadInput && logoUploadFeedback) {
         }
     });
 }
+
+// Habilitar/Deshabilitar inputs según el checkbox
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.req-checkbox').forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            const row = checkbox.closest('tr');
+            row.querySelector('.req-budget').disabled = !checkbox.checked;
+            row.querySelector('.req-qty').disabled = !checkbox.checked;
+            row.querySelector('.req-unit').disabled = !checkbox.checked;
+        });
+    });
+});
 </script>
 <?php include(VIEW_DIR . '/shared/footer.php'); ?>

@@ -90,7 +90,18 @@ class MatchController {
         
         // Obtener matches para la página actual con filtros aplicados
         $matches = $this->matchModel->getAll($filters, $pagination);
-        
+
+        // --- AGREGAR DÍAS DE ASISTENCIA DE CADA EMPRESA AL ARRAY DE MATCHES (como strings, no JSON) ---
+        require_once(MODEL_DIR . '/AttendanceDay.php');
+        $attendanceModel = new AttendanceDay($this->db);
+        foreach ($matches as &$match) {
+            $buyer_days = $attendanceModel->getByCompanyAndEvent($match['buyer_id'], $match['event_id']);
+            $supplier_days = $attendanceModel->getByCompanyAndEvent($match['supplier_id'], $match['event_id']);
+            // Asegurarse de que sean arrays de strings (fechas)
+            $match['buyer_days'] = array_map('strval', $buyer_days);
+            $match['supplier_days'] = array_map('strval', $supplier_days);
+        }
+        unset($match);
         // Obtener eventos y empresas para los filtros
         $events = $this->eventModel->getActiveEvents();
         $buyers = $this->companyModel->getAll(['role' => 'buyer']);
@@ -430,7 +441,10 @@ class MatchController {
             setFlashMessage('Error al actualizar el estado: ' . $e->getMessage(), 'danger');
         }
         
-        redirect(BASE_URL . '/matches/view/' . $id);
+        // En vez de redirigir a la vista del match, redirigir siempre a la lista de matches del evento
+        $eventId = $this->matchModel->getEventId();
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+        exit;
     }
     
     /**
@@ -622,5 +636,130 @@ class MatchController {
         $result = $this->db->single($query, ['user_id' => $userId]);
         
         return $result ? $result['company_id'] : null;
+    }
+    
+    /**
+     * Aceptar un match desde la vista pública de matches
+     * Permite cambiar el estado a 'accepted' desde el formulario de matches.php
+     */
+    public function acceptMatch() {
+        // Solo permitir POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        // Validar match_id
+        $matchId = isset($_POST['match_id']) ? (int)$_POST['match_id'] : 0;
+        if (!$matchId) {
+            setFlashMessage('Match inválido', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        // Buscar el match
+        if (!$this->matchModel->findById($matchId)) {
+            setFlashMessage('Match no encontrado', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        // Actualizar estado a 'accepted' (o 'guardado')
+        $updated = $this->matchModel->updateStatus($matchId, MatchModel::STATUS_ACCEPTED);
+        if ($updated) {
+            setFlashMessage('Match aceptado exitosamente', 'success');
+        } else {
+            setFlashMessage('No se pudo aceptar el match', 'danger');
+        }
+        // Redirigir de vuelta a la página de matches del evento
+        $eventId = $this->matchModel->getEventId();
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+    }
+    
+    /**
+     * Generar matches manualmente para un comprador desde la vista de matches
+     */
+    public function generateForBuyer() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Solicitud inválida', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        $buyerId = isset($_POST['buyer_id']) ? (int)$_POST['buyer_id'] : 0;
+        if (!$eventId || !$buyerId) {
+            setFlashMessage('Datos incompletos para generar matches', 'danger');
+            redirect(BASE_URL . '/events/matches/' . $eventId);
+            exit;
+        }
+        $result = $this->matchModel->generateMatches($eventId, ['buyerId' => $buyerId, 'forceRegenerate' => true]);
+        if ($result['success']) {
+            setFlashMessage('Matches generados para el comprador.', 'success');
+        } else {
+            setFlashMessage('No se pudieron generar matches: ' . $result['message'], 'danger');
+        }
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+        exit;
+    }
+
+    /**
+     * Generar matches manualmente para un proveedor desde la vista de matches
+     */
+    public function generateForSupplier() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Solicitud inválida', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        $supplierId = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : 0;
+        if (!$eventId || !$supplierId) {
+            setFlashMessage('Datos incompletos para generar matches', 'danger');
+            redirect(BASE_URL . '/events/matches/' . $eventId);
+            exit;
+        }
+        $result = $this->matchModel->generateMatches($eventId, ['supplierId' => $supplierId, 'forceRegenerate' => true]);
+        if ($result['success']) {
+            setFlashMessage('Matches generados para el proveedor.', 'success');
+        } else {
+            setFlashMessage('No se pudieron generar matches: ' . $result['message'], 'danger');
+        }
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+        exit;
+    }
+
+    /**
+     * Generar matches manualmente para todo el evento (botón global)
+     */
+    public function generateAll() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Solicitud inválida', 'danger');
+            redirect(BASE_URL . '/');
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        // Fallback: intentar recuperar event_id de la URL de referencia si no viene en POST
+        if (!$eventId && isset($_SERVER['HTTP_REFERER'])) {
+            if (preg_match('#/events/matches/(\d+)#', $_SERVER['HTTP_REFERER'], $m)) {
+                $eventId = (int)$m[1];
+            }
+        }
+        if (!$eventId) {
+            setFlashMessage('Evento no especificado. No se pudo determinar el evento para generar matches.', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Generar matches nuevos con status 'accepted'
+        $result = $this->matchModel->generateMatches($eventId, ['forceRegenerate' => true, 'status' => 'accepted']);
+        // Cambiar todos los matches 'pending' a 'accepted' para el evento
+        $pendingMatches = $this->matchModel->getByEvent($eventId, 'pending');
+        foreach ($pendingMatches as $pending) {
+            $this->matchModel->updateStatus($pending['match_id'], 'accepted');
+        }
+        if ($result['success']) {
+            setFlashMessage('Matches generados y aceptados para todo el evento.', 'success');
+        } else {
+            setFlashMessage('No se pudieron generar matches: ' . $result['message'], 'danger');
+        }
+        redirect(BASE_URL . '/events/matches/' . $eventId);
+        exit;
     }
 }

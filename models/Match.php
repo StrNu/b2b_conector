@@ -350,8 +350,12 @@ class MatchModel {
             ];
         }
         
-        // Iniciar transacción para garantizar integridad
-        $this->db->beginTransaction();
+        // Iniciar transacción para garantizar integridad SOLO si no hay una activa
+        $startedTransaction = false;
+        if (method_exists($this->db, 'inTransaction') && !$this->db->inTransaction()) {
+            $this->db->beginTransaction();
+            $startedTransaction = true;
+        }
         
         try {
             // Opciones por defecto
@@ -407,64 +411,52 @@ class MatchModel {
             // Procesar cada comprador
             foreach ($buyers as $buyer) {
                 $buyerId = $buyer['company_id'];
-                
-                // Obtener categorías/subcategorías requeridas por el comprador
-                $buyerRequirementsQuery = "SELECT r.*, s.subcategory_name, c.category_name, c.category_id 
+                // Obtener requerimientos del comprador
+                $buyerRequirementsQuery = "SELECT r.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                           FROM requirements r
-                                          JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                                          JOIN categories c ON s.category_id = c.category_id
+                                          JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
+                                          JOIN event_categories c ON s.event_category_id = c.event_category_id
                                           WHERE r.buyer_id = :buyer_id";
-                
                 $buyerRequirements = $this->db->resultSet($buyerRequirementsQuery, ['buyer_id' => $buyerId]);
-                
-                // Si el comprador no tiene requerimientos, continuar con el siguiente
+                // LOG: requerimientos del comprador
+                Logger::debug('[MATCHGEN] Buyer ' . $buyerId . ' requirements', ['buyer' => $buyer, 'requirements' => $buyerRequirements]);
                 if (empty($buyerRequirements)) {
                     continue;
                 }
-                
-                // Procesar cada proveedor
                 foreach ($suppliers as $supplier) {
                     $supplierId = $supplier['company_id'];
-                    
-                    // Verificar si ya existe un match entre este comprador y proveedor
                     if (!$forceRegenerate && $this->exists($buyerId, $supplierId, $eventId)) {
                         $existingMatches++;
                         continue;
                     }
-                    
                     // Obtener ofertas del proveedor
-                    $supplierOffersQuery = "SELECT so.*, s.subcategory_name, c.category_name, c.category_id 
+                    $supplierOffersQuery = "SELECT so.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                            FROM supplier_offers so
-                                           JOIN subcategories s ON so.subcategory_id = s.subcategory_id
-                                           JOIN categories c ON s.category_id = c.category_id
+                                           JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
+                                           JOIN event_categories c ON s.event_category_id = c.event_category_id
                                            WHERE so.supplier_id = :supplier_id";
-                    
                     $supplierOffers = $this->db->resultSet($supplierOffersQuery, ['supplier_id' => $supplierId]);
-                    
-                    // Si el proveedor no tiene ofertas, continuar con el siguiente
+                    // LOG: ofertas del proveedor
+                    Logger::debug('[MATCHGEN] Supplier ' . $supplierId . ' offers', ['supplier' => $supplier, 'offers' => $supplierOffers]);
                     if (empty($supplierOffers)) {
                         continue;
                     }
-                    
-                    // Encontrar coincidencias entre requerimientos y ofertas
                     $matchedCategories = [];
-                    
                     foreach ($buyerRequirements as $requirement) {
                         foreach ($supplierOffers as $offer) {
-                            if ($requirement['subcategory_id'] == $offer['subcategory_id']) {
-                                // Guardar la categoría y subcategoría coincidente
+                            if ($requirement['event_subcategory_id'] == $offer['event_subcategory_id']) {
                                 $matchedCategories[] = [
                                     'category_id' => $requirement['category_id'],
                                     'category_name' => $requirement['category_name'],
-                                    'subcategory_id' => $requirement['subcategory_id'],
+                                    'subcategory_id' => $requirement['event_subcategory_id'],
                                     'subcategory_name' => $requirement['subcategory_name']
                                 ];
-                                break; // Ya encontramos coincidencia para este requerimiento
+                                break;
                             }
                         }
                     }
-                    
-                    // Si hay coincidencias, crear el match
+                    // LOG: coincidencias encontradas
+                    Logger::debug('[MATCHGEN] Buyer ' . $buyerId . ' - Supplier ' . $supplierId . ' matched categories', ['matched' => $matchedCategories]);
                     if (!empty($matchedCategories)) {
                         $matchData = [
                             'buyer_id' => $buyerId,
@@ -475,7 +467,6 @@ class MatchModel {
                             'created_at' => date('Y-m-d H:i:s'),
                             'matched_categories' => json_encode($matchedCategories)
                         ];
-                        
                         if ($this->create($matchData)) {
                             $newMatches++;
                         }
@@ -484,8 +475,9 @@ class MatchModel {
             }
             
             // Confirmar transacción
-            $this->db->commit();
-            
+            if ($startedTransaction) {
+                $this->db->commit();
+            }
             return [
                 'success' => true,
                 'message' => 'Matches generados exitosamente',
@@ -495,9 +487,10 @@ class MatchModel {
             ];
             
         } catch (Exception $e) {
-            // Revertir transacción en caso de error
-            $this->db->rollback();
-            
+            // Revertir transacción en caso de error SOLO si la iniciamos aquí
+            if ($startedTransaction) {
+                $this->db->rollback();
+            }
             return [
                 'success' => false,
                 'message' => 'Error al generar matches: ' . $e->getMessage(),
@@ -531,16 +524,16 @@ class MatchModel {
         
         // Si no se proporcionan categorías, intentar encontrar coincidencias automáticamente
         if (empty($categories)) {
-            $buyerRequirementsQuery = "SELECT r.*, s.subcategory_name, c.category_name, c.category_id 
+            $buyerRequirementsQuery = "SELECT r.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                       FROM requirements r
-                                      JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                                      JOIN categories c ON s.category_id = c.category_id
+                                      JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
+                                      JOIN event_categories c ON s.event_category_id = c.event_category_id
                                       WHERE r.buyer_id = :buyer_id";
             
-            $supplierOffersQuery = "SELECT so.*, s.subcategory_name, c.category_name, c.category_id 
+            $supplierOffersQuery = "SELECT so.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                    FROM supplier_offers so
-                                   JOIN subcategories s ON so.subcategory_id = s.subcategory_id
-                                   JOIN categories c ON s.category_id = c.category_id
+                                   JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
+                                   JOIN event_categories c ON s.event_category_id = c.event_category_id
                                    WHERE so.supplier_id = :supplier_id";
             
             $buyerRequirements = $this->db->resultSet($buyerRequirementsQuery, ['buyer_id' => $buyerId]);
@@ -550,11 +543,11 @@ class MatchModel {
             
             foreach ($buyerRequirements as $requirement) {
                 foreach ($supplierOffers as $offer) {
-                    if ($requirement['subcategory_id'] == $offer['subcategory_id']) {
+                    if ($requirement['event_subcategory_id'] == $offer['event_subcategory_id']) {
                         $matchedCategories[] = [
                             'category_id' => $requirement['category_id'],
                             'category_name' => $requirement['category_name'],
-                            'subcategory_id' => $requirement['subcategory_id'],
+                            'subcategory_id' => $requirement['event_subcategory_id'],
                             'subcategory_name' => $requirement['subcategory_name']
                         ];
                         break;
@@ -588,17 +581,17 @@ class MatchModel {
      */
     public function calculateMatchStrength($buyerId, $supplierId) {
         // Obtener requerimientos del comprador
-        $buyerRequirementsQuery = "SELECT r.*, s.subcategory_name, c.category_name, c.category_id 
+        $buyerRequirementsQuery = "SELECT r.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                   FROM requirements r
-                                  JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                                  JOIN categories c ON s.category_id = c.category_id
+                                  JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
+                                  JOIN event_categories c ON s.event_category_id = c.event_category_id
                                   WHERE r.buyer_id = :buyer_id";
         
         // Obtener ofertas del proveedor
-        $supplierOffersQuery = "SELECT so.*, s.subcategory_name, c.category_name, c.category_id 
+        $supplierOffersQuery = "SELECT so.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                FROM supplier_offers so
-                               JOIN subcategories s ON so.subcategory_id = s.subcategory_id
-                               JOIN categories c ON s.category_id = c.category_id
+                               JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
+                               JOIN event_categories c ON s.event_category_id = c.event_category_id
                                WHERE so.supplier_id = :supplier_id";
         
         $buyerRequirements = $this->db->resultSet($buyerRequirementsQuery, ['buyer_id' => $buyerId]);
@@ -608,11 +601,11 @@ class MatchModel {
         
         foreach ($buyerRequirements as $requirement) {
             foreach ($supplierOffers as $offer) {
-                if ($requirement['subcategory_id'] == $offer['subcategory_id']) {
+                if ($requirement['event_subcategory_id'] == $offer['event_subcategory_id']) {
                     $matchedCategories[] = [
                         'category_id' => $requirement['category_id'],
                         'category_name' => $requirement['category_name'],
-                        'subcategory_id' => $requirement['subcategory_id'],
+                        'subcategory_id' => $requirement['event_subcategory_id'],
                         'subcategory_name' => $requirement['subcategory_name']
                     ];
                     break;

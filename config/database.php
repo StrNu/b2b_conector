@@ -131,6 +131,11 @@ class Database {
         return $this->conn->rollback();
     }
 
+    // Método para saber si hay una transacción activa
+    public function inTransaction() {
+        return $this->conn->inTransaction();
+    }
+
     // Método para crear la tabla de matches potenciales si no existe
     public function createPotentialMatchesTable() {
         $sql = "CREATE TABLE IF NOT EXISTS matches_potenciales (

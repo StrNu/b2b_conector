@@ -2,7 +2,10 @@
 <div class="content">
     <div class="content-header flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-1">Gestión de Asistentes del Evento</h1>
-        <a href="<?= BASE_URL ?>/events/view/<?= $eventId ?>" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al evento</a>
+        <div class="flex gap-2">
+            <a href="<?= BASE_URL ?>/events/companies/<?= $eventId ?>/create-company" class="btn btn-success"><i class="fas fa-building"></i> Agregar empresa</a>
+            <a href="<?= BASE_URL ?>/events/view/<?= $eventId ?>" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver al evento</a>
+        </div>
     </div>
     <?php include(VIEW_DIR . '/shared/notifications.php'); ?>
     <div class="mb-6">

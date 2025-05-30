@@ -1,6 +1,14 @@
 <?php include(VIEW_DIR . '/shared/header.php'); ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/forms.css">
 <div class="content">
+    <div class="flex items-center justify-between mb-4">
+        <a href="<?= BASE_URL ?>/events/view/<?= (int)$event->getId() ?>" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Volver al Evento
+        </a>
+        <a href="<?= BASE_URL ?>/agendas/index/<?= (int)$event->getId() ?>" class="btn btn-primary">
+            <i class="fas fa-calendar-alt"></i> Ver Agendas
+        </a>
+    </div>
     <div class="content-header flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-1">Horarios del Evento</h1>
         <form method="POST" action="" class="inline">
@@ -12,10 +20,8 @@
     </div>
     <?php displayFlashMessages(); ?>
     <?php
-    // Suponemos que $eventModel, $schedulesByDay, $days, $tables, $matches están disponibles
     // $days = array de fechas (Y-m-d) del evento
-    // $schedulesByDay = [ 'Y-m-d' => [schedules...] ]
-    // $tables = array de números de mesa
+    // $schedulesByDay = [ 'Y-m-d' => [schedules...] ] SOLO con registros de event_schedules
     // $matches = [match_id => [datos del match]]
     $activeDay = $_GET['day'] ?? ($days[0] ?? null);
     ?>
@@ -68,7 +74,7 @@
                 </table>
             </div>
         <?php else: ?>
-            <div class="text-center text-gray-500 py-8">No hay horarios programados para este día.</div>
+            <div class="text-center text-gray-500 py-8">No hay citas programadas para este día.</div>
         <?php endif; ?>
     </div>
 </div>

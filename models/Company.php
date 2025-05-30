@@ -127,48 +127,6 @@ class Company {
     }
     
     /**
-     * Crear una nueva empresa
-     * 
-     * @param array $data Datos de la empresa a crear
-     * @return bool|int ID de la empresa creada o false en caso de error
-     */
-    public function create($data) {
-        // Validar datos mínimos requeridos
-        if (!isset($data['company_name'], $data['role'])) {
-            return false;
-        }
-        
-        // Verificar si el rol es válido
-        if (!in_array($data['role'], ['buyer', 'supplier'])) {
-            return false;
-        }
-        
-        // Establecer valores por defecto si no están presentes
-        if (!isset($data['is_active'])) {
-            $data['is_active'] = 1;
-        }
-        
-        if (!isset($data['created_at'])) {
-            $data['created_at'] = date('Y-m-d H:i:s');
-        }
-        
-        // Generar consulta SQL
-        $fields = array_keys($data);
-        $placeholders = array_map(function($field) {
-            return ":$field";
-        }, $fields);
-        
-        $query = "INSERT INTO {$this->table} (" . implode(', ', $fields) . ") 
-                  VALUES (" . implode(', ', $placeholders) . ")";
-        
-        if ($this->db->query($query, $data)) {
-            return $this->db->lastInsertId();
-        }
-        
-        return false;
-    }
-    
-    /**
      * Actualizar datos de una empresa
      * 
      * @param array $data Datos a actualizar
@@ -183,6 +141,9 @@ class Company {
         if (isset($data['role']) && !in_array($data['role'], ['buyer', 'supplier'])) {
             return false;
         }
+        
+        // Log de los datos recibidos para depuración
+        Logger::debug('Datos recibidos para update de empresa', $data);
         
         // Generar sentencia de actualización
         $updateFields = [];
@@ -260,6 +221,40 @@ class Company {
     }
     
     /**
+     * Crear empresa asociada a un evento
+     * @param array $data
+     * @return int|false ID de la empresa creada o false
+     */
+    public function createForEvent($data) {
+        $query = "INSERT INTO company (
+            event_id, company_name, address, city, country, website, company_logo, contact_first_name, contact_last_name, phone, email, is_active, role, description
+        ) VALUES (
+            :event_id, :company_name, :address, :city, :country, :website, :company_logo, :contact_first_name, :contact_last_name, :phone, :email, :is_active, :role, :description
+        )";
+        $params = [
+            'event_id' => $data['event_id'],
+            'company_name' => $data['company_name'],
+            'address' => $data['address'] ?? '',
+            'city' => $data['city'] ?? '',
+            'country' => $data['country'] ?? '',
+            'website' => $data['website'] ?? '',
+            'company_logo' => $data['company_logo'] ?? '',
+            'contact_first_name' => $data['contact_first_name'] ?? '',
+            'contact_last_name' => $data['contact_last_name'] ?? '',
+            'phone' => $data['phone'] ?? '',
+            'email' => $data['email'],
+            'is_active' => $data['is_active'],
+            'role' => $data['role'],
+            'description' => $data['description'] ?? ''
+        ];
+        $result = $this->db->query($query, $params);
+        if ($result) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
+    /**
      * Obtener todas las empresas
      * 
      * @param array $filters Filtros a aplicar
@@ -284,7 +279,7 @@ class Company {
         }
         
         // Aplicar ordenamiento
-        $query .= " ORDER BY company_name ASC";
+        $query .= " ORDER BY company_id ASC";
         
         // Aplicar paginación
         if ($pagination) {
@@ -341,14 +336,37 @@ class Company {
      * @param array $pagination Información de paginación
      * @return array Lista de empresas filtradas por evento y opcionalmente por rol
      */
-    public function getByEvent($eventId, $role = null, $pagination = null) {
-        $filters = ['event_id' => $eventId];
-        
+    public function getByEvent($eventId, $role = null, $pagination = null, $filters = [], $order = 'asc') {
+        $baseFilters = ['event_id' => $eventId];
         if ($role) {
-            $filters['role'] = $role;
+            $baseFilters['role'] = $role;
         }
-        
-        return $this->getAll($filters, $pagination);
+        // Merge search filter
+        if (!empty($filters['search'])) {
+            $search = '%' . $filters['search'] . '%';
+            $query = "SELECT * FROM {$this->table} WHERE event_id = :event_id ";
+            $params = ['event_id' => $eventId];
+            if ($role) {
+                $query .= " AND role = :role ";
+                $params['role'] = $role;
+            }
+            $query .= " AND (company_name LIKE :search1 OR contact_first_name LIKE :search2 OR contact_last_name LIKE :search3 OR email LIKE :search4) ";
+            $params['search1'] = $search;
+            $params['search2'] = $search;
+            $params['search3'] = $search;
+            $params['search4'] = $search;
+            $query .= " ORDER BY company_id " . (strtolower($order) === 'desc' ? 'DESC' : 'ASC');
+            return $this->db->resultSet($query, $params);
+        }
+        // Sin búsqueda, solo filtros y orden
+        $query = "SELECT * FROM {$this->table} WHERE event_id = :event_id";
+        $params = ['event_id' => $eventId];
+        if ($role) {
+            $query .= " AND role = :role";
+            $params['role'] = $role;
+        }
+        $query .= " ORDER BY company_id " . (strtolower($order) === 'desc' ? 'DESC' : 'ASC');
+        return $this->db->resultSet($query, $params);
     }
     
     /**
@@ -547,29 +565,34 @@ class Company {
      * Obtener requerimientos de un comprador
      * 
      * @param int $companyId ID de la empresa (debe ser comprador)
+     * @param int $eventId ID del evento
      * @return array Lista de requerimientos
      */
-    public function getRequirements($companyId = null) {
+    public function getRequirements($companyId = null, $eventId = null) {
         $id = $companyId ?? $this->id;
-        
-        if (!$id) {
+        $eventId = $eventId ?? $this->event_id ?? null;
+
+        if (!$id || !$eventId) {
             return [];
         }
-        
-        // Verificar que la empresa sea un comprador
-        if ($this->role !== 'buyer') {
+
+        // Consultar el rol directamente de la base de datos para evitar depender de la propiedad privada
+        $queryRole = "SELECT role FROM {$this->table} WHERE company_id = :id LIMIT 1";
+        $roleResult = $this->db->single($queryRole, ['id' => $id]);
+        $role = $roleResult['role'] ?? null;
+        if ($role !== 'buyer') {
             return [];
         }
-        
-        $query = "SELECT r.*, s.subcategory_name, c.category_name, c.category_id
+
+        $query = "SELECT r.*, es.name AS subcategory_name, ec.name AS category_name, ec.event_category_id AS category_id
                   FROM requirements r
-                  JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                  JOIN categories c ON s.category_id = c.category_id
-                  WHERE r.buyer_id = :buyer_id
-                  ORDER BY c.category_name, s.subcategory_name";
-        
-        $params = ['buyer_id' => $id];
-        
+                  JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
+                  JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+                  WHERE r.buyer_id = :buyer_id AND ec.event_id = :event_id
+                  ORDER BY ec.name, es.name";
+
+        $params = ['buyer_id' => $id, 'event_id' => $eventId];
+
         return $this->db->resultSet($query, $params);
     }
     
@@ -582,42 +605,48 @@ class Company {
      */
     public function addRequirement($data, $companyId = null) {
         $id = $companyId ?? $this->id;
-        
+        Logger::debug('addRequirement: companyId', ['companyId' => $id, 'role' => $this->role, 'data' => $data]);
         if (!$id) {
+            Logger::error('addRequirement: No companyId');
             return false;
         }
-        
-        // Verificar que la empresa sea un comprador
+        // Forzar el rol a 'buyer' si se llama desde registro público
+        if (empty($this->role)) {
+            $this->role = 'buyer';
+            Logger::debug('addRequirement: role vacío, forzando a buyer');
+        }
         if ($this->role !== 'buyer') {
+            Logger::error('addRequirement: El rol no es buyer', ['role' => $this->role]);
             return false;
         }
-        
         // Validar datos mínimos
-        if (!isset($data['subcategory_id'])) {
+        if (!isset($data['subcategory_id']) && !isset($data['event_subcategory_id'])) {
+            Logger::error('addRequirement: Falta event_subcategory_id', ['data' => $data]);
             return false;
         }
-        
-        // Agregar ID del comprador
+        // Usar event_subcategory_id para la tabla requirements
+        $data['event_subcategory_id'] = isset($data['event_subcategory_id'])
+            ? (int)$data['event_subcategory_id']
+            : (isset($data['subcategory_id']) ? (int)$data['subcategory_id'] : null);
+        unset($data['subcategory_id']);
         $data['buyer_id'] = $id;
-        
-        // Establecer fecha de creación si no está presente
         if (!isset($data['created_at'])) {
             $data['created_at'] = date('Y-m-d H:i:s');
         }
-        
-        // Generar consulta SQL
         $fields = array_keys($data);
         $placeholders = array_map(function($field) {
             return ":$field";
         }, $fields);
-        
         $query = "INSERT INTO requirements (" . implode(', ', $fields) . ") 
                   VALUES (" . implode(', ', $placeholders) . ")";
-        
+        Logger::debug('addRequirement: Ejecutando query', ['query' => $query, 'params' => $data]);
         if ($this->db->query($query, $data)) {
-            return $this->db->lastInsertId();
+            $lastId = $this->db->lastInsertId();
+            Logger::info('addRequirement: Insert exitoso', ['lastInsertId' => $lastId]);
+            return $lastId;
+        } else {
+            Logger::error('addRequirement: Falló el insert', ['query' => $query, 'params' => $data]);
         }
-        
         return false;
     }
     
@@ -659,17 +688,12 @@ class Company {
             return [];
         }
         
-        // Verificar que la empresa sea un proveedor
-        if ($this->role !== 'supplier') {
-            return [];
-        }
-        
-        $query = "SELECT so.*, s.subcategory_name, c.category_name, c.category_id
+        $query = "SELECT so.*, s.name AS subcategory_name, c.name AS category_name, c.event_category_id AS category_id
                   FROM supplier_offers so
-                  JOIN subcategories s ON so.subcategory_id = s.subcategory_id
-                  JOIN categories c ON s.category_id = c.category_id
+                  JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
+                  JOIN event_categories c ON s.event_category_id = c.event_category_id
                   WHERE so.supplier_id = :supplier_id
-                  ORDER BY c.category_name, s.subcategory_name";
+                  ORDER BY c.name, s.name";
         
         $params = ['supplier_id' => $id];
         
@@ -685,37 +709,56 @@ class Company {
      */
     public function addOffer($data, $companyId = null) {
         $id = $companyId ?? $this->id;
-        
+        if (class_exists('Logger')) {
+            Logger::debug('addOffer: Iniciando', ['companyId' => $id, 'role' => $this->role, 'data' => $data]);
+        }
         if (!$id) {
+            if (class_exists('Logger')) {
+                Logger::error('addOffer: No companyId');
+            }
             return false;
         }
-        
-        // Verificar que la empresa sea un proveedor
+        // Forzar el rol a 'supplier' si se llama desde registro público
+        if (empty($this->role)) {
+            $this->role = 'supplier';
+            if (class_exists('Logger')) {
+                Logger::debug('addOffer: role vacío, forzando a supplier');
+            }
+        }
         if ($this->role !== 'supplier') {
+            if (class_exists('Logger')) {
+                Logger::error('addOffer: El rol no es supplier', ['role' => $this->role]);
+            }
             return false;
         }
-        
         // Validar datos mínimos
-        if (!isset($data['subcategory_id'])) {
+        if (!isset($data['event_subcategory_id'])) {
+            if (class_exists('Logger')) {
+                Logger::error('addOffer: Falta event_subcategory_id', ['data' => $data]);
+            }
             return false;
         }
-        
-        // Agregar ID del proveedor
         $data['supplier_id'] = $id;
-        
-        // Generar consulta SQL
         $fields = array_keys($data);
         $placeholders = array_map(function($field) {
             return ":$field";
         }, $fields);
-        
         $query = "INSERT INTO supplier_offers (" . implode(', ', $fields) . ") 
                   VALUES (" . implode(', ', $placeholders) . ")";
-        
-        if ($this->db->query($query, $data)) {
-            return $this->db->lastInsertId();
+        if (class_exists('Logger')) {
+            Logger::debug('addOffer: Ejecutando query', ['query' => $query, 'params' => $data]);
         }
-        
+        if ($this->db->query($query, $data)) {
+            $lastId = $this->db->lastInsertId();
+            if (class_exists('Logger')) {
+                Logger::info('addOffer: Insert exitoso', ['lastInsertId' => $lastId]);
+            }
+            return $lastId;
+        } else {
+            if (class_exists('Logger')) {
+                Logger::error('addOffer: Falló el insert', ['query' => $query, 'params' => $data]);
+            }
+        }
         return false;
     }
     
@@ -1145,6 +1188,14 @@ public function getUpcomingEvents($companyId = null, $limit = 3) {
     }
 
     /**
+     * Obtener el logo de la empresa
+     * @return string|null
+     */
+    public function getCompanyLogo() {
+        return $this->company_logo;
+    }
+
+    /**
      * Verificar si la empresa está activa
      * @return bool
      */
@@ -1182,5 +1233,31 @@ public function getUpcomingEvents($companyId = null, $limit = 3) {
         $this->role = $data['role'] ?? null;
         $this->event_id = $data['event_id'] ?? null;
         $this->description = $data['description'] ?? null;
+    }
+
+    /**
+     * Elimina todos los requerimientos de una empresa para un evento
+     */
+    public function deleteAllRequirements($companyId, $eventId) {
+        $query = "DELETE FROM requirements WHERE buyer_id = :company_id AND event_subcategory_id IN (
+            SELECT es.event_subcategory_id FROM event_subcategories es
+            JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+            WHERE ec.event_id = :event_id
+        )";
+        $this->db->query($query, [
+            'company_id' => $companyId,
+            'event_id' => $eventId
+        ]);
+    }
+
+    /**
+     * Obtener empresa por ID (como array)
+     * @param int $id
+     * @return array|null
+     */
+    public function getById($id) {
+        $query = "SELECT * FROM {$this->table} WHERE company_id = :id LIMIT 1";
+        $result = $this->db->single($query, ['id' => $id]);
+        return $result ?: null;
     }
 }

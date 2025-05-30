@@ -205,7 +205,7 @@ class AuthController {
         
         // Verificar fortaleza de la contraseña
         if (!Security::isStrongPassword($_POST['password'])) {
-            $this->validator->errors['password'] = 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número';
+            $this->validator->addError('password', 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número');
         }
         
         // Si hay errores de validación, volver al formulario
@@ -414,7 +414,7 @@ class AuthController {
         
         // Verificar fortaleza de la nueva contraseña
         if (!Security::isStrongPassword($_POST['new_password'])) {
-            $this->validator->errors['new_password'] = 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número';
+            $this->validator->addError('new_password', 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número');
         }
         
         // Si hay errores de validación, volver al formulario
@@ -557,7 +557,7 @@ class AuthController {
         
         // Verificar fortaleza de la contraseña
         if (!Security::isStrongPassword($_POST['password'])) {
-            $this->validator->errors['password'] = 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número';
+            $this->validator->addError('password', 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número');
         }
         
         // Si hay errores de validación, volver al formulario
@@ -692,7 +692,7 @@ class AuthController {
             
             // Verificar fortaleza de la contraseña
             if (!Security::isStrongPassword($_POST['password'])) {
-                $this->validator->errors['password'] = 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número';
+                $this->validator->addError('password', 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número');
             }
         }
         
@@ -849,5 +849,56 @@ try {
 }
 
 redirect(BASE_URL . '/auth/admin/users');
+    }
+    
+    /**
+     * Mostrar formulario para cambiar la contraseña de usuario de evento (comprador)
+     *
+     * @return void
+     */
+    public function changePasswordEventForm() {
+        // No requiere autenticación de sesión global
+        // Mostrar formulario de cambio de contraseña para compradores
+        include(VIEW_DIR . '/auth/change_password.php');
+    }
+
+    /**
+     * Procesar cambio de contraseña para usuario de evento (comprador)
+     *
+     * @return void
+     */
+    public function changePasswordEvent() {
+        // Validar método POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect(BASE_URL . '/auth/change_password_event');
+            exit;
+        }
+
+        // Validar email y contraseñas
+        $this->validator->setData($_POST);
+        $this->validator->required('email', 'El email es obligatorio')
+                       ->required('new_password', 'La nueva contraseña es obligatoria')
+                       ->required('confirm_password', 'La confirmación de contraseña es obligatoria')
+                       ->minLength('new_password', PASSWORD_MIN_LENGTH, 'La nueva contraseña debe tener al menos ' . PASSWORD_MIN_LENGTH . ' caracteres')
+                       ->matches('new_password', 'confirm_password', 'Las contraseñas no coinciden');
+        if (!Security::isStrongPassword($_POST['new_password'])) {
+            $this->validator->addError('new_password', 'La contraseña debe contener al menos una letra mayúscula, una minúscula y un número');
+        }
+        if ($this->validator->hasErrors()) {
+            $_SESSION['validation_errors'] = $this->validator->getErrors();
+            $redirectUrl = !empty($_POST['redirect']) ? $_POST['redirect'] : (BASE_URL . '/auth/change_password_event');
+            redirect($redirectUrl);
+            exit;
+        }
+        $email = sanitize($_POST['email']);
+        $newPassword = $_POST['new_password'];
+        $result = $this->userModel->updateEventUserPassword($email, $newPassword);
+        if ($result) {
+            setFlashMessage('Contraseña actualizada exitosamente', 'success');
+        } else {
+            setFlashMessage('No se pudo actualizar la contraseña. Verifique el email.', 'danger');
+        }
+        $redirectUrl = !empty($_POST['redirect']) ? $_POST['redirect'] : (BASE_URL . '/auth/change_password_event');
+        redirect($redirectUrl);
     }
 }
