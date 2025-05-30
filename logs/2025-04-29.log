@@ -1,0 +1,1567 @@
+2025-05-28 17:48:57 [categories.php] eventModel: Event Object
+(
+    [db:Event:private] => Database Object
+        (
+            [host:Database:private] => localhost
+            [db_name:Database:private] => b2b_conector
+            [username:Database:private] => root
+            [password:Database:private] => N1kt3.
+            [conn:Database:private] => PDO Object
+                (
+                )
+
+        )
+
+    [table:Event:private] => events
+    [id:Event:private] => 
+    [event_name:Event:private] => Expo B2B FACTROMEX
+    [venue:Event:private] => Hotel México
+    [start_date:Event:private] => 2025-06-18
+    [end_date:Event:private] => 2025-06-20
+    [available_tables:Event:private] => 10
+    [meeting_duration:Event:private] => 20
+    [is_active:Event:private] => 1
+    [start_time:Event:private] => 09:00:00
+    [end_time:Event:private] => 18:00:00
+    [has_break:Event:private] => 1
+    [company_name:Event:private] => FACTROMEXX2
+    [contact_name:Event:private] => Fernando Platas
+    [contact_phone:Event:private] => 5555555555
+    [contact_email:Event:private] => fernandoplatas@email.com
+    [event_id:Event:private] => 4
+    [event_logo:Event:private] => 
+    [company_logo:Event:private] => company_68379645e2983.jpeg
+    [created_at:Event:private] => 
+    [updated_at:Event:private] => 
+)
+
+categoriesWithSubcategories: Array
+(
+    [0] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 7
+                    [event_id] => 4
+                    [category_id] => 1
+                    [name] => Tecnología
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 19
+                            [event_category_id] => 7
+                            [subcategory_id] => 1
+                            [name] => Computadoras y Laptops
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+)
+
+csrfToken: 9dea86beca52e4a3a5d51387145413c3
+2025-05-28 17:54:08 [categories.php] eventModel: Event Object
+(
+    [db:Event:private] => Database Object
+        (
+            [host:Database:private] => localhost
+            [db_name:Database:private] => b2b_conector
+            [username:Database:private] => root
+            [password:Database:private] => N1kt3.
+            [conn:Database:private] => PDO Object
+                (
+                )
+
+        )
+
+    [table:Event:private] => events
+    [id:Event:private] => 
+    [event_name:Event:private] => Expo B2B FACTROMEX
+    [venue:Event:private] => Hotel México
+    [start_date:Event:private] => 2025-06-18
+    [end_date:Event:private] => 2025-06-20
+    [available_tables:Event:private] => 10
+    [meeting_duration:Event:private] => 20
+    [is_active:Event:private] => 1
+    [start_time:Event:private] => 09:00:00
+    [end_time:Event:private] => 18:00:00
+    [has_break:Event:private] => 1
+    [company_name:Event:private] => FACTROMEXX2
+    [contact_name:Event:private] => Fernando Platas
+    [contact_phone:Event:private] => 5555555555
+    [contact_email:Event:private] => fernandoplatas@email.com
+    [event_id:Event:private] => 4
+    [event_logo:Event:private] => 
+    [company_logo:Event:private] => company_68379645e2983.jpeg
+    [created_at:Event:private] => 
+    [updated_at:Event:private] => 
+)
+
+categoriesWithSubcategories: Array
+(
+    [0] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 16
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Alimentos y Bebidas
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 83
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Alimentos Procesados
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 85
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Bebidas Alcohólicas
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 84
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Bebidas No Alcohólicas
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 88
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Certificaciones Alimentarias
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 86
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Insumos para Restaurantes
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 87
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Maquinaria para Alimentos
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 82
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Productos Frescos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [1] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 14
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Logística
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 74
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Aduanas y Comercio Internacional
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 71
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Almacenamiento
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 73
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Distribución
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 72
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Gestión de Inventarios
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 70
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Aéreo
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 69
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Marítimo
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 68
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Terrestre
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [2] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 13
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Manufactura
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 64
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Automatización
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 65
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Control de Calidad
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 66
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Empaque y Embalaje
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 63
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Maquinaria Industrial
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 67
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Materias Primas
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 62
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Metales y Aleaciones
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 61
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Producción de Plásticos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [3] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 15
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Servicios Profesionales
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 80
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Capacitación
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 75
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Consultoría Empresarial
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 77
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Contabilidad y Finanzas
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 78
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Marketing y Publicidad
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 79
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Recursos Humanos
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 76
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Servicios Legales
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 81
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Traducción e Interpretación
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [4] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 12
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Tecnología
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 54
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Computadoras y Laptops
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 56
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Periféricos
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 59
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Redes y Telecomunicaciones
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 58
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Servicios en la Nube
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 55
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Smartphones y Tablets
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 57
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Software
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 60
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Soporte Técnico
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+)
+
+csrfToken: 9dea86beca52e4a3a5d51387145413c3
+2025-05-28 17:54:33 [categories.php] eventModel: Event Object
+(
+    [db:Event:private] => Database Object
+        (
+            [host:Database:private] => localhost
+            [db_name:Database:private] => b2b_conector
+            [username:Database:private] => root
+            [password:Database:private] => N1kt3.
+            [conn:Database:private] => PDO Object
+                (
+                )
+
+        )
+
+    [table:Event:private] => events
+    [id:Event:private] => 
+    [event_name:Event:private] => Expo B2B FACTROMEX
+    [venue:Event:private] => Hotel México
+    [start_date:Event:private] => 2025-06-18
+    [end_date:Event:private] => 2025-06-20
+    [available_tables:Event:private] => 10
+    [meeting_duration:Event:private] => 20
+    [is_active:Event:private] => 1
+    [start_time:Event:private] => 09:00:00
+    [end_time:Event:private] => 18:00:00
+    [has_break:Event:private] => 1
+    [company_name:Event:private] => FACTROMEXX2
+    [contact_name:Event:private] => Fernando Platas
+    [contact_phone:Event:private] => 5555555555
+    [contact_email:Event:private] => fernandoplatas@email.com
+    [event_id:Event:private] => 4
+    [event_logo:Event:private] => 
+    [company_logo:Event:private] => company_68379645e2983.jpeg
+    [created_at:Event:private] => 
+    [updated_at:Event:private] => 
+)
+
+categoriesWithSubcategories: Array
+(
+    [0] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 16
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Alimentos y Bebidas
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 83
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Alimentos Procesados
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 85
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Bebidas Alcohólicas
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 84
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Bebidas No Alcohólicas
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 88
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Certificaciones Alimentarias
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 86
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Insumos para Restaurantes
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 87
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Maquinaria para Alimentos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [1] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 14
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Logística
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 74
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Aduanas y Comercio Internacional
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 71
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Almacenamiento
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 73
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Distribución
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 72
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Gestión de Inventarios
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 70
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Aéreo
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 69
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Marítimo
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 68
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Terrestre
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [2] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 13
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Manufactura
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 64
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Automatización
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 65
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Control de Calidad
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 66
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Empaque y Embalaje
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 63
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Maquinaria Industrial
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 67
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Materias Primas
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 62
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Metales y Aleaciones
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 61
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Producción de Plásticos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [3] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 15
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Servicios Profesionales
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 80
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Capacitación
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 75
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Consultoría Empresarial
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 77
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Contabilidad y Finanzas
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 78
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Marketing y Publicidad
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 79
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Recursos Humanos
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 76
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Servicios Legales
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 81
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Traducción e Interpretación
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [4] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 12
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Tecnología
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 54
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Computadoras y Laptops
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 56
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Periféricos
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 59
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Redes y Telecomunicaciones
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 58
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Servicios en la Nube
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 55
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Smartphones y Tablets
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 57
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Software
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 60
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Soporte Técnico
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+)
+
+csrfToken: 9dea86beca52e4a3a5d51387145413c3
+2025-05-28 17:54:44 [categories.php] eventModel: Event Object
+(
+    [db:Event:private] => Database Object
+        (
+            [host:Database:private] => localhost
+            [db_name:Database:private] => b2b_conector
+            [username:Database:private] => root
+            [password:Database:private] => N1kt3.
+            [conn:Database:private] => PDO Object
+                (
+                )
+
+        )
+
+    [table:Event:private] => events
+    [id:Event:private] => 
+    [event_name:Event:private] => Expo B2B FACTROMEX
+    [venue:Event:private] => Hotel México
+    [start_date:Event:private] => 2025-06-18
+    [end_date:Event:private] => 2025-06-20
+    [available_tables:Event:private] => 10
+    [meeting_duration:Event:private] => 20
+    [is_active:Event:private] => 1
+    [start_time:Event:private] => 09:00:00
+    [end_time:Event:private] => 18:00:00
+    [has_break:Event:private] => 1
+    [company_name:Event:private] => FACTROMEXX2
+    [contact_name:Event:private] => Fernando Platas
+    [contact_phone:Event:private] => 5555555555
+    [contact_email:Event:private] => fernandoplatas@email.com
+    [event_id:Event:private] => 4
+    [event_logo:Event:private] => 
+    [company_logo:Event:private] => company_68379645e2983.jpeg
+    [created_at:Event:private] => 
+    [updated_at:Event:private] => 
+)
+
+categoriesWithSubcategories: Array
+(
+    [0] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 16
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Alimentos y Bebidas
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 83
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Alimentos Procesados
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 85
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Bebidas Alcohólicas
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 84
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Bebidas No Alcohólicas
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 88
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Certificaciones Alimentarias
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 86
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Insumos para Restaurantes
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 87
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Maquinaria para Alimentos
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 89
+                            [event_category_id] => 16
+                            [subcategory_id] => 
+                            [name] => Productos frescos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [1] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 14
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Logística
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 74
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Aduanas y Comercio Internacional
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 71
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Almacenamiento
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 73
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Distribución
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 72
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Gestión de Inventarios
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 70
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Aéreo
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 69
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Marítimo
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 68
+                            [event_category_id] => 14
+                            [subcategory_id] => 
+                            [name] => Transporte Terrestre
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [2] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 13
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Manufactura
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 64
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Automatización
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 65
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Control de Calidad
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 66
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Empaque y Embalaje
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 63
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Maquinaria Industrial
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 67
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Materias Primas
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 62
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Metales y Aleaciones
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 61
+                            [event_category_id] => 13
+                            [subcategory_id] => 
+                            [name] => Producción de Plásticos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [3] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 15
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Servicios Profesionales
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 80
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Capacitación
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 75
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Consultoría Empresarial
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 77
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Contabilidad y Finanzas
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 78
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Marketing y Publicidad
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 79
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Recursos Humanos
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 76
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Servicios Legales
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 81
+                            [event_category_id] => 15
+                            [subcategory_id] => 
+                            [name] => Traducción e Interpretación
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [4] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 12
+                    [event_id] => 4
+                    [category_id] => 
+                    [name] => Tecnología
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 54
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Computadoras y Laptops
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 56
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Periféricos
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 59
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Redes y Telecomunicaciones
+                            [is_active] => 1
+                        )
+
+                    [3] => Array
+                        (
+                            [event_subcategory_id] => 58
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Servicios en la Nube
+                            [is_active] => 1
+                        )
+
+                    [4] => Array
+                        (
+                            [event_subcategory_id] => 55
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Smartphones y Tablets
+                            [is_active] => 1
+                        )
+
+                    [5] => Array
+                        (
+                            [event_subcategory_id] => 57
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Software
+                            [is_active] => 1
+                        )
+
+                    [6] => Array
+                        (
+                            [event_subcategory_id] => 60
+                            [event_category_id] => 12
+                            [subcategory_id] => 
+                            [name] => Soporte Técnico
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+)
+
+csrfToken: 9dea86beca52e4a3a5d51387145413c3
+2025-05-28 19:19:12 [categories.php] eventModel: Event Object
+(
+    [db:Event:private] => Database Object
+        (
+            [host:Database:private] => localhost
+            [db_name:Database:private] => b2b_conector
+            [username:Database:private] => root
+            [password:Database:private] => N1kt3.
+            [conn:Database:private] => PDO Object
+                (
+                )
+
+        )
+
+    [table:Event:private] => events
+    [id:Event:private] => 
+    [event_name:Event:private] => wan manufactury b2b
+    [venue:Event:private] => Hotel Marquis Reforma
+    [start_date:Event:private] => 2025-05-27
+    [end_date:Event:private] => 2025-05-29
+    [available_tables:Event:private] => 5
+    [meeting_duration:Event:private] => 30
+    [is_active:Event:private] => 1
+    [start_time:Event:private] => 09:00:00
+    [end_time:Event:private] => 18:00:00
+    [has_break:Event:private] => 1
+    [company_name:Event:private] => wan manufactury
+    [contact_name:Event:private] => Perla Casos
+    [contact_phone:Event:private] => 5555555555
+    [contact_email:Event:private] => perla.casos@email.com
+    [event_id:Event:private] => 3
+    [event_logo:Event:private] => event_680da1af4179b.png
+    [company_logo:Event:private] => company_680da1af418e7.jpeg
+    [created_at:Event:private] => 
+    [updated_at:Event:private] => 
+)
+
+categoriesWithSubcategories: Array
+(
+    [0] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 3
+                    [event_id] => 3
+                    [category_id] => 
+                    [name] => Manufacturaa c1
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 10
+                            [event_category_id] => 3
+                            [subcategory_id] => 
+                            [name] => Consultoría Empresarial
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 11
+                            [event_category_id] => 3
+                            [subcategory_id] => 
+                            [name] => Servicios Legales sc2
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [1] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 2
+                    [event_id] => 3
+                    [category_id] => 
+                    [name] => Manufacturaaa
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 9
+                            [event_category_id] => 2
+                            [subcategory_id] => 
+                            [name] => Maquinaria Industrial sc1
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 8
+                            [event_category_id] => 2
+                            [subcategory_id] => 
+                            [name] => Metales
+                            [is_active] => 1
+                        )
+
+                    [2] => Array
+                        (
+                            [event_subcategory_id] => 12
+                            [event_category_id] => 2
+                            [subcategory_id] => 
+                            [name] => Plásticos
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [2] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 6
+                    [event_id] => 3
+                    [category_id] => 
+                    [name] => Maquila c2
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 16
+                            [event_category_id] => 6
+                            [subcategory_id] => 
+                            [name] => maquila sc1
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+    [3] => Array
+        (
+            [category] => Array
+                (
+                    [event_category_id] => 4
+                    [event_id] => 3
+                    [category_id] => 
+                    [name] => Tecnología
+                    [is_active] => 1
+                )
+
+            [subcategories] => Array
+                (
+                    [0] => Array
+                        (
+                            [event_subcategory_id] => 14
+                            [event_category_id] => 4
+                            [subcategory_id] => 
+                            [name] => laptops
+                            [is_active] => 1
+                        )
+
+                    [1] => Array
+                        (
+                            [event_subcategory_id] => 13
+                            [event_category_id] => 4
+                            [subcategory_id] => 
+                            [name] => smartphones
+                            [is_active] => 1
+                        )
+
+                )
+
+        )
+
+)
+
+csrfToken: 7e952cca472a2b130fc47019d040fed5

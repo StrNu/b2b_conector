@@ -296,9 +296,10 @@ class Appointment {
                   JOIN matches m ON es.match_id = m.match_id 
                   JOIN company b ON m.buyer_id = b.company_id 
                   JOIN company s ON m.supplier_id = s.company_id
-                  WHERE (m.buyer_id = :company_id OR m.supplier_id = :company_id)";
+                  WHERE (m.buyer_id = :company_id1 OR m.supplier_id = :company_id2)";
         
-        $params = ['company_id' => $companyId];
+        // Usar los nombres correctos de parámetros
+        $params = ['company_id1' => $companyId, 'company_id2' => $companyId];
         
         if ($eventId) {
             $query .= " AND es.event_id = :event_id";
@@ -414,7 +415,12 @@ class Appointment {
             $params['exclude_id'] = $excludeId;
         }
         
-        $count = $this->db->query($query, $params)->fetchColumn();
+        $stmt = $this->db->query($query, $params);
+        if ($stmt === false) {
+            // Si la consulta falla, asumimos que NO está disponible (mejor que error fatal)
+            return false;
+        }
+        $count = $stmt->fetchColumn();
         return $count == 0;
     }
     
@@ -432,14 +438,15 @@ class Appointment {
         $query = "SELECT COUNT(*) FROM {$this->table} es
                   JOIN matches m ON es.match_id = m.match_id
                   WHERE es.event_id = :event_id 
-                  AND (m.buyer_id = :company_id OR m.supplier_id = :company_id)
+                  AND (m.buyer_id = :company_id1 OR m.supplier_id = :company_id2)
                   AND (
                     (es.start_datetime < :end_datetime AND es.end_datetime > :start_datetime)
                   )";
         
         $params = [
             'event_id' => $eventId,
-            'company_id' => $companyId,
+            'company_id1' => $companyId,
+            'company_id2' => $companyId,    
             'start_datetime' => $startDateTime,
             'end_datetime' => $endDateTime
         ];
@@ -448,8 +455,12 @@ class Appointment {
             $query .= " AND es.schedule_id != :exclude_id";
             $params['exclude_id'] = $excludeId;
         }
-        
-        $count = $this->db->query($query, $params)->fetchColumn();
+            $stmt = $this->db->query($query, $params);
+        if ($stmt === false) {
+            // Si la consulta falla, asumimos que NO está disponible (mejor que error fatal)
+            return false;
+        }
+        $count = $stmt->fetchColumn();
         return $count == 0;
     }
     
@@ -595,7 +606,6 @@ class Appointment {
                 
                 // Intentar programar la cita
                 $scheduled = false;
-                
                 foreach ($timeSlots as $slot) {
                     $slotDate = date('Y-m-d', strtotime($slot['start_datetime']));
                     
@@ -670,7 +680,7 @@ class Appointment {
      * @param array $eventInfo Información del evento
      * @return array Lista de slots de tiempo
      */
-    private function generateTimeSlots($eventId, $eventInfo) {
+    public function generateTimeSlots($eventId, $eventInfo) {
         $slots = [];
         
         // Obtener breaks del evento
@@ -1141,4 +1151,82 @@ public function calculateEventAttendanceRate($eventId) {
     
     return round(($completedAppointments / $scheduledAppointments) * 100, 2);
 }
+
+/**
+     * Programar automáticamente una cita para un match (manual, un match a la vez)
+     * @param int $eventId
+     * @param int $matchId
+     * @return int|false ID de la cita creada o false si no se pudo programar
+     */
+    public function scheduleMatch($eventId, $matchId) {
+        // Obtener datos del match
+        $matchQuery = "SELECT * FROM matches WHERE match_id = :match_id AND event_id = :event_id";
+        $match = $this->db->single($matchQuery, ['match_id' => $matchId, 'event_id' => $eventId]);
+        if (!$match) return false;
+        $buyerId = $match['buyer_id'];
+        $supplierId = $match['supplier_id'];
+        // Obtener días de asistencia comunes
+        $commonDays = $this->getCommonAttendanceDays($buyerId, $supplierId, $eventId);
+        if (empty($commonDays)) return false;
+        // Obtener info del evento
+        $event = new Event($this->db);
+        if (!$event->findById($eventId)) return false;
+        $eventInfo = [
+            'start_time' => $event->getStartTime(),
+            'end_time' => $event->getEndTime(),
+            'meeting_duration' => $event->getMeetingDuration(),
+            'available_tables' => $event->getAvailableTables()
+        ];
+        // Para cada día común, buscar el primer slot disponible
+        foreach ($commonDays as $day) {
+            $slots = $event->generateTimeSlots($eventId, $day);
+            foreach ($slots as $slot) {
+                // Buscar mesa disponible
+                $tableNumber = $this->findAvailableTable($eventId, $slot['start_datetime'], $slot['end_datetime']);
+                if (!$tableNumber) continue;
+                // Verificar disponibilidad de comprador y proveedor
+                if (!$this->isCompanyAvailable($buyerId, $eventId, $slot['start_datetime'], $slot['end_datetime'])) continue;
+                if (!$this->isCompanyAvailable($supplierId, $eventId, $slot['start_datetime'], $slot['end_datetime'])) continue;
+                // Crear la cita
+                $appointmentData = [
+                    'event_id' => $eventId,
+                    'match_id' => $matchId,
+                    'table_number' => $tableNumber,
+                    'start_datetime' => $slot['start_datetime'],
+                    'end_datetime' => $slot['end_datetime'],
+                    'status' => self::STATUS_SCHEDULED,
+                    'is_manual' => 1
+                ];
+                $appointmentId = $this->create($appointmentData);
+                if ($appointmentId) return $appointmentId;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Obtener todas las citas de una empresa (buyer o supplier) en un evento
+     * @param int $companyId
+     * @param int $eventId
+     * @return array
+     */
+    public function getByCompanyAndEvent($companyId, $eventId) {
+        $query = "SELECT es.*, 
+                  m.buyer_id, m.supplier_id, 
+                  b.company_name as buyer_name, 
+                  s.company_name as supplier_name 
+                  FROM {$this->table} es
+                  JOIN matches m ON es.match_id = m.match_id 
+                  JOIN company b ON m.buyer_id = b.company_id 
+                  JOIN company s ON m.supplier_id = s.company_id
+                  WHERE es.event_id = :event_id
+                  AND (m.buyer_id = :company_id1 OR m.supplier_id = :company_id2)
+                  ORDER BY es.start_datetime ASC";
+        $params = [
+            'event_id' => $eventId,
+            'company_id1' => $companyId,
+            'company_id2' => $companyId
+        ];
+        return $this->db->resultSet($query, $params);
+    }
 }

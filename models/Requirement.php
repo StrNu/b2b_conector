@@ -16,7 +16,7 @@ class Requirement {
     // Propiedades que mapean a las columnas de la tabla requirements
     private $id;
     private $buyer_id;
-    private $subcategory_id;
+    private $event_subcategory_id; // CAMBIO: era subcategory_id
     private $budget_usd;
     private $quantity;
     private $unit_of_measurement;
@@ -67,8 +67,8 @@ class Requirement {
      * @param array $pagination Información de paginación
      * @return array Lista de requerimientos de la subcategoría
      */
-    public function findBySubcategory($subcategoryId, $pagination = null) {
-        return $this->getAll(['subcategory_id' => $subcategoryId], $pagination);
+    public function findBySubcategory($eventSubcategoryId, $pagination = null) {
+        return $this->getAll(['event_subcategory_id' => $eventSubcategoryId], $pagination);
     }
     
     /**
@@ -78,13 +78,13 @@ class Requirement {
      * @param int $subcategoryId ID de la subcategoría
      * @return bool True si el requerimiento existe, false en caso contrario
      */
-    public function exists($buyerId, $subcategoryId) {
+    public function exists($buyerId, $eventSubcategoryId) {
         $query = "SELECT COUNT(*) FROM {$this->table} 
-                  WHERE buyer_id = :buyer_id AND subcategory_id = :subcategory_id";
+                  WHERE buyer_id = :buyer_id AND event_subcategory_id = :event_subcategory_id";
         
         $params = [
             'buyer_id' => $buyerId,
-            'subcategory_id' => $subcategoryId
+            'event_subcategory_id' => $eventSubcategoryId
         ];
         
         $count = $this->db->query($query, $params)->fetchColumn();
@@ -99,7 +99,7 @@ class Requirement {
      */
     public function create($data) {
         // Validar datos mínimos requeridos
-        if (!isset($data['buyer_id']) || !isset($data['subcategory_id'])) {
+        if (!isset($data['buyer_id']) || !isset($data['event_subcategory_id'])) {
             return false;
         }
         
@@ -109,9 +109,10 @@ class Requirement {
             return false;
         }
         
-        // Verificar que la subcategoría exista
-        $subcategoryModel = new Subcategory($this->db);
-        if (!$subcategoryModel->findById($data['subcategory_id'])) {
+        // Verificar que la subcategoría de evento exista
+        $subcategoryModel = new Category($this->db);
+        $eventSubcat = $subcategoryModel->getEventSubcategory($data['event_subcategory_id']);
+        if (!$eventSubcat) {
             return false;
         }
         
@@ -194,13 +195,13 @@ class Requirement {
     public function getAll($filters = [], $pagination = null) {
         $query = "SELECT r.*, 
                   c.company_name as buyer_name,
-                  s.subcategory_name,
-                  cat.category_name,
-                  cat.category_id
+                  es.name as subcategory_name,
+                  ec.name as category_name,
+                  ec.event_category_id as category_id
                   FROM {$this->table} r
                   JOIN company c ON r.buyer_id = c.company_id
-                  JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                  JOIN categories cat ON s.category_id = cat.category_id";
+                  JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
+                  JOIN event_categories ec ON es.event_category_id = ec.event_category_id";
         
         $params = [];
         
@@ -211,19 +212,15 @@ class Requirement {
             
             foreach ($filters as $key => $value) {
                 if ($key === 'search' && !empty($value)) {
-                    // Búsqueda por nombre de compañía o subcategoría
-                    $conditions[] = "(c.company_name LIKE :search OR s.subcategory_name LIKE :search OR cat.category_name LIKE :search)";
+                    $conditions[] = "(c.company_name LIKE :search OR es.name LIKE :search OR ec.name LIKE :search)";
                     $params['search'] = '%' . $value . '%';
                 } else if ($key === 'budget_min' && !empty($value)) {
-                    // Filtro por presupuesto mínimo
                     $conditions[] = "r.budget_usd >= :budget_min";
                     $params['budget_min'] = $value;
                 } else if ($key === 'budget_max' && !empty($value)) {
-                    // Filtro por presupuesto máximo
                     $conditions[] = "r.budget_usd <= :budget_max";
                     $params['budget_max'] = $value;
                 } else {
-                    // Filtros directos por columna
                     $conditions[] = "r.$key = :$key";
                     $params[$key] = $value;
                 }
@@ -257,8 +254,8 @@ class Requirement {
         // Incluir joins si se necesitan para filtros
         if (isset($filters['search']) || isset($filters['category_id'])) {
             $query .= " JOIN company c ON r.buyer_id = c.company_id
-                       JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                       JOIN categories cat ON s.category_id = cat.category_id";
+                       JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
+                       JOIN event_categories ec ON es.event_category_id = ec.event_category_id";
         }
         
         $params = [];
@@ -270,7 +267,7 @@ class Requirement {
             
             foreach ($filters as $key => $value) {
                 if ($key === 'search' && !empty($value)) {
-                    $conditions[] = "(c.company_name LIKE :search OR s.subcategory_name LIKE :search OR cat.category_name LIKE :search)";
+                    $conditions[] = "(c.company_name LIKE :search OR es.name LIKE :search OR ec.name LIKE :search)";
                     $params['search'] = '%' . $value . '%';
                 } else if ($key === 'budget_min' && !empty($value)) {
                     $conditions[] = "r.budget_usd >= :budget_min";
@@ -279,7 +276,7 @@ class Requirement {
                     $conditions[] = "r.budget_usd <= :budget_max";
                     $params['budget_max'] = $value;
                 } else if ($key === 'category_id' && !empty($value)) {
-                    $conditions[] = "cat.category_id = :category_id";
+                    $conditions[] = "ec.event_category_id = :category_id";
                     $params['category_id'] = $value;
                 } else {
                     $conditions[] = "r.$key = :$key";
@@ -312,7 +309,7 @@ class Requirement {
         }
         
         $buyerId = $this->buyer_id;
-        $subcategoryId = $this->subcategory_id;
+        $subcategoryId = $this->event_subcategory_id;
         
         // Verificar si hay matches que incluyan este requerimiento
         $query = "SELECT COUNT(*) FROM matches m
@@ -373,11 +370,11 @@ class Requirement {
         }
         
         // Si ya tenemos el subcategory_id cargado, usarlo directamente
-        if ($requirementId === null && $this->subcategory_id) {
-            $subcategoryId = $this->subcategory_id;
+        if ($requirementId === null && $this->event_subcategory_id) {
+            $subcategoryId = $this->event_subcategory_id;
         } else {
             // Obtener el subcategory_id del requerimiento
-            $query = "SELECT subcategory_id FROM {$this->table} WHERE requirement_id = :id LIMIT 1";
+            $query = "SELECT event_subcategory_id FROM {$this->table} WHERE requirement_id = :id LIMIT 1";
             $subcategoryId = $this->db->query($query, ['id' => $id])->fetchColumn();
             
             if (!$subcategoryId) {
@@ -386,10 +383,10 @@ class Requirement {
         }
         
         // Obtener datos de la subcategoría incluyendo su categoría
-        $query = "SELECT s.*, c.category_name, c.category_id
-                  FROM subcategories s
-                  JOIN categories c ON s.category_id = c.category_id
-                  WHERE s.subcategory_id = :subcategory_id 
+        $query = "SELECT es.*, ec.name as category_name, ec.event_category_id
+                  FROM event_subcategories es
+                  JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+                  WHERE es.event_subcategory_id = :subcategory_id 
                   LIMIT 1";
                   
         return $this->db->single($query, ['subcategory_id' => $subcategoryId]);
@@ -405,13 +402,13 @@ class Requirement {
     public function getByEvent($eventId, $pagination = null) {
         $query = "SELECT r.*, 
                   c.company_name as buyer_name,
-                  s.subcategory_name,
-                  cat.category_name,
-                  cat.category_id
+                  es.name as subcategory_name,
+                  ec.name as category_name,
+                  ec.event_category_id as category_id
                   FROM {$this->table} r
                   JOIN company c ON r.buyer_id = c.company_id
-                  JOIN subcategories s ON r.subcategory_id = s.subcategory_id
-                  JOIN categories cat ON s.category_id = cat.category_id
+                  JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
+                  JOIN event_categories ec ON es.event_category_id = ec.event_category_id
                   WHERE c.event_id = :event_id
                   ORDER BY r.created_at DESC";
                   
@@ -436,7 +433,7 @@ class Requirement {
     private function setProperties($data) {
         $this->id = $data['requirement_id'] ?? null;
         $this->buyer_id = $data['buyer_id'] ?? null;
-        $this->subcategory_id = $data['subcategory_id'] ?? null;
+        $this->event_subcategory_id = $data['event_subcategory_id'] ?? null;
         $this->budget_usd = $data['budget_usd'] ?? null;
         $this->quantity = $data['quantity'] ?? null;
         $this->unit_of_measurement = $data['unit_of_measurement'] ?? null;
@@ -455,7 +452,7 @@ class Requirement {
     }
     
     public function getSubcategoryId() {
-        return $this->subcategory_id;
+        return $this->event_subcategory_id;
     }
     
     public function getBudgetUsd() {

@@ -1,15 +1,17 @@
 <!-- views/events/view.php -->
 <?php include(VIEW_DIR . '/shared/header.php'); ?>
-<div class="content">
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/main.css">
+<div class="content" style="padding: 32px 24px 32px 24px;">
     <div class="content-header">
         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800 mb-1"><?= htmlspecialchars($event->getEventName()) ?></h1>
                 <p class="text-gray-500 text-sm">Detalles y gestión del evento.</p>
             </div>
-            <div class="actions">
+            <div class="actions flex gap-2">
                 <a href="<?= BASE_URL ?>/events" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Volver</a>
                 <a href="<?= BASE_URL ?>/events/edit/<?= $event->getId() ?>" class="btn btn-primary"><i class="fas fa-edit"></i> Editar</a>
+                <a href="<?= BASE_URL ?>/events/report/<?= $event->getId() ?>" class="btn btn-info"><i class="fas fa-chart-bar"></i> Reporte</a>
             </div>
         </div>
     </div>
@@ -17,10 +19,10 @@
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <!-- Información del evento y menú rápido (izquierda) -->
         <div class="md:col-span-2 flex flex-col gap-6">
-            <div class="event-view-card p-6 flex flex-col gap-2">
+            <div class="event-view-card p-6 flex flex-col gap-2 bg-white rounded shadow">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="event-view-title flex items-center gap-2"><i class="fas fa-info-circle"></i> Información del Evento</h2>
-                    <a href="javascript:void(0);" onclick="openImportCategoriesModal();" class="btn btn-sm btn-action-blue <?= ($hasCategories ? 'pointer-events-none opacity-50 cursor-not-allowed' : '') ?>" <?= $hasCategories ? 'tabindex=\"-1\" aria-disabled=\"true\"' : '' ?>><i class="fas fa-plus"></i> Agregar Categorías</a>
+                    <a href="<?= BASE_URL ?>/category_import/upload/<?= (int)$event->getId() ?>" class="btn btn-sm btn-action-blue <?= ($hasCategories ? 'pointer-events-none opacity-50 cursor-not-allowed' : '') ?>" <?= $hasCategories ? 'tabindex="-1" aria-disabled="true"' : '' ?>><i class="fas fa-plus"></i> Agregar Categorías</a>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 event-view-section">
                     <div class="flex items-center gap-2 text-gray-700"><i class="fas fa-map-marker-alt text-blue-500"></i><span class="font-semibold">Sede:</span><span><?= htmlspecialchars($event->getVenue()) ?></span></div>
@@ -39,7 +41,7 @@
                 </div>
             </div>
             <?php if ($hasCategories): ?>
-            <div>
+            <div class="bg-white rounded shadow p-4">
                 <div class="flex items-center justify-between mb-4">
                     <h2 class="text-lg font-semibold flex items-center gap-2"><i class="fas fa-tags"></i> Categorías del Evento</h2>
                     <a href="<?= BASE_URL ?>/events/categories/<?= $event->getId() ?>" class="btn btn-sm btn-action-blue"><i class="fas fa-list"></i> Ver más</a>
@@ -75,20 +77,20 @@
             <?php endif; ?>
         </div>
         <!-- Menú rápido y estadísticas (derecha) -->
-        <div class="event-view-card p-6 flex flex-col gap-2">
+        <div class="event-view-card p-6 flex flex-col gap-2 bg-white rounded shadow">
             <h2 class="event-view-title mb-4 flex items-center gap-2"><i class="fas fa-chart-bar"></i> Estadísticas</h2>
             <div class="flex flex-col gap-2 event-view-section">
                 <?php $buyers = isset($buyers) && is_array($buyers) ? $buyers : []; ?>
                 <?php $suppliers = isset($suppliers) && is_array($suppliers) ? $suppliers : []; ?>
                 <div class="flex items-center gap-2"><i class="fas fa-users text-blue-500"></i><span class="font-semibold">Participantes:</span><span><?= count($buyers) + count($suppliers) ?></span></div>
-                <div class="flex items-center gap-2"><i class="fas fa-handshake text-blue-500"></i><span class="font-semibold">Matches:</span><span><?= $matchCount ?></span></div>
-                <div class="flex items-center gap-2"><i class="fas fa-calendar-check text-blue-500"></i><span class="font-semibold">Citas:</span><span><?= $scheduleCount ?></span></div>
+                <div class="flex items-center gap-2"><i class="fas fa-handshake text-blue-500"></i><span class="font-semibold">Matches:</span><span><?= $matchCount ?? 0 ?></span></div>
+                <div class="flex items-center gap-2"><i class="fas fa-calendar-check text-blue-500"></i><span class="font-semibold">Citas:</span><span><?= $scheduleCount ?? 0 ?></span></div>
             </div>
             <ul class="event-actions-list mt-4 mb-8">
                 <li class="mb-2" style="margin-bottom:2px;">
-                <a href="<?= BASE_URL ?>/events/registration_details?event_id=<?= (int)$event->getId() ?>&company_id=<?= (isset($company) && isset($company['company_id'])) ? (int)$company['company_id'] : '' ?>" class="btn btn-info btn-sm">
-                Ver Registro Completo
-                </a>
+                    <a href="<?= BASE_URL ?>/events/event_list?event_id=<?= (int)$event->getId() ?>" class="btn btn-info btn-sm w-full">
+                        Ver registros completos
+                    </a>
                 </li>
                 <li class="mb-2" style="margin-bottom:2px;">
                     <a href="<?= BASE_URL ?>/events/participants/<?= $event->getId() ?>" class="btn btn-sm btn-action-blue w-full"><i class="fas fa-users"></i> Ver Participantes</a>
@@ -109,7 +111,7 @@
         </div>
     </div>
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="event-view-card">
+        <div class="event-view-card event-breaks-card bg-white rounded shadow" style="padding: 24px 24px 12px 24px;">
             <div class="card-header flex items-center justify-between">
                 <h2 class="event-view-title flex items-center gap-2"><i class="fas fa-coffee"></i> Descansos Programados</h2>
                 <a href="<?= BASE_URL ?>/events/breaks/<?= $event->getId() ?>" class="btn btn-sm btn-primary"><i class="fas fa-cog"></i> Gestionar</a>
@@ -135,7 +137,7 @@
                 <?php endif; ?>
             </div>
         </div>
-        <div class="event-view-card">
+        <div class="event-view-card event-status-card bg-white rounded shadow" style="padding: 24px 24px 12px 24px;">
             <div class="card-header">
                 <h2 class="event-view-title flex items-center gap-2"><i class="fas fa-cog"></i> Estado y Configuración</h2>
             </div>
@@ -143,9 +145,9 @@
                 <form action="<?= BASE_URL ?>/events/toggle-active/<?= $event->getId() ?>" method="POST">
                     <input type="hidden" name="csrf_token" value="<?= $csrfToken ?? '' ?>">
                     <div class="form-group">
-                        <div class="custom-control custom-switch">
-                            <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" <?= $event->isActive() ? 'checked' : '' ?> onchange="this.form.submit()">
-                            <label class="custom-control-label" for="is_active">
+                        <div class="custom-control custom-switch flex items-center gap-2" style="min-height: 32px;">
+                            <input type="checkbox" class="custom-control-input" id="is_active" name="is_active" <?= $event->isActive() ? 'checked' : '' ?> onchange="this.form.submit()" style="margin-top:0;">
+                            <label class="custom-control-label" for="is_active" style="margin-bottom:0; padding-left:8px; vertical-align:middle;">
                                 <?= $event->isActive() ? 'Evento Activo' : 'Evento Inactivo' ?>
                             </label>
                         </div>

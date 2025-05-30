@@ -2,7 +2,10 @@
 <div class="content">
     <div class="content-header flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-1">Empresas Registradas</h1>
-        <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/create" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nueva Empresa</a>
+        <div class="flex gap-2">
+            <a href="<?= BASE_URL ?>/events/view/<?= (int)$eventId ?>" class="btn btn-secondary btn-sm"><i class="fas fa-arrow-left"></i> Volver al Evento</a>
+            <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/create-company" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Nueva Empresa</a>
+        </div>
     </div>
     <?php include(VIEW_DIR . '/shared/notifications.php'); ?>
     <div class="card bg-white p-4 rounded shadow mb-6">
@@ -62,6 +65,7 @@
                                 </td>
                                 <td class="px-3 py-2 flex gap-2">
                                     <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/view/<?= (int)$company['company_id'] ?>" class="btn btn-xs btn-secondary" title="Ver"><i class="fas fa-eye"></i></a>
+                                    <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/full_registration/<?= (int)$company['company_id'] ?>" class="btn btn-xs btn-info" title="Ver registro completo"><i class="fas fa-list"></i> Ver registro completo</a>
                                     <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/edit/<?= (int)$company['company_id'] ?>" class="btn btn-xs btn-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                     <form action="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/delete/<?= (int)$company['company_id'] ?>" method="POST" onsubmit="return confirm('Esta acción eliminará la empresa y todos los matches ligados a ella. ¿Está seguro de continuar?');" style="display:inline;">
                                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">

@@ -546,4 +546,44 @@ public function getRegistrationDate($format = 'Y-m-d H:i:s') {
         return $this->registration_date; // Devolver el valor original si hay error
     }
 }
+
+/**
+     * Crear usuario para event_users con email y password
+     * @param array $data
+     * @return int|false
+     */
+    public function createEventUser($data) {
+        $params = [
+            ':company_id' => $data['company_id'],
+            ':event_id' => $data['event_id'],
+            ':role' => $data['role'] ?? 'buyer',
+            ':is_active' => isset($data['is_active']) ? $data['is_active'] : 1,
+            ':created_at' => isset($data['created_at']) ? $data['created_at'] : date('Y-m-d H:i:s'),
+            ':email' => $data['email'],
+            ':password' => password_hash($data['password'], PASSWORD_DEFAULT),
+        ];
+        $query = "INSERT INTO event_users (company_id, event_id, role, is_active, created_at, email, password)
+                  VALUES (:company_id, :event_id, :role, :is_active, :created_at, :email, :password)";
+        $result = $this->db->query($query, $params);
+        if ($result) {
+            return $this->db->lastInsertId();
+        }
+        return false;
+    }
+
+    /**
+     * Actualizar contraseña en event_users por email
+     * @param string $email
+     * @param string $newPassword
+     * @return bool
+     */
+    public function updateEventUserPassword($email, $newPassword) {
+        $query = "UPDATE event_users SET password = :password WHERE email = :email";
+        $params = [
+            ':password' => password_hash($newPassword, PASSWORD_DEFAULT),
+            ':email' => $email
+        ];
+        $result = $this->db->query($query, $params);
+        return $result ? true : false;
+    }
 }

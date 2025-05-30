@@ -364,6 +364,9 @@ class CompanyController {
         
         // Token CSRF para el formulario
         $csrfToken = generateCSRFToken();
+
+        // Definir variable $company para la vista
+        $company = $this->companyModel;
         
         // Cargar vista del formulario
         include(VIEW_DIR . '/companies/edit.php');

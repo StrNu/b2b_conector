@@ -28,8 +28,6 @@ class EventController {
      * 
      * Inicializa los modelos necesarios y otras dependencias
      */
-    
-
     public function __construct() {
         // Inicializar conexión a la base de datos
         $this->db = Database::getInstance();
@@ -37,7 +35,7 @@ class EventController {
         // Inicializar modelos
         $this->eventModel = new Event($this->db);
         $this->companyModel = new Company($this->db);
-        $this->matchModel = new MatchModel($this->db);
+        $this->matchModel = new MatchModel($this->db); // Corregido: era Match
         $this->categoryModel = new Category($this->db); // Inicializado el modelo de categorías
         
         // Inicializar validador
@@ -356,6 +354,7 @@ private function processLogo($fileData, $type = 'event') {
             exit;
         }
         
+        $_SESSION['event_id'] = $id;
         $event = $this->eventModel;
         $eventModel = $event; // Para compatibilidad con modals/import_categories.php
         $breaks = $this->eventModel->getBreaks($eventId); 
@@ -392,61 +391,55 @@ private function processLogo($fileData, $type = 'event') {
     }
         
      /**
-     * Generar y mostrar disponibilidad de slots de tiempo para un evento
-     * 
+     * Mostrar solo las citas reales programadas para un evento (no slots teóricos)
      * @param int $id ID del evento
      * @return void
      */
-    public function timeSlots($id) {
+    public function schedules($id) {
         // Verificar permisos
         if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
             setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
             redirect(BASE_URL);
             exit;
         }
-        
         // Buscar evento por ID
         if (!$this->eventModel->findById($id)) {
             setFlashMessage('Evento no encontrado', 'danger');
             redirect(BASE_URL . '/events');
             exit;
         }
-        
-        // Obtener fecha específica si se proporciona (o usar la fecha de inicio del evento)
-        $date = isset($_GET['date']) ? sanitize($_GET['date']) : null;
-        
-        // Generar slots de tiempo
-        $timeSlots = $this->eventModel->generateTimeSlots($id, $date);
-        
-        // Obtener citas programadas para esta fecha
+        $event = $this->eventModel;
         $appointmentModel = new Appointment($this->db);
-        $schedules = [];
-        
-        if ($date) {
-            $formattedDate = dateToDatabase($date);
-            $schedules = $appointmentModel->getByDate($formattedDate, $id);
+        // Obtener días del evento
+        $startDate = new DateTime($event->getStartDate());
+        $endDate = new DateTime($event->getEndDate());
+        $days = [];
+        $current = clone $startDate;
+        while ($current <= $endDate) {
+            $days[] = $current->format('Y-m-d');
+            $current->modify('+1 day');
         }
-        
-        // Preparar datos para la vista
-        $startDate = dateFromDatabase($this->eventModel->getStartDate());
-        $endDate = dateFromDatabase($this->eventModel->getEndDate());
-        
-        // Token CSRF para los formularios
+        // Obtener todas las citas reales del evento
+        $appointments = $appointmentModel->getByEvent($id);
+        // Agrupar por día
+        $schedulesByDay = [];
+        foreach ($days as $day) {
+            $schedulesByDay[$day] = [];
+        }
+        foreach ($appointments as $appt) {
+            $day = substr($appt['start_datetime'], 0, 10);
+            if (isset($schedulesByDay[$day])) {
+                $schedulesByDay[$day][] = $appt;
+            }
+        }
+        // Obtener matches para mostrar nombres de empresas
+        $matches = [];
+        $matchList = $this->matchModel->getByEvent($id);
+        foreach ($matchList as $m) {
+            $matches[$m['match_id']] = $m;
+        }
         $csrfToken = generateCSRFToken();
-
-        $pageTitle = 'Eventos';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/datepicker.css';
-        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
-        
-        // Cargar vista
-        include(VIEW_DIR . '/events/time_slots.php');
-    }
-
-    // Alias para compatibilidad con rutas tipo snake_case
-    public function time_slots($id) {
-        return $this->timeSlots($id);
+        include(VIEW_DIR . '/events/schedules.php');
     }
     
     /**
@@ -537,6 +530,22 @@ private function processLogo($fileData, $type = 'event') {
         
         // Obtener matches según filtros
         $matches = $this->matchModel->getByEvent($id, $status);
+        // --- AGREGAR DÍAS DE ASISTENCIA DE CADA EMPRESA AL ARRAY DE MATCHES (como strings, no JSON) ---
+        require_once(MODEL_DIR . '/AttendanceDay.php');
+        require_once(MODEL_DIR . '/Requirement.php');
+        $attendanceModel = new AttendanceDay($this->db);
+        $requirementModel = new Requirement($this->db);
+        foreach ($matches as &$match) {
+            $buyer_days = $attendanceModel->getByCompanyAndEvent($match['buyer_id'], $match['event_id']);
+            $supplier_days = $attendanceModel->getByCompanyAndEvent($match['supplier_id'], $match['event_id']);
+            $match['buyer_days'] = array_map('strval', $buyer_days);
+            $match['supplier_days'] = array_map('strval', $supplier_days);
+            // Adjuntar total de requerimientos del comprador
+            $reqs = $requirementModel->findByBuyer($match['buyer_id']);
+            $match['total_buyer_requirements'] = count($reqs);
+        }
+        unset($match);
+        $customMatches = $matches; // <--- Asegura que la variable esté disponible para la vista
         
         // Contadores de matches por estado
         $countPending = $this->matchModel->count(['event_id' => $id, 'status' => 'pending']);
@@ -552,7 +561,38 @@ private function processLogo($fileData, $type = 'event') {
         $additionalCSS = 'components/datepicker.css';
         $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
         
-        // Cargar vista
+        // --- NUEVO: OBTENER COMPRADORES Y PROVEEDORES SIN MATCHES (CON DATOS COMPLETOS) ---
+        $buyers = $this->companyModel->getBuyersByEvent($id);
+        $suppliers = $this->companyModel->getSuppliersByEvent($id);
+        $buyersWithoutMatches = [];
+        $suppliersWithoutMatches = [];
+        foreach ($buyers as $buyer) {
+            $buyerMatches = $this->matchModel->getByBuyer($buyer['company_id'], $id);
+            if (empty($buyerMatches)) {
+                $companyObj = new Company($this->db);
+                $companyObj->findById($buyer['company_id']);
+                // Ya no es necesario forzar el rol, getRequirements lo consulta correctamente
+                $requirements = $companyObj->getRequirements($buyer['company_id'], $id);
+                $attendanceDays = $this->companyModel->getAttendanceDays($id, $buyer['company_id']);
+                $buyersWithoutMatches[] = [
+                    'company' => ['company_name' => $buyer['company_name']],
+                    'requirements' => $requirements,
+                    'attendance_days' => $attendanceDays
+                ];
+            }
+        }
+        foreach ($suppliers as $supplier) {
+            $supplierMatches = $this->matchModel->getBySupplier($supplier['company_id'], $id);
+            if (empty($supplierMatches)) {
+                $offers = $this->companyModel->getOffers($supplier['company_id']);
+                $attendanceDays = $this->companyModel->getAttendanceDays($id, $supplier['company_id']);
+                $suppliersWithoutMatches[] = [
+                    'company' => ['company_name' => $supplier['company_name']],
+                    'offers' => $offers,
+                    'attendance_days' => $attendanceDays
+                ];
+            }
+        }
         include(VIEW_DIR . '/events/matches.php');
     }
     
@@ -657,7 +697,7 @@ private function processLogo($fileData, $type = 'event') {
         // Buscar evento por ID
         if (!$this->eventModel->findById($id)) {
             setFlashMessage('Evento no encontrado', 'danger');
-            redirect(BASE_URL . '/events');
+            redirect(BASE_URL);
             exit;
         }
         
@@ -758,7 +798,7 @@ private function processLogo($fileData, $type = 'event') {
         // Buscar evento por ID
         if (!$this->eventModel->findById($id)) {
             setFlashMessage('Evento no encontrado', 'danger');
-            redirect(BASE_URL . '/events');
+            redirect(BASE_URL);
             exit;
         }
         
@@ -778,120 +818,14 @@ private function processLogo($fileData, $type = 'event') {
         
         // Verificar si ya existe una cita para este match
         $appointmentModel = new Appointment($this->db);
-        if ($appointmentModel->existsForMatch($matchId)) {
-            setFlashMessage('Ya existe una cita para este match', 'warning');
-            redirect(BASE_URL . '/events/view-match/' . $id . '/' . $matchId);
-            exit;
+        $hasSchedule = $appointmentModel->existsForMatch($matchId);
+        
+        if ($hasSchedule) {
+            // Obtener detalles de la cita
+            $schedule = $appointmentModel->getByMatch($matchId);
         }
         
-        // Procesar creación de cita si se solicita
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Verificar token CSRF
-            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-                setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
-                redirect(BASE_URL . '/events/create-schedule/' . $id . '/' . $matchId);
-                exit;
-            }
-            
-            // Validar datos
-            $this->validator->setData($_POST);
-            $this->validator->required('date', 'La fecha es obligatoria')
-                           ->required('start_time', 'La hora de inicio es obligatoria')
-                           ->required('end_time', 'La hora de finalización es obligatoria')
-                           ->required('table_number', 'El número de mesa es obligatorio')
-                           ->numeric('table_number', 'El número de mesa debe ser un valor numérico');
-            
-            // Si hay errores de validación
-            if ($this->validator->hasErrors()) {
-                $_SESSION['form_data'] = $_POST;
-                $_SESSION['validation_errors'] = $this->validator->getErrors();
-                
-                redirect(BASE_URL . '/events/create-schedule/' . $id . '/' . $matchId);
-                exit;
-            }
-            
-            try {
-                $date = dateToDatabase(sanitize($_POST['date']));
-                $startTime = sanitize($_POST['start_time']);
-                $endTime = sanitize($_POST['end_time']);
-                $tableNumber = (int)$_POST['table_number'];
-                
-                // Formatear fechas y horas completas
-                $startDateTime = $date . ' ' . $startTime;
-                $endDateTime = $date . ' ' . $endTime;
-                
-                // Verificar disponibilidad del horario y mesa
-                if (!$appointmentModel->isSlotAvailable($id, $startDateTime, $endDateTime, $tableNumber)) {
-                    throw new Exception('El horario o mesa seleccionados no están disponibles');
-                }
-                
-                // Obtener IDs de comprador y proveedor
-                $buyerId = $this->matchModel->getBuyerId();
-                $supplierId = $this->matchModel->getSupplierId();
-                
-                // Verificar disponibilidad de comprador y proveedor
-                if (!$appointmentModel->isCompanyAvailable($buyerId, $id, $startDateTime, $endDateTime)) {
-                    throw new Exception('El comprador no está disponible en este horario');
-                }
-                
-                if (!$appointmentModel->isCompanyAvailable($supplierId, $id, $startDateTime, $endDateTime)) {
-                    throw new Exception('El proveedor no está disponible en este horario');
-                }
-                
-                // Crear la cita
-                $appointmentData = [
-                    'event_id' => $id,
-                    'match_id' => $matchId,
-                    'table_number' => $tableNumber,
-                    'start_datetime' => $startDateTime,
-                    'end_datetime' => $endDateTime,
-                    'status' => Appointment::STATUS_SCHEDULED,
-                    'is_manual' => 1
-                ];
-                
-                $scheduleId = $appointmentModel->create($appointmentData);
-                
-                if ($scheduleId) {
-                    setFlashMessage('Cita creada exitosamente', 'success');
-                    redirect(BASE_URL . '/events/view-match/' . $id . '/' . $matchId);
-                    exit;
-                } else {
-                    throw new Exception('Error al crear la cita');
-                }
-            } catch (Exception $e) {
-                setFlashMessage('Error al crear la cita: ' . $e->getMessage(), 'danger');
-                $_SESSION['form_data'] = $_POST;
-                redirect(BASE_URL . '/events/create-schedule/' . $id . '/' . $matchId);
-                exit;
-            }
-        }
-        
-        // Obtener información adicional para el formulario
-        $buyerId = $this->matchModel->getBuyerId();
-        $supplierId = $this->matchModel->getSupplierId();
-        
-        $buyer = new Company($this->db);
-        $supplier = new Company($this->db);
-        
-        $buyer->findById($buyerId);
-        $supplier->findById($supplierId);
-        
-        // Obtener días comunes de asistencia
-        $buyerDays = $this->eventModel->getAttendanceDays($buyerId, $id);
-        $supplierDays = $this->eventModel->getAttendanceDays($supplierId, $id);
-        $commonDays = array_intersect($buyerDays, $supplierDays);
-        
-        // Formatear días para el formulario
-        $formattedDays = [];
-        foreach ($commonDays as $day) {
-            $formattedDays[] = dateFromDatabase($day);
-        }
-        
-        // Obtener información del evento
-        $availableTables = $this->eventModel->getAvailableTables();
-        $meetingDuration = $this->eventModel->getMeetingDuration();
-        
-        // Token CSRF para el formulario
+        // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
 
         $pageTitle = 'Eventos';
@@ -1001,7 +935,7 @@ private function processLogo($fileData, $type = 'event') {
         // Buscar evento por ID
         if (!$this->eventModel->findById($id)) {
             setFlashMessage('Evento no encontrado', 'danger');
-            redirect(BASE_URL . '/events');
+            redirect(BASE_URL);
             exit;
         }
         
@@ -1128,7 +1062,7 @@ private function processLogo($fileData, $type = 'event') {
         // Buscar evento por ID
         if (!$this->eventModel->findById($id)) {
             setFlashMessage('Evento no encontrado', 'danger');
-            redirect(BASE_URL . '/events');
+            redirect(BASE_URL);
             exit;
         }
         
@@ -1185,72 +1119,72 @@ private function processLogo($fileData, $type = 'event') {
             // Validar datos
             $this->validator->setData($_POST);
             $this->validator->required('date', 'La fecha es obligatoria')
-                ->date('date', 'd/m/Y', 'Formato de fecha inválido (dd/mm/yyyy)');
+                           ->date('date', 'd/m/Y', 'Formato de fecha inválido (dd/mm/yyyy)');
 
-// Si hay errores de validación
-if ($this->validator->hasErrors()) {
-    $_SESSION['form_data'] = $_POST;
-    $_SESSION['validation_errors'] = $this->validator->getErrors();
-    
-    redirect(BASE_URL . '/events/company-attendance/' . $id . '/' . $companyId);
-    exit;
-}
+            // Si hay errores de validación
+            if ($this->validator->hasErrors()) {
+                $_SESSION['form_data'] = $_POST;
+                $_SESSION['validation_errors'] = $this->validator->getErrors();
+                
+                redirect(BASE_URL . '/events/company-attendance/' . $id . '/' . $companyId);
+                exit;
+            }
+            
+            // Obtener la fecha
+            $date = sanitize($_POST['date']);
 
-// Obtener la fecha
-$date = sanitize($_POST['date']);
+            try {
+                // Añadir el día de asistencia
+                $added = $this->eventModel->addAttendanceDay($companyId, $date, $id);
+                
+                if ($added) {
+                    setFlashMessage('Día de asistencia agregado exitosamente', 'success');
+                } else {
+                    throw new Exception('Error al agregar el día de asistencia. Verifique que la fecha esté dentro del rango del evento y no esté duplicada.');
+                }
+            } catch (Exception $e) {
+                setFlashMessage('Error al agregar el día de asistencia: ' . $e->getMessage(), 'danger');
+            }
 
-try {
-    // Añadir el día de asistencia
-    $added = $this->eventModel->addAttendanceDay($companyId, $date, $id);
-    
-    if ($added) {
-        setFlashMessage('Día de asistencia agregado exitosamente', 'success');
-    } else {
-        throw new Exception('Error al agregar el día de asistencia. Verifique que la fecha esté dentro del rango del evento y no esté duplicada.');
-    }
-} catch (Exception $e) {
-    setFlashMessage('Error al agregar el día de asistencia: ' . $e->getMessage(), 'danger');
-}
+            redirect(BASE_URL . '/events/company-attendance/' . $id . '/' . $companyId);
+            exit;
+        }
+        
+        // Obtener días de asistencia actuales
+        $attendanceDays = $this->eventModel->getAttendanceDays($companyId, $id);
 
-redirect(BASE_URL . '/events/company-attendance/' . $id . '/' . $companyId);
-exit;
-}
+        // Formatear fechas para la vista
+        $formattedDays = [];
+        foreach ($attendanceDays as $day) {
+            $formattedDays[] = dateFromDatabase($day);
+        }
 
-// Obtener días de asistencia actuales
-$attendanceDays = $this->eventModel->getAttendanceDays($companyId, $id);
+        // Obtener fechas del evento para el selector de fechas
+        // Crear un rango de fechas entre la fecha de inicio y fin del evento
+        $startDate = new DateTime($this->eventModel->getStartDate());
+        $endDate = new DateTime($this->eventModel->getEndDate());
+        $interval = $startDate->diff($endDate);
+        $totalDays = $interval->days + 1;
 
-// Formatear fechas para la vista
-$formattedDays = [];
-foreach ($attendanceDays as $day) {
-    $formattedDays[] = dateFromDatabase($day);
-}
+        $eventDays = [];
+        $currentDate = clone $startDate;
 
-// Obtener fechas del evento para el selector de fechas
-// Crear un rango de fechas entre la fecha de inicio y fin del evento
-$startDate = new DateTime($this->eventModel->getStartDate());
-$endDate = new DateTime($this->eventModel->getEndDate());
-$interval = $startDate->diff($endDate);
-$totalDays = $interval->days + 1;
+        for ($i = 0; $i < $totalDays; $i++) {
+            $eventDays[] = $currentDate->format('d/m/Y');
+            $currentDate->modify('+1 day');
+        }
 
-$eventDays = [];
-$currentDate = clone $startDate;
+        // Token CSRF para los formularios
+        $csrfToken = generateCSRFToken();
 
-for ($i = 0; $i < $totalDays; $i++) {
-    $eventDays[] = $currentDate->format('d/m/Y');
-    $currentDate->modify('+1 day');
-}
+        $pageTitle = 'Eventos';
+        $moduleCSS = 'events';
+        $moduleJS = 'events';
+        $additionalCSS = 'components/datepicker.css';
+        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
 
-// Token CSRF para los formularios
-$csrfToken = generateCSRFToken();
-
-$pageTitle = 'Eventos';
-$moduleCSS = 'events';
-$moduleJS = 'events';
-$additionalCSS = 'components/datepicker.css';
-$additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
-
-// Cargar vista
-include(VIEW_DIR . '/events/company_attendance.php');
+        // Cargar vista
+        include(VIEW_DIR . '/events/company_attendance.php');
 }
 
 /**
@@ -1304,9 +1238,10 @@ public function duplicate($id) {
             'end_time' => $this->eventModel->getEndTime(),
             'has_break' => $this->eventModel->hasBreak(),
             'company_name' => $this->eventModel->getCompanyName(),
-            'contact_name' => $this->eventModel->getContactName(),
-            'contact_phone' => $this->eventModel->getContactPhone(),
-            'contact_email' => $this->eventModel->getContactEmail()
+            'contact_first_name' => $this->eventModel->getContactFirstName(),
+            'contact_last_name' => $this->eventModel->getContactLastName(),
+            'email' => $this->eventModel->getEmail(),
+            'phone' => $this->eventModel->getPhone()
         ];
         
         // Crear el nuevo evento
@@ -1410,7 +1345,7 @@ public function report($id) {
     ];
     
     // Token CSRF para los formularios
-    $csrfToken = generateCSRFToken();
+    $csrfToken = generateCsrfToken();
 
     $pageTitle = 'Eventos';
     $moduleCSS = 'events';
@@ -1457,7 +1392,7 @@ public function report($id) {
         // Configurar paginación
         $pagination = paginate($totalEvents, $page, $perPage);
         
-        // Obtener eventos para la página actual con filtros aplicados
+        // Obtener eventos para la página current con filtros aplicados
         $events = $this->eventModel->getAll($filters, $pagination);
 
         $csrfToken = Security::generateCsrfToken();
@@ -1504,13 +1439,8 @@ public function report($id) {
             exit;
         }
         // Verificar que la empresa pertenece al evento (si companyModel tiene event_id como propiedad)
-        // Asumiendo que CompanyModel tiene un método getEventId() o una propiedad event_id
-        // Esta lógica puede necesitar ajuste según la implementación de tu CompanyModel
-        if (property_exists($this->companyModel, 'event_id') && $this->companyModel->event_id != $eventId) {
-             setFlashMessage('La empresa no pertenece a este evento (verificación de propiedad).', 'danger');
-             redirect(BASE_URL . '/events/view/' . $eventId);
-             exit;
-        } else if (method_exists($this->companyModel, 'getEventId') && $this->companyModel->getEventId() != $eventId) {
+        // Usar el método público getEventId() en vez de acceder directamente a la propiedad privada
+        if (method_exists($this->companyModel, 'getEventId') && $this->companyModel->getEventId() != $eventId) {
             setFlashMessage('La empresa no pertenece a este evento (verificación de método).', 'danger');
             redirect(BASE_URL . '/events/view/' . $eventId);
             exit;
@@ -1524,17 +1454,29 @@ public function report($id) {
         $requirements = [];
         if ($rawRequirements) {
             foreach ($rawRequirements as $req) {
-                $requirements[] = $req; 
+                if (isset($req['event_subcategory_id'])) {
+                    $requirements[$req['event_subcategory_id']] = $req;
+                }
             }
         }
 
         $attendanceDays = $this->companyModel->getAttendanceDays($eventId, $companyId);
 
-        $eventUsername = null;
-        $userQuery = "SELECT username FROM event_users WHERE company_id = :company_id AND event_id = :event_id LIMIT 1";
+        // No existe la columna 'email' en event_users, así que solo obtenemos el rol o el id
+        $eventUserRole = null;
+        $eventUserEmail = null;
+        $userQuery = "SELECT id, role, email FROM event_users WHERE company_id = :company_id AND event_id = :event_id LIMIT 1";
         $userResult = $this->db->single($userQuery, ['company_id' => $companyId, 'event_id' => $eventId]);
-        if ($userResult && isset($userResult['username'])) {
-            $eventUsername = $userResult['username'];
+        if ($userResult) {
+            $eventUserRole = $userResult['role'] ?? null;
+            $eventUserEmail = $userResult['email'] ?? null;
+        }
+        
+        // Obtener categorías y subcategorías del evento para la vista de detalle
+        $categories = $this->categoryModel->getEventCategories($eventId);
+        $subcategories = [];
+        foreach ($categories as $cat) {
+            $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
         }
         
         $csrfToken = Security::generateCsrfToken(); // Añadido para consistencia si se necesitan formularios
@@ -1549,11 +1491,14 @@ public function report($id) {
             'assistants' => $assistants,
             'requirements' => $requirements,
             'attendanceDays' => $attendanceDays,
-            'eventUsername' => $eventUsername,
+            'eventUsername' => $eventUserRole,
+            'eventUserEmail' => $eventUserEmail,
             'csrfToken' => $csrfToken,
             'pageTitle' => $pageTitle,
             'moduleCSS' => $moduleCSS,
-            'moduleJS' => $moduleJS
+            'moduleJS' => $moduleJS,
+            'categories' => $categories,
+            'subcategories' => $subcategories
         ];
         
         // Asumiendo que tienes una vista en views/events/view_full_registration.php
@@ -1709,7 +1654,7 @@ public function report($id) {
         // Buscar evento por ID
         if (!$this->eventModel->findById($eventId)) {
             setFlashMessage('Evento no encontrado', 'danger');
-            redirect(BASE_URL . '/events');
+            redirect(BASE_URL);
             exit;
         }
         // Obtener participantes (asistentes) del evento
@@ -1739,7 +1684,7 @@ public function report($id) {
         // Buscar evento por ID
         if (!$this->eventModel->findById($eventId)) {
             setFlashMessage('Evento no encontrado', 'danger');
-            redirect(BASE_URL . '/events');
+            redirect(BASE_URL);
             exit;
         }
         // Buscar participante (asistente) por ID
@@ -1970,6 +1915,8 @@ public function report($id) {
         $viewFile = __DIR__ . '/../views/' . $viewName . '.php';
 
         if (file_exists($viewFile)) {
+           
+           
             if (file_exists(__DIR__ . '/../views/shared/header.php')) {
                 include __DIR__ . '/../views/shared/header.php';
             }
@@ -2149,5 +2096,496 @@ public function report($id) {
         Logger::debug('Redirigiendo tras eliminar subcategoría', ['eventId' => $eventId]);
         redirect(BASE_URL . '/events/categories/' . $eventId);
         exit;
+    }
+
+    // Ver empresa
+    public function viewCompany($eventId, $companyId) {
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        if (!$this->companyModel->findById($companyId)) {
+            setFlashMessage('Empresa no encontrada', 'danger');
+            redirect(BASE_URL . "/events/companies/$eventId");
+            exit;
+        }
+        $company = $this->companyModel;
+        $eventModel = $this->eventModel; // <-- Asegura que la vista tenga $eventModel
+        $csrfToken = Security::generateCsrfToken();
+        $pageTitle = 'Ver Empresa';
+        $moduleCSS = 'companies';
+        $moduleJS = 'companies';
+        include(VIEW_DIR . '/companies/view.php');
+    }
+
+    // Editar empresa
+    public function editCompany($eventId, $companyId) {
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        if (!$this->companyModel->findById($companyId)) {
+            setFlashMessage('Empresa no encontrada', 'danger');
+            redirect(BASE_URL . "/events/companies/$eventId");
+            exit;
+        }
+        // Verifica que la empresa pertenezca al evento
+        if (method_exists($this->companyModel, 'getEventId') && $this->companyModel->getEventId() != $eventId) {
+            setFlashMessage('La empresa no pertenece a este evento.', 'danger');
+            redirect(BASE_URL . "/events/companies/$eventId");
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Validar CSRF
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+                redirect(BASE_URL . "/events/companies/$eventId/edit/$companyId");
+                exit;
+            }
+            $this->validator->setData($_POST);
+            $this->validator->required('company_name', 'El nombre de la empresa es obligatorio');
+            if ($this->validator->hasErrors()) {
+                $_SESSION['validation_errors'] = $this->validator->getErrors();
+                redirect(BASE_URL . "/events/companies/$eventId/edit/$companyId");
+                exit;
+            }
+            $data = [
+                'company_name' => sanitize($_POST['company_name']),
+                'address' => sanitize($_POST['address'] ?? ''),
+                'city' => sanitize($_POST['city'] ?? ''),
+                'country' => sanitize($_POST['country'] ?? ''),
+                'website' => sanitize($_POST['website'] ?? ''),
+                'contact_first_name' => sanitize($_POST['contact_first_name'] ?? ''),
+                'contact_last_name' => sanitize($_POST['contact_last_name'] ?? ''),
+                'phone' => sanitize($_POST['phone'] ?? ''),
+                'email' => sanitize($_POST['email'] ?? ''),
+                'role' => sanitize($_POST['role'] ?? ''),
+                'event_id' => (int)$eventId,
+                'is_active' => isset($_POST['is_active']) ? 1 : 0,
+                'description' => sanitize($_POST['description'] ?? '')
+            ];
+            // Procesar logo si se sube uno nuevo
+            if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] === UPLOAD_ERR_OK) {
+                try {
+                    $companyLogoFilename = $this->processLogo($_FILES['company_logo'], 'company');
+                    $data['company_logo'] = $companyLogoFilename;
+                } catch (Exception $e) {
+                    setFlashMessage('Error al subir el logo: ' . $e->getMessage(), 'danger');
+                    redirect(BASE_URL . "/events/companies/$eventId/edit/$companyId");
+                    exit;
+                }
+            }
+            $updated = $this->companyModel->update($data);
+            if ($updated) {
+                setFlashMessage('Empresa actualizada correctamente', 'success');
+                redirect(BASE_URL . "/events/companies/$eventId");
+                exit;
+            } else {
+                setFlashMessage('No se pudo actualizar la empresa', 'danger');
+                redirect(BASE_URL . "/events/companies/$eventId/edit/$companyId");
+                exit;
+            }
+        }
+        // Recargar siempre los datos actualizados de la empresa antes de mostrar la vista
+        $this->companyModel->findById($companyId);
+        $company = $this->companyModel;
+        $eventModel = $this->eventModel;
+        $csrfToken = Security::generateCsrfToken();
+        $pageTitle = 'Editar Empresa';
+        $moduleCSS = 'companies';
+        $moduleJS = 'companies';
+        include(VIEW_DIR . '/companies/edit.php');
+    }
+
+    // Eliminar empresa
+    public function deleteCompany($eventId, $companyId) {
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            setFlashMessage('Método no permitido', 'danger');
+            redirect(BASE_URL . "/events/companies/$eventId");
+            exit;
+        }
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+            redirect(BASE_URL . "/events/companies/$eventId");
+            exit;
+        }
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        if (!$this->companyModel->findById($companyId)) {
+            setFlashMessage('Empresa no encontrada', 'danger');
+            redirect(BASE_URL . "/events/companies/$eventId");
+            exit;
+        }
+        try {
+            $deleted = $this->companyModel->delete($companyId);
+            if ($deleted) {
+                setFlashMessage('Empresa eliminada correctamente', 'success');
+            } else {
+                setFlashMessage('No se pudo eliminar la empresa', 'danger');
+            }
+        } catch (Exception $e) {
+            setFlashMessage('Error al eliminar la empresa: ' . $e->getMessage(), 'danger');
+        }
+        redirect(BASE_URL . "/events/companies/$eventId");
+        exit;
+    }
+
+    /**
+     * Alta de empresa desde el contexto de un evento
+     * @param int $eventId
+     * @return void
+     */
+    public function createCompany($eventId) {
+        // Permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para crear empresas', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Validar evento
+        $eventId = (int)$eventId;
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $eventModel = $this->eventModel;
+        $categories = $this->categoryModel->getAll(['is_active' => 1]);
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Log de depuración para CSRF
+            Logger::debug('[DEBUG][CSRF] POST csrf_token: ' . ($_POST['csrf_token'] ?? '[NO POST TOKEN]') . ' | SESSION csrf_token: ' . ($_SESSION['csrf_token'] ?? '[NO SESSION TOKEN]'));
+            // Validar CSRF
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                $_SESSION['form_data'] = $_POST;
+                setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+                redirect(BASE_URL . '/events/companies/' . $eventId . '/create-company');
+                exit;
+            }
+            // Validar datos mínimos
+            $this->validator->setData($_POST);
+            $this->validator->required('company_name', 'El nombre de la empresa es obligatorio')
+                ->required('email', 'El email es obligatorio')
+                ->required('role', 'El rol es obligatorio')
+                ->email('email', 'El formato de email no es válido');
+            if ($this->validator->hasErrors()) {
+                $_SESSION['form_data'] = $_POST;
+                $_SESSION['validation_errors'] = $this->validator->getErrors();
+                redirect(BASE_URL . '/events/companies/' . $eventId . '/create-company');
+                exit;
+            }
+            // Preparar datos
+            $companyData = [
+                'company_name' => sanitize($_POST['company_name']),
+                'address' => sanitize($_POST['address'] ?? ''),
+                'city' => sanitize($_POST['city'] ?? ''),
+                'country' => sanitize($_POST['country'] ?? ''),
+                'website' => sanitize($_POST['website'] ?? ''),
+                'contact_first_name' => sanitize($_POST['contact_first_name'] ?? ''),
+                'contact_last_name' => sanitize($_POST['contact_last_name'] ?? ''),
+                'phone' => sanitize($_POST['phone'] ?? ''),
+                'email' => sanitize($_POST['email']),
+                'role' => sanitize($_POST['role']),
+                'event_id' => $eventId,
+                'is_active' => isset($_POST['is_active']) ? 1 : 0,
+                'description' => sanitize($_POST['description'] ?? ''),
+            ];
+            // Procesar logo si se sube uno
+            if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] === UPLOAD_ERR_OK) {
+                try {
+                    $companyLogoFilename = $this->processLogo($_FILES['company_logo'], 'company');
+                    $companyData['company_logo'] = $companyLogoFilename;
+                } catch (Exception $e) {
+                    setFlashMessage('Error al subir el logo: ' . $e->getMessage(), 'danger');
+                    $_SESSION['form_data'] = $_POST;
+                    redirect(BASE_URL . '/events/companies/' . $eventId . '/create-company');
+                    exit;
+                }
+            }
+            try {
+                $companyId = $this->companyModel->createForEvent($companyData);
+                if (!$companyId) throw new Exception('Error al crear la empresa');
+                unset($_SESSION['form_data'], $_SESSION['validation_errors']); // Limpiar solo si es éxito
+                setFlashMessage('Empresa creada exitosamente', 'success');
+                redirect(BASE_URL . '/events/companies/' . $eventId);
+                exit;
+            } catch (Exception $e) {
+                setFlashMessage('Error al crear la empresa: ' . $e->getMessage(), 'danger');
+                $_SESSION['form_data'] = $_POST;
+                redirect(BASE_URL . '/events/companies/' . $eventId . '/create-company');
+                exit;
+            }
+        }
+        $formData = $_SESSION['form_data'] ?? [
+            'company_name' => '',
+            'address' => '',
+            'city' => '',
+            'country' => '',
+            'website' => '',
+            'company_logo' => '',
+            'contact_first_name' => '',
+            'contact_last_name' => '',
+            'phone' => '',
+            'email' => '',
+            'is_active' => 1,
+            'role' => '',
+            'description' => '',
+            'type' => ''
+        ];
+        unset($_SESSION['form_data'], $_SESSION['validation_errors']);
+        $csrfToken = generateCSRFToken();
+        include(VIEW_DIR . '/events/create_company.php');
+    }
+
+    public function registration_details() {
+        // Obtener parámetros
+        $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
+        $companyId = isset($_GET['company_id']) ? (int)$_GET['company_id'] : 0;
+        if (!$eventId || !$companyId) {
+            setFlashMessage('Faltan parámetros para mostrar el registro completo', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Redirigir a la acción correcta (viewFullRegistration)
+        $this->viewFullRegistration($eventId, $companyId);
+    }
+
+    /**
+     * Listar todos los registros completos de empresas para un evento
+     * Muestra un resumen de cada empresa y acceso al detalle completo
+     * @return void
+     */
+    public function event_list() {
+        $eventId = isset($_GET['event_id']) ? (int)$_GET['event_id'] : 0;
+        $filters = [];
+        $order = $_GET['order'] ?? 'asc';
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $filters['search'] = $_GET['search'];
+        }
+        // Log de depuración
+        Logger::debug('[event_list] event_id=' . $eventId . ' | filters=' . json_encode($filters) . ' | order=' . $order);
+        if (!$eventId) {
+            setFlashMessage('Falta el parámetro event_id', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        // Cargar evento
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $event = $this->eventModel;
+        // Obtener empresas del evento (corregido)
+        $companies = $this->companyModel->getByEvent($eventId, null, null, $filters, $order);
+        Logger::debug('[event_list] companies count: ' . count($companies));
+        $pageTitle = 'Registros completos de empresas';
+        include(VIEW_DIR . '/events/event_list.php');
+    }
+
+    /**
+     * Editar requerimientos de una empresa para un evento
+     */
+    public function editRequirements($eventId, $companyId) {
+        // Permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para editar requerimientos', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Cargar evento y empresa
+        if (!$this->eventModel->findById($eventId) || !$this->companyModel->findById($companyId)) {
+            setFlashMessage('Evento o empresa no encontrados', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $event = $this->eventModel;
+        $company = $this->companyModel;
+        // Obtener categorías y subcategorías
+        $categories = $this->categoryModel->getEventCategories($eventId);
+        $subcategories = [];
+        foreach ($categories as $cat) {
+            $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
+        }
+        // Obtener requerimientos actuales
+        $rawRequirements = $this->companyModel->getRequirements($companyId);
+        $requirements = [];
+        if ($rawRequirements) {
+            foreach ($rawRequirements as $req) {
+                if (isset($req['event_subcategory_id'])) {
+                    $requirements[$req['event_subcategory_id']] = $req;
+                }
+            }
+        }
+        $csrfToken = Security::generateCsrfToken();
+        // Guardar cambios
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Validar CSRF
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                setFlashMessage('Token de seguridad inválido', 'danger');
+                redirect(BASE_URL . "/events/editRequirements/$eventId/$companyId");
+                exit;
+            }
+            // Procesar requerimientos enviados
+            $reqs = $_POST['requirements'] ?? [];
+            // Eliminar todos los requerimientos actuales
+            $this->companyModel->deleteAllRequirements($companyId, $eventId);
+            // Insertar los nuevos requerimientos seleccionados
+            foreach ($reqs as $subcatId => $data) {
+                if (!empty($data['selected'])) {
+                    $newReq = [
+                        'event_subcategory_id' => (int)$subcatId,
+                        'budget_usd' => isset($data['budget']) ? (float)$data['budget'] : null,
+                        'quantity' => isset($data['quantity']) ? (int)$data['quantity'] : null,
+                        'unit_of_measurement' => isset($data['unit']) ? trim($data['unit']) : null,
+                        'created_at' => date('Y-m-d H:i:s'),
+                    ];
+                    $this->companyModel->addRequirement($newReq, $companyId);
+                }
+            }
+            setFlashMessage('Requerimientos actualizados correctamente', 'success');
+            redirect(BASE_URL . "/events/registration_details?event_id=$eventId&company_id=$companyId");
+            exit;
+        }
+        // Cargar vista de edición
+        $this->loadView('events/edit_requirements', [
+            'event' => $event,
+            'company' => $company,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'requirements' => $requirements,
+            'csrfToken' => $csrfToken
+        ]);
+    }
+
+    /**
+     * Editar días de asistencia de una empresa para un evento (formulario simple)
+     * @param int $eventId
+     * @param int $companyId
+     * @return void
+     */
+    public function edit_days_attendance($eventId, $companyId) {
+        // Permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para editar días de asistencia', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Cargar evento y empresa
+        if (!$this->eventModel->findById($eventId) || !$this->companyModel->findById($companyId)) {
+            setFlashMessage('Evento o empresa no encontrados', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $event = $this->eventModel;
+        $company = $this->companyModel;
+        // Obtener rango de días del evento
+        $startDate = new DateTime($event->getStartDate());
+        $endDate = new DateTime($event->getEndDate());
+        $interval = $startDate->diff($endDate);
+        $totalDays = $interval->days + 1;
+        $eventDays = [];
+        $currentDate = clone $startDate;
+        for ($i = 0; $i < $totalDays; $i++) {
+            $eventDays[] = $currentDate->format('Y-m-d');
+            $currentDate->modify('+1 day');
+        }
+        // Obtener días seleccionados actuales
+        $selectedDays = $this->companyModel->getAttendanceDays($companyId, $eventId);
+        // Procesar formulario POST
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+                redirect(BASE_URL . "/events/edit_days_attendance/$eventId/$companyId");
+                exit;
+            }
+            $newDays = isset($_POST['attendance_days']) ? $_POST['attendance_days'] : [];
+            if (!is_array($newDays)) $newDays = [];
+            // Eliminar todos los días actuales
+            $attendanceDayModel = new AttendanceDay($this->db);
+            $attendanceDayModel->deleteByCompanyAndEvent($companyId, $eventId);
+            // Agregar los nuevos días seleccionados
+            $added = 0;
+            foreach ($newDays as $date) {
+                $date = trim($date);
+                if (!$date) continue;
+                if ($this->companyModel->addAttendanceDay($eventId, $date, $companyId)) {
+                    $added++;
+                }
+            }
+            setFlashMessage('Días de asistencia actualizados correctamente', 'success');
+            redirect(BASE_URL . "/events/view_full_registration/$eventId/$companyId");
+            exit;
+        }
+        // Preparar datos para la vista
+        $csrfToken = Security::generateCsrfToken();
+        $this->loadView('events/edit_days_attendance', [
+            'event' => $event,
+            'company' => $company,
+            'eventDays' => $eventDays,
+            'selectedDays' => $selectedDays,
+            'csrfToken' => $csrfToken
+        ]);
+    }
+
+    // Alias para soportar rutas tipo /events/view_full_registration/{eventId}/{companyId}
+    public function view_full_registration($eventId, $companyId) {
+        return $this->viewFullRegistration($eventId, $companyId);
+    }
+
+    /**
+     * Mostrar los slots teóricos de horarios y capacidad del evento
+     * @param int $id ID del evento
+     * @return void
+     */
+    public function time_slots($id) {
+        // Permisos solo admin/organizador
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL);
+            exit;
+        }
+        // Buscar evento
+        if (!$this->eventModel->findById($id)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $event = $this->eventModel;
+        $eventModel = $event;
+        $eventId = $event->getId();
+        // Fechas del evento
+        $startDate = new DateTime($event->getStartDate());
+        $endDate = new DateTime($event->getEndDate());
+        $eventDurationDays = $startDate->diff($endDate)->days + 1;
+        // Mesas y duración
+        $availableTables = $event->getAvailableTables();
+        $meetingDuration = $event->getMeetingDuration();
+        $startTime = $event->getStartTime();
+        $endTime = $event->getEndTime();
+        // Breaks
+        $breaks = $event->getBreaks($eventId);
+        // Generar slots teóricos por día
+        $slotsByDate = [];
+        $slotsPerDay = 0;
+        for ($i = 0; $i < $eventDurationDays; $i++) {
+            $date = $startDate->format('Y-m-d');
+            $slots = $event->generateTimeSlots($eventId, $date); // Debe devolver todos los slots posibles para ese día
+            $slotsByDate[$date] = $slots;
+            if ($i === 0) $slotsPerDay = count($slots) / max(1, $availableTables); // slots por día = total slots / mesas
+            $startDate->modify('+1 day');
+        }
+        // Citas reales (para marcar ocupados)
+        $appointmentModel = new Appointment($this->db);
+        $appointments = $appointmentModel->getByEvent($eventId);
+        // Pasar a la vista
+        include(VIEW_DIR . '/events/time_slots.php');
     }
 } // End of EventController class

@@ -506,4 +506,32 @@ public function editEventSubcategory($subcategoryId, $data) {
         return $this->db->query($query, [':name' => $name, ':id' => $categoryId]);
     }
 
+    // Buscar o crear una categoría de evento para un evento dado
+    public function findOrCreateEventCategory($eventId, $categoryId, $name) {
+        $query = "SELECT event_category_id FROM event_categories WHERE event_id = :event_id AND category_id = :category_id LIMIT 1";
+        $params = [':event_id' => $eventId, ':category_id' => $categoryId];
+        $result = $this->db->single($query, $params);
+        if ($result && isset($result['event_category_id'])) {
+            return $result['event_category_id'];
+        }
+        // Insertar si no existe
+        $insert = "INSERT INTO event_categories (event_id, category_id, name, is_active) VALUES (:event_id, :category_id, :name, 1)";
+        $this->db->query($insert, [':event_id' => $eventId, ':category_id' => $categoryId, ':name' => $name]);
+        return $this->db->lastInsertId();
+    }
+
+    // Buscar o crear una subcategoría de evento
+    public function findOrCreateEventSubcategory($eventCategoryId, $subcategoryId, $name) {
+        $query = "SELECT event_subcategory_id FROM event_subcategories WHERE event_category_id = :event_category_id AND subcategory_id = :subcategory_id LIMIT 1";
+        $params = [':event_category_id' => $eventCategoryId, ':subcategory_id' => $subcategoryId];
+        $result = $this->db->single($query, $params);
+        if ($result && isset($result['event_subcategory_id'])) {
+            return $result['event_subcategory_id'];
+        }
+        // Insertar si no existe
+        $insert = "INSERT INTO event_subcategories (event_category_id, subcategory_id, name, is_active) VALUES (:event_category_id, :subcategory_id, :name, 1)";
+        $this->db->query($insert, [':event_category_id' => $eventCategoryId, ':subcategory_id' => $subcategoryId, ':name' => $name]);
+        return $this->db->lastInsertId();
+    }
+
 }

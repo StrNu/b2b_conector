@@ -206,8 +206,12 @@
   background: #e0e0e0;
   color: #757575;
 }
+/* Aumenta el padding solo para las tarjetas de Descansos Programados y Estado y Configuración en la vista de evento */
+.event-view-card.event-breaks-card, .event-view-card.event-status-card {
+  padding: 64px 48px 48px 48px;
+}
 @media (max-width: 900px) {
-  .event-view-card {
-    padding: 16px 4px 16px 4px;
+  .event-view-card.event-breaks-card, .event-view-card.event-status-card {
+    padding: 32px 12px 32px 12px;
   }
 }
