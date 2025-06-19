@@ -80,6 +80,45 @@
                 <textarea name="description" id="description" class="form-control"><?= htmlspecialchars($formData['description'] ?? '') ?></textarea>
             </div>
             <div class="form-group">
+                <label for="keywords">Palabras clave</label>
+                <small class="form-text text-muted">
+                  Escribe las palabras clave separadas por comas. Ejemplo: acero inoxidable, ISO 9001, maquila textil
+                </small>
+                <input type="text" name="keywords" id="keywords" class="form-control" placeholder="Ej. acero inoxidable, ISO 9001, maquila textil" value="<?= htmlspecialchars($formData['keywords'] ?? '') ?>">
+            </div>
+            <fieldset class="form-group card mb-4">
+                <legend class="font-semibold flex items-center gap-2 mb-2"><i class="fas fa-certificate"></i> Certificaciones</legend>
+                <div class="mb-2">
+                    <label class="label">Certificaciones de Calidad y Gestión</label>
+                    <div class="mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 9001" class="mr-2" <?= in_array('ISO 9001', $formData['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 9001 – Gestión de calidad
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 14001" class="mr-2" <?= in_array('ISO 14001', $formData['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 14001 – Gestión ambiental
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 45001" class="mr-2" <?= in_array('ISO 45001', $formData['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 45001 – Seguridad y salud ocupacional
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 22000" class="mr-2" <?= in_array('ISO 22000', $formData['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 22000 – Seguridad alimentaria
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="Six Sigma / Lean Six Sigma" class="mr-2" <?= in_array('Six Sigma / Lean Six Sigma', $formData['certifications'] ?? []) ? 'checked' : '' ?>>
+                            Six Sigma / Lean Six Sigma – Mejora de procesos y eficiencia
+                        </label>
+                    </div>
+                    <div class="mt-2">
+                        <label class="label">Otros:</label>
+                        <input type="text" name="certifications_otros" class="form-control" placeholder="Especifique otras certificaciones" value="<?= htmlspecialchars($formData['certifications_otros'] ?? '') ?>">
+                    </div>
+                </div>
+            </fieldset>
+            <div class="form-group">
                 <label for="is_active">
                     <input type="checkbox" name="is_active" id="is_active" value="1" <?= (!isset($formData['is_active']) || $formData['is_active']) ? 'checked' : '' ?>> Empresa activa
                 </label>

@@ -1,3 +1,4 @@
+<?php include(VIEW_DIR . '/shared/header.php'); ?>
 <div class="container mx-auto py-8 max-w-2xl">
     <div class="text-center mb-6">
         <a href="<?= BASE_URL ?>/events/event_list?event_id=<?= (int)$event->getId() ?>" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Regresar al evento</a>
@@ -142,3 +143,4 @@
         </fieldset>
     </div>
 </div>
+<?php include(VIEW_DIR . '/shared/footer.php'); ?>

@@ -28,6 +28,7 @@ class MatchModel {
     const STATUS_PENDING = 'pending';
     const STATUS_ACCEPTED = 'accepted';
     const STATUS_REJECTED = 'rejected';
+    const STATUS_MATCHED = 'matched';
     
     /**
      * Constructor
@@ -72,7 +73,7 @@ class MatchModel {
         
         $params = [
             'buyer_id' => $buyerId,
-            'supplier_id' => $supplierId,
+            'supplier_id' => $SupplierId,
             'event_id' => $eventId
         ];
         
@@ -106,12 +107,16 @@ class MatchModel {
             $data['created_at'] = date('Y-m-d H:i:s');
         }
         
-        // Si no se proporciona match_strength, calcularlo
-        if (!isset($data['match_strength']) && isset($data['matched_categories'])) {
+        // Si no se proporciona match_strength, calcularlo como porcentaje
+        if (!isset($data['match_strength']) && isset($data['matched_categories']) && isset($data['buyer_id'])) {
             $categories = json_decode($data['matched_categories'], true);
-            $data['match_strength'] = count($categories);
+            $buyerRequirementsQuery = "SELECT COUNT(*) as total FROM requirements WHERE buyer_id = :buyer_id";
+            $result = $this->db->single($buyerRequirementsQuery, ['buyer_id' => $data['buyer_id']]);
+            $totalBuyerSubcats = $result && isset($result['total']) ? (int)$result['total'] : 0;
+            $matchStrength = $totalBuyerSubcats > 0 ? round((count($categories) / $totalBuyerSubcats) * 100) : 0;
+            $data['match_strength'] = $matchStrength;
         } elseif (!isset($data['match_strength'])) {
-            $data['match_strength'] = 1; // Valor por defecto
+            $data['match_strength'] = 0; // Valor por defecto
         }
         
         // Generar consulta SQL
@@ -176,6 +181,17 @@ class MatchModel {
         // Eliminar el match
         $query = "DELETE FROM {$this->table} WHERE match_id = :id";
         return $this->db->query($query, ['id' => $matchId]) ? true : false;
+    }
+    
+    /**
+     * Elimina todos los matches existentes de un evento
+     * @param int $eventId
+     * @return bool
+     */
+    public function deleteAllByEvent($eventId) {
+        if (!$eventId) return false;
+        $query = "DELETE FROM {$this->table} WHERE event_id = :event_id";
+        return $this->db->query($query, ['event_id' => $eventId]);
     }
     
     /**
@@ -362,6 +378,7 @@ class MatchModel {
             $forceRegenerate = $options['forceRegenerate'] ?? false;
             $specificBuyerId = $options['buyerId'] ?? null;
             $specificSupplierId = $options['supplierId'] ?? null;
+            $status = isset($options['status']) ? $options['status'] : self::STATUS_MATCHED;
             
             // Si se solicita regenerar, eliminar matches existentes
             if ($forceRegenerate) {
@@ -413,16 +430,28 @@ class MatchModel {
                 $buyerId = $buyer['company_id'];
                 // Obtener requerimientos del comprador
                 $buyerRequirementsQuery = "SELECT r.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
-                                          FROM requirements r
-                                          JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
-                                          JOIN event_categories c ON s.event_category_id = c.event_category_id
-                                          WHERE r.buyer_id = :buyer_id";
+                              FROM requirements r
+                              JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
+                              JOIN event_categories c ON s.event_category_id = c.event_category_id
+                              WHERE r.buyer_id = :buyer_id";
                 $buyerRequirements = $this->db->resultSet($buyerRequirementsQuery, ['buyer_id' => $buyerId]);
-                // LOG: requerimientos del comprador
                 Logger::debug('[MATCHGEN] Buyer ' . $buyerId . ' requirements', ['buyer' => $buyer, 'requirements' => $buyerRequirements]);
                 if (empty($buyerRequirements)) {
                     continue;
                 }
+                $totalBuyerSubcats = count($buyerRequirements);
+                // Subcategorías del comprador
+                $buyerSubcategories = array_map(function($r) { return $r['event_subcategory_id']; }, $buyerRequirements);
+                // Fechas del comprador
+                $buyerDatesArr = $this->db->resultSet("SELECT attendance_date FROM attendance_days WHERE event_id = :event_id AND company_id = :company_id", [
+                    'event_id' => $eventId,
+                    'company_id' => $buyerId
+                ]);
+                $buyerDates = array_map(function($r) { return $r['attendance_date']; }, $buyerDatesArr);
+                // Keywords y descripción del comprador
+                $buyer_keywords = $buyer['keywords'] ?? null;
+                $buyer_description = $buyer['description'] ?? null;
+
                 foreach ($suppliers as $supplier) {
                     $supplierId = $supplier['company_id'];
                     if (!$forceRegenerate && $this->exists($buyerId, $supplierId, $eventId)) {
@@ -431,12 +460,11 @@ class MatchModel {
                     }
                     // Obtener ofertas del proveedor
                     $supplierOffersQuery = "SELECT so.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
-                                           FROM supplier_offers so
-                                           JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
-                                           JOIN event_categories c ON s.event_category_id = c.event_category_id
-                                           WHERE so.supplier_id = :supplier_id";
+                               FROM supplier_offers so
+                               JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
+                               JOIN event_categories c ON s.event_category_id = c.event_category_id
+                               WHERE so.supplier_id = :supplier_id";
                     $supplierOffers = $this->db->resultSet($supplierOffersQuery, ['supplier_id' => $supplierId]);
-                    // LOG: ofertas del proveedor
                     Logger::debug('[MATCHGEN] Supplier ' . $supplierId . ' offers', ['supplier' => $supplier, 'offers' => $supplierOffers]);
                     if (empty($supplierOffers)) {
                         continue;
@@ -455,17 +483,53 @@ class MatchModel {
                             }
                         }
                     }
-                    // LOG: coincidencias encontradas
                     Logger::debug('[MATCHGEN] Buyer ' . $buyerId . ' - Supplier ' . $supplierId . ' matched categories', ['matched' => $matchedCategories]);
                     if (!empty($matchedCategories)) {
+                        $matchStrength = $totalBuyerSubcats > 0 ? round((count($matchedCategories) / $totalBuyerSubcats) * 100) : 0;
+                        // Subcategorías del proveedor
+                        $supplierSubcategories = array_map(function($o) { return $o['event_subcategory_id']; }, $supplierOffers);
+                        // Fechas del proveedor
+                        $supplierDatesArr = $this->db->resultSet("SELECT attendance_date FROM attendance_days WHERE event_id = :event_id AND company_id = :company_id", [
+                            'event_id' => $eventId,
+                            'company_id' => $supplierId
+                        ]);
+                        $supplierDates = array_map(function($r) { return $r['attendance_date']; }, $supplierDatesArr);
+                        // Keywords y descripción del proveedor
+                        $supplier_keywords = $supplier['keywords'] ?? null;
+                        $supplier_description = $supplier['description'] ?? null;
+                        // Fechas coincidentes
+                        $commonDates = array_intersect($buyerDates, $supplierDates);
+                        $coincidence_of_dates = !empty($commonDates) ? implode(',', $commonDates) : null;
+                        // Reason (puedes ajustar la lógica según tus reglas)
+                        $reason = !empty($commonDates) ? 'subcategoria_y_fecha' : 'subcategoria_sin_dias_comunes';
+                        // Keywords match (intersección de keywords si ambas existen y son JSON)
+                        $keywords_match = null;
+                        if ($buyer_keywords && $supplier_keywords) {
+                            $bk = json_decode($buyer_keywords, true);
+                            $sk = json_decode($supplier_keywords, true);
+                            if (is_array($bk) && is_array($sk)) {
+                                $keywords_match = array_values(array_intersect($bk, $sk));
+                            }
+                        }
                         $matchData = [
                             'buyer_id' => $buyerId,
                             'supplier_id' => $supplierId,
                             'event_id' => $eventId,
-                            'match_strength' => count($matchedCategories),
-                            'status' => self::STATUS_PENDING,
+                            'match_strength' => $matchStrength,
+                            'status' => $status,
                             'created_at' => date('Y-m-d H:i:s'),
-                            'matched_categories' => json_encode($matchedCategories)
+                            'matched_categories' => json_encode($matchedCategories),
+                            'buyer_subcategories' => json_encode($buyerSubcategories),
+                            'supplier_subcategories' => json_encode($supplierSubcategories),
+                            'buyer_dates' => implode(',', $buyerDates),
+                            'supplier_dates' => implode(',', $supplierDates),
+                            'buyer_keywords' => $buyer_keywords,
+                            'supplier_keywords' => $supplier_keywords,
+                            'buyer_description' => $buyer_description,
+                            'supplier_description' => $supplier_description,
+                            'reason' => $reason,
+                            'keywords_match' => $keywords_match ? json_encode($keywords_match) : null,
+                            'coincidence_of_dates' => $coincidence_of_dates
                         ];
                         if ($this->create($matchData)) {
                             $newMatches++;
@@ -514,14 +578,11 @@ class MatchModel {
         // Verificar que el comprador y proveedor existan y pertenezcan al evento
         $buyerQuery = "SELECT * FROM company WHERE company_id = :id AND role = 'buyer' AND event_id = :event_id";
         $supplierQuery = "SELECT * FROM company WHERE company_id = :id AND role = 'supplier' AND event_id = :event_id";
-        
         $buyerExists = $this->db->single($buyerQuery, ['id' => $buyerId, 'event_id' => $eventId]);
         $supplierExists = $this->db->single($supplierQuery, ['id' => $supplierId, 'event_id' => $eventId]);
-        
         if (!$buyerExists || !$supplierExists) {
             return false;
         }
-        
         // Si no se proporcionan categorías, intentar encontrar coincidencias automáticamente
         if (empty($categories)) {
             $buyerRequirementsQuery = "SELECT r.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
@@ -529,18 +590,14 @@ class MatchModel {
                                       JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
                                       JOIN event_categories c ON s.event_category_id = c.event_category_id
                                       WHERE r.buyer_id = :buyer_id";
-            
             $supplierOffersQuery = "SELECT so.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
                                    FROM supplier_offers so
                                    JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
                                    JOIN event_categories c ON s.event_category_id = c.event_category_id
                                    WHERE so.supplier_id = :supplier_id";
-            
             $buyerRequirements = $this->db->resultSet($buyerRequirementsQuery, ['buyer_id' => $buyerId]);
             $supplierOffers = $this->db->resultSet($supplierOffersQuery, ['supplier_id' => $supplierId]);
-            
             $matchedCategories = [];
-            
             foreach ($buyerRequirements as $requirement) {
                 foreach ($supplierOffers as $offer) {
                     if ($requirement['event_subcategory_id'] == $offer['event_subcategory_id']) {
@@ -554,16 +611,17 @@ class MatchModel {
                     }
                 }
             }
-            
             $categories = $matchedCategories;
         }
-        
+        // Calcular porcentaje de match_strength
+        $totalBuyerSubcats = isset($buyerRequirements) ? count($buyerRequirements) : 0;
+        $matchStrength = $totalBuyerSubcats > 0 ? round((count($categories) / $totalBuyerSubcats) * 100) : 0;
         // Crear el match
         $matchData = [
             'buyer_id' => $buyerId,
             'supplier_id' => $supplierId,
             'event_id' => $eventId,
-            'match_strength' => count($categories),
+            'match_strength' => $matchStrength,
             'status' => self::STATUS_ACCEPTED, // Los matches manuales se crean como aceptados
             'created_at' => date('Y-m-d H:i:s'),
             'matched_categories' => json_encode($categories)
@@ -771,5 +829,137 @@ public function countWithoutParticipants() {
      */
     public function getMatchedCategoriesArray() {
         return json_decode($this->matched_categories, true) ?? [];
+    }
+
+    /**
+     * Guardar o actualizar estadísticas de un evento en la tabla event_statistics
+     * @param int $eventId
+     * @param array $stats Debe tener claves: keywords, categories, subcategories, descriptions (todas arrays)
+     * @return bool
+     */
+    public function saveEventStatistics($eventId, $stats) {
+        // Convertir arrays a JSON
+        $keywords = json_encode($stats['keywords'] ?? []);
+        $categories = json_encode($stats['categories'] ?? []);
+        $subcategories = json_encode($stats['subcategories'] ?? []);
+        $descriptions = json_encode($stats['descriptions'] ?? []);
+        // Verificar si ya existe
+        $exists = $this->db->single("SELECT id FROM event_statistics WHERE event_id = :event_id", ['event_id' => $eventId]);
+        if ($exists) {
+            // Update
+            $sql = "UPDATE event_statistics SET keywords = :keywords, categories = :categories, subcategories = :subcategories, descriptions = :descriptions, updated_at = NOW() WHERE event_id = :event_id";
+        } else {
+            // Insert
+            $sql = "INSERT INTO event_statistics (event_id, keywords, categories, subcategories, descriptions, created_at) VALUES (:event_id, :keywords, :categories, :subcategories, :descriptions, NOW())";
+        }
+        $params = [
+            'event_id' => $eventId,
+            'keywords' => $keywords,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'descriptions' => $descriptions
+        ];
+        return $this->db->query($sql, $params) !== false;
+    }
+
+    /**
+     * Obtener estadísticas de un evento desde la tabla event_statistics
+     * @param int $eventId
+     * @return array|null
+     */
+    public function getEventStatistics($eventId) {
+        $row = $this->db->single("SELECT * FROM event_statistics WHERE event_id = :event_id", ['event_id' => $eventId]);
+        if (!$row) return null;
+        return [
+            'keywords' => json_decode($row['keywords'] ?? '[]', true),
+            'categories' => json_decode($row['categories'] ?? '[]', true),
+            'subcategories' => json_decode($row['subcategories'] ?? '[]', true),
+            'descriptions' => json_decode($row['descriptions'] ?? '[]', true),
+        ];
+    }
+
+
+    /**
+     * Obtener todos los matches de un evento, agregando todas las subcategorías y fechas coincidentes por match (para Matches encontrados)
+     * Solo devuelve matches con al menos una subcategoría coincidente y al menos una fecha coincidente.
+     * @param int $eventId
+     * @return array
+     */
+    public function getAllMatchesWithSubcategoriesByEvent($eventId) {
+        $sql = "
+        SELECT
+            m.match_id,
+            m.buyer_id,
+            b.company_name AS buyer_name,
+            m.supplier_id,
+            s.company_name AS supplier_name,
+            m.match_strength,
+            m.status,
+            m.created_at,
+            m.matched_categories,
+            m.buyer_subcategories,
+            m.supplier_subcategories,
+            m.buyer_dates,
+            m.supplier_dates,
+            m.reason,
+            m.keywords_match,
+            m.coincidence_of_dates
+        FROM matches m
+        JOIN company b ON m.buyer_id = b.company_id
+        JOIN company s ON m.supplier_id = s.company_id
+        WHERE m.event_id = :event_id
+        ORDER BY m.match_strength DESC, m.created_at DESC
+        ";
+        $params = [':event_id' => $eventId];
+        $stmt = $this->db->query($sql, $params);
+        if (!$stmt) {
+            error_log('[MATCHES] Error SQL en getAllMatchesWithSubcategoriesByEvent: ' . $sql);
+            return [];
+        }
+        $rows = $stmt->fetchAll();
+        $unique = [];
+        $filtered = [];
+        foreach ($rows as &$row) {
+            // Decodificar subcategorías
+            $subcats = [];
+            if (!empty($row['matched_categories'])) {
+                $json = json_decode($row['matched_categories'], true);
+                if (is_array($json)) {
+                    foreach ($json as $cat) {
+                        if (isset($cat['category_name'], $cat['subcategory_name'])) {
+                            $subcats[] = $cat['category_name'] . ' > ' . $cat['subcategory_name'];
+                        }
+                    }
+                }
+            }
+            // Si no hay matched_categories, usar buyer_subcategories y supplier_subcategories
+            if (empty($subcats)) {
+                $buyerSubcats = !empty($row['buyer_subcategories']) ? json_decode($row['buyer_subcategories'], true) : [];
+                $supplierSubcats = !empty($row['supplier_subcategories']) ? json_decode($row['supplier_subcategories'], true) : [];
+                $subcats = array_unique(array_merge($buyerSubcats, $supplierSubcats));
+                $subcats = array_map('strval', $subcats);
+            }
+            $row['subcategories'] = !empty($subcats) ? implode(', ', $subcats) : '-';
+            // Fechas coincidentes (usar coincidence_of_dates si existe, si no intersectar buyer_dates y supplier_dates)
+            $commonDates = [];
+            if (!empty($row['coincidence_of_dates'])) {
+                $commonDates = explode(',', $row['coincidence_of_dates']);
+            } else {
+                $buyerDatesArr = !empty($row['buyer_dates']) ? explode(',', $row['buyer_dates']) : [];
+                $supplierDatesArr = !empty($row['supplier_dates']) ? explode(',', $row['supplier_dates']) : [];
+                $commonDates = array_intersect($buyerDatesArr, $supplierDatesArr);
+            }
+            $row['match_dates'] = !empty($commonDates) ? implode(', ', $commonDates) : '-';
+            // FILTRO: solo matches con al menos una subcategoría y al menos una fecha coincidente
+            if (!empty($subcats) && !empty($commonDates)) {
+                $key = $row['buyer_id'] . '-' . $row['supplier_id'] . '-' . implode(',', $commonDates);
+                if (!isset($unique[$key])) {
+                    $filtered[] = $row;
+                    $unique[$key] = true;
+                }
+            }
+        }
+        unset($row);
+        return $filtered;
     }
 }

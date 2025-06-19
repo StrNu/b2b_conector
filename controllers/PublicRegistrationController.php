@@ -62,7 +62,8 @@ class PublicRegistrationController {
                 'city' => trim($_POST['city'] ?? ''),
                 'country' => trim($_POST['country'] ?? ''),
                 'website' => trim($_POST['website'] ?? ''),
-                'description' => trim($_POST['description'] ?? ''), // Asegúrate que este campo se recoja del formulario
+                'description' => trim($_POST['description'] ?? ''),
+                'keywords' => trim($_POST['keywords'] ?? ''), // <-- Agregado para guardar keywords
                 'contact_first_name' => trim($_POST['contact_first_name'] ?? ''),
                 'contact_last_name' => trim($_POST['contact_last_name'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
@@ -72,6 +73,23 @@ class PublicRegistrationController {
                 'is_active' => 1,
                 'created_at' => date('Y-m-d H:i:s'),
             ];
+
+            // Procesar keywords como JSON válido
+            $keywords = trim($_POST['keywords'] ?? '');
+            if ($keywords !== '') {
+                $keywordsArray = array_map('trim', explode(',', $keywords));
+                $companyData['keywords'] = json_encode($keywordsArray, JSON_UNESCAPED_UNICODE);
+            } else {
+                $companyData['keywords'] = json_encode([]);
+            }
+
+            // Procesar certificaciones como JSON válido
+            $certifications = $_POST['certifications'] ?? [];
+            $otros = trim($_POST['certifications_otros'] ?? '');
+            if ($otros !== '') {
+                $certifications[] = $otros;
+            }
+            $companyData['certifications'] = json_encode($certifications, JSON_UNESCAPED_UNICODE);
 
             // Validar y normalizar teléfono (permite lada entre paréntesis o con +, default México)
             $phone = trim($_POST['phone'] ?? '');

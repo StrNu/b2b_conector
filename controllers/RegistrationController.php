@@ -111,12 +111,23 @@ class RegistrationController {
             }
             $db->commit();
             setFlashMessage('Registro enviado correctamente. Pronto nos pondremos en contacto.', 'success');
+            header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
+            exit;
         } catch (Exception $e) {
             $db->rollback();
             setFlashMessage('Error al registrar: ' . $e->getMessage(), 'danger');
+            // Volver a mostrar el formulario con los datos ingresados
+            $event = $this->eventModel;
+            $categories = $this->categoryModel->getEventCategories($eventId);
+            $subcategories = [];
+            foreach ($categories as $cat) {
+                $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
+            }
+            $csrfToken = generateCSRFToken();
+            $form_data = $_POST;
+            include(VIEW_DIR . '/events/buyers_registration.php');
+            exit;
         }
-        header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
-        exit;
     }
 
     // Formulario registro público de proveedores
@@ -188,12 +199,25 @@ class RegistrationController {
                 'is_active' => 1,
                 'created_at' => date('Y-m-d H:i:s'),
             ];
+            // Procesar palabras clave (keywords)
+            if (isset($_POST['keywords'])) {
+                $keywords = array_map('trim', explode(',', $_POST['keywords']));
+                $keywords = array_filter($keywords, fn($k) => $k !== '');
+                $companyData['keywords'] = $keywords ? json_encode(array_values($keywords), JSON_UNESCAPED_UNICODE) : null;
+            }
+            // Procesar certificaciones
+            $certifications = $_POST['certifications'] ?? [];
+            $otros = trim($_POST['certifications_otros'] ?? '');
+            if ($otros !== '') {
+                $certifications[] = $otros;
+            }
+            $companyData['certifications'] = $certifications ? json_encode(array_values($certifications), JSON_UNESCAPED_UNICODE) : null;
             // Manejo de logo
             $uploadedLogoName = null;
-            if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] === UPLOAD_ERR_OK) {
-                $fileName = $_FILES['company_logo']['name'];
-                $fileSize = $_FILES['company_logo']['size'];
-                $fileTmpName = $_FILES['company_logo']['tmp_name'];
+            if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+                $fileName = $_FILES['logo']['name'];
+                $fileSize = $_FILES['logo']['size'];
+                $fileTmpName = $_FILES['logo']['tmp_name'];
                 $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
                 if (!in_array($fileExtension, ALLOWED_EXTENSIONS)) {
                     setFlashMessage('Error al subir el logo: Extensión de archivo no permitida.', 'danger');

@@ -1,4 +1,5 @@
 <?php
+require_once(__DIR__ . '/../utils/Logger.php');
 /**
  * Modelo de Empresa
  * 
@@ -31,6 +32,8 @@ class Company {
     private $role;
     private $event_id;
     private $description;
+    private $keywords;
+    private $certifications;
     
     /**
      * Constructor
@@ -127,37 +130,40 @@ class Company {
     }
     
     /**
-     * Actualizar datos de una empresa
-     * 
-     * @param array $data Datos a actualizar
-     * @return bool True si la actualización fue exitosa, false en caso contrario
+     * Actualizar datos de una empresa (REESCRITO DEBUG)
+     * @param array $data
+     * @return bool
      */
     public function update($data) {
+        error_log('DEBUG Company::update ejecutado con id=' . print_r($this->id, true));
+        // Validar ID
         if (!isset($this->id) || !$this->id) {
+            error_log('DEBUG Company::update SIN ID');
             return false;
         }
-        
-        // Verificar si el rol es válido (si se está actualizando)
-        if (isset($data['role']) && !in_array($data['role'], ['buyer', 'supplier'])) {
-            return false;
-        }
-        
-        // Log de los datos recibidos para depuración
-        Logger::debug('Datos recibidos para update de empresa', $data);
-        
-        // Generar sentencia de actualización
+        $fields = [
+            'company_name', 'address', 'city', 'country', 'website', 'contact_first_name',
+            'contact_last_name', 'phone', 'email', 'is_active', 'role', 'event_id',
+            'description', 'keywords', 'certifications'
+        ];
         $updateFields = [];
-        foreach ($data as $key => $value) {
-            $updateFields[] = "$key = :$key";
+        $params = [];
+        foreach ($fields as $field) {
+            if (array_key_exists($field, $data)) {
+                $updateFields[] = "$field = :$field";
+                $params[$field] = $data[$field];
+            }
         }
-        
-        $query = "UPDATE {$this->table} 
-                  SET " . implode(', ', $updateFields) . " 
-                  WHERE company_id = :id";
-        
-        $data['id'] = $this->id;
-        
-        return $this->db->query($query, $data) ? true : false;
+        if (empty($updateFields)) {
+            error_log('DEBUG Company::update SIN CAMPOS');
+            return false;
+        }
+        $params['id'] = $this->id;
+        $query = "UPDATE {$this->table} SET ".implode(', ', $updateFields)." WHERE company_id = :id";
+        error_log('DEBUG Company::update QUERY: ' . $query . ' PARAMS: ' . print_r($params, true));
+        $result = $this->db->query($query, $params);
+        error_log('DEBUG Company::update RESULTADO: ' . print_r($result, true));
+        return $result ? true : false;
     }
     
     /**
@@ -227,9 +233,9 @@ class Company {
      */
     public function createForEvent($data) {
         $query = "INSERT INTO company (
-            event_id, company_name, address, city, country, website, company_logo, contact_first_name, contact_last_name, phone, email, is_active, role, description
+            event_id, company_name, address, city, country, website, company_logo, contact_first_name, contact_last_name, phone, email, is_active, role, description, keywords, certifications
         ) VALUES (
-            :event_id, :company_name, :address, :city, :country, :website, :company_logo, :contact_first_name, :contact_last_name, :phone, :email, :is_active, :role, :description
+            :event_id, :company_name, :address, :city, :country, :website, :company_logo, :contact_first_name, :contact_last_name, :phone, :email, :is_active, :role, :description, :keywords, :certifications
         )";
         $params = [
             'event_id' => $data['event_id'],
@@ -245,7 +251,9 @@ class Company {
             'email' => $data['email'],
             'is_active' => $data['is_active'],
             'role' => $data['role'],
-            'description' => $data['description'] ?? ''
+            'description' => $data['description'] ?? '',
+            'keywords' => $data['keywords'] ?? null,
+            'certifications' => $data['certifications'] ?? null
         ];
         $result = $this->db->query($query, $params);
         if ($result) {
@@ -1212,6 +1220,39 @@ public function getUpcomingEvents($companyId = null, $limit = 3) {
     }
 
     /**
+     * Obtener las palabras clave de la empresa
+     * @return array|string|null
+     */
+    public function getKeywords() {
+        if (is_array($this->keywords)) return $this->keywords;
+        if (is_string($this->keywords) && $this->keywords !== '') {
+            $decoded = json_decode($this->keywords, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+            // Si no es JSON, devolver como string
+            return $this->keywords;
+        }
+        return [];
+    }
+    /**
+     * Obtener las certificaciones de la empresa
+     * @return array|string|null
+     */
+    public function getCertifications() {
+        if (is_array($this->certifications)) return $this->certifications;
+        if (is_string($this->certifications) && $this->certifications !== '') {
+            $decoded = json_decode($this->certifications, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+            // Si no es JSON, devolver como string
+            return $this->certifications;
+        }
+        return [];
+    }
+
+    /**
      * Asignar propiedades del modelo desde un array de datos
      * @param array $data
      * @return void
@@ -1233,6 +1274,8 @@ public function getUpcomingEvents($companyId = null, $limit = 3) {
         $this->role = $data['role'] ?? null;
         $this->event_id = $data['event_id'] ?? null;
         $this->description = $data['description'] ?? null;
+        $this->keywords = $data['keywords'] ?? null;
+        $this->certifications = $data['certifications'] ?? null;
     }
 
     /**

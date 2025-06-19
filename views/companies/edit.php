@@ -1,4 +1,4 @@
-listado<?php include(VIEW_DIR . '/shared/header.php'); ?>
+<?php include(VIEW_DIR . '/shared/header.php'); ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/forms.css">
 <div class="content">
     <?php if (!isset($company) || !$company): ?>
@@ -13,11 +13,10 @@ listado<?php include(VIEW_DIR . '/shared/header.php'); ?>
     </div>
     <?php displayFlashMessages(); ?>
     <div class="card max-w-2xl mx-auto p-6 bg-white rounded shadow">
-        <form action="<?= isset($eventModel) 
-                ? BASE_URL . '/events/companies/' . (int)$eventModel->getId() . '/edit/' . (int)$company->getId() 
-                : BASE_URL . '/companies/edit/' . (int)$company->getId() ?>" 
+        <form action="<?= BASE_URL . '/companies/edit/' . (int)$company->getId() ?>" 
             method="POST" enctype="multipart/form-data" class="space-y-6">
             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
+            <input type="hidden" name="redirect_to" value="<?= htmlspecialchars($_GET['redirect_to'] ?? ($_SERVER['HTTP_REFERER'] ?? '')) ?>">
             <?php
             require_once __DIR__ . '/../../models/Event.php';
             $eventName = '';
@@ -100,6 +99,57 @@ listado<?php include(VIEW_DIR . '/shared/header.php'); ?>
                     <label for="description">Descripción</label>
                     <textarea id="description" name="description" class="form-control" rows="3"><?= htmlspecialchars($company->getDescription()) ?></textarea>
                 </div>
+                <div class="form-group">
+                    <label for="keywords">Palabras clave</label>
+                    <small class="form-text text-muted">
+                      Escribe las palabras clave separadas por comas. Ejemplo: acero inoxidable, ISO 9001, maquila textil
+                    </small>
+                    <input type="text" name="keywords" id="keywords" class="form-control" placeholder="Ej. acero inoxidable, ISO 9001, maquila textil" value="<?= htmlspecialchars(is_array($company->getKeywords()) ? implode(', ', $company->getKeywords()) : $company->getKeywords()) ?>">
+                </div>
+                <fieldset class="form-group card mb-4">
+                    <legend class="font-semibold flex items-center gap-2 mb-2"><i class="fas fa-certificate"></i> Certificaciones</legend>
+                    <div class="mb-2">
+                        <label class="label">Certificaciones de Calidad y Gestión</label>
+                        <div class="mb-2">
+                            <?php $certs = is_array($company->getCertifications()) ? $company->getCertifications() : (json_decode($company->getCertifications(), true) ?: []); ?>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="certifications[]" value="ISO 9001" class="mr-2" <?= in_array('ISO 9001', $certs) ? 'checked' : '' ?>>
+                                ISO 9001 – Gestión de calidad
+                            </label><br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="certifications[]" value="ISO 14001" class="mr-2" <?= in_array('ISO 14001', $certs) ? 'checked' : '' ?>>
+                                ISO 14001 – Gestión ambiental
+                            </label><br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="certifications[]" value="ISO 45001" class="mr-2" <?= in_array('ISO 45001', $certs) ? 'checked' : '' ?>>
+                                ISO 45001 – Seguridad y salud ocupacional
+                            </label><br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="certifications[]" value="ISO 22000" class="mr-2" <?= in_array('ISO 22000', $certs) ? 'checked' : '' ?>>
+                                ISO 22000 – Seguridad alimentaria
+                            </label><br>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="certifications[]" value="Six Sigma / Lean Six Sigma" class="mr-2" <?= in_array('Six Sigma / Lean Six Sigma', $certs) ? 'checked' : '' ?>>
+                                Six Sigma / Lean Six Sigma – Mejora de procesos y eficiencia
+                            </label>
+                        </div>
+                        <div class="mt-2">
+                            <label class="label">Otros:</label>
+                            <?php 
+                            $otros = '';
+                            if ($certs) {
+                                foreach ($certs as $c) {
+                                    if (!in_array($c, ['ISO 9001','ISO 14001','ISO 45001','ISO 22000','Six Sigma / Lean Six Sigma'])) {
+                                        $otros = $c;
+                                        break;
+                                    }
+                                }
+                            }
+                            ?>
+                            <input type="text" name="certifications_otros" class="form-control" placeholder="Especifique otras certificaciones" value="<?= htmlspecialchars($otros) ?>">
+                        </div>
+                    </div>
+                </fieldset>
                 <div class="form-group form-check">
                     <input type="checkbox" class="form-check-input" id="is_active" name="is_active" <?= $company->isActive() ? 'checked' : '' ?>>
                     <label class="form-check-label" for="is_active">Empresa Activa</label>

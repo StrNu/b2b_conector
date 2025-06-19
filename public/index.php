@@ -61,6 +61,12 @@ if (
     require_once MODEL_DIR . '/Company.php';
     require_once MODEL_DIR . '/Match.php';
     require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Break.php';
+    require_once MODEL_DIR . '/Assistant.php';
+    require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/Requirement.php';
+    require_once MODEL_DIR . '/AttendanceDay.php';
+    require_once MODEL_DIR . '/User.php';
     require_once CONTROLLER_DIR . '/EventController.php';
     $controllerInstance = new EventController();
     $eventId = (int)$urlParts[2];
@@ -219,6 +225,18 @@ if (
         $controller->generateForSupplier();
     }
     return; // Cambia exit por return para evitar que el flujo continúe y cause el warning
+}
+
+// --- Routing manual para matches por otros criterios (VIEW unmatched_due_to_dates) ---
+if (
+    isset($urlParts[0], $urlParts[1]) &&
+    $urlParts[0] === 'events' &&
+    $urlParts[1] === 'buscarMatchesOtrosCriterios'
+) {
+    require_once CONTROLLER_DIR . '/EventController.php';
+    $controller = new EventController();
+    $controller->buscarMatchesOtrosCriterios();
+    exit;
 }
 
 // Mapa de controladores (slug => NombreClase)
@@ -384,16 +402,6 @@ if ($controllerName === 'AgendaController' && isset($action) && is_numeric($acti
     $action = 'index';
 }
 
-// Asegurarse que el archivo del controlador existe antes de incluirlo
-if (file_exists($controllerFile)) {
-    require_once $controllerFile;
-} else {
-    Logger::error("Controlador no encontrado: " . $controllerFile);
-    header('HTTP/1.0 404 Not Found');
-    echo 'Error 404: Controlador no encontrado.';
-    exit;
-}
-
 // Cargar modelos adicionales según el controlador
 if ($controllerName === 'EventController') {
     require_once MODEL_DIR . '/Event.php';
@@ -405,6 +413,7 @@ if ($controllerName === 'EventController') {
     require_once MODEL_DIR . '/Requirement.php';
     require_once MODEL_DIR . '/AttendanceDay.php';
     require_once MODEL_DIR . '/User.php';
+    require_once MODEL_DIR . '/Break.php';
 } elseif ($controllerName === 'DashboardController') {
     require_once MODEL_DIR . '/Event.php';
     require_once MODEL_DIR . '/Company.php';
@@ -417,6 +426,7 @@ if ($controllerName === 'EventController') {
     require_once MODEL_DIR . '/Event.php';
     require_once MODEL_DIR . '/Match.php';
     require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/Assistant.php';
 } elseif ($controllerName === 'MatchController') {
     require_once MODEL_DIR . '/Match.php';
     require_once MODEL_DIR . '/Company.php';
@@ -447,6 +457,18 @@ if ($controllerName === 'EventController') {
     require_once MODEL_DIR . '/Category.php';
     require_once MODEL_DIR . '/Event.php';
 }
+
+
+// Asegurarse que el archivo del controlador existe antes de incluirlo
+if (file_exists($controllerFile)) {
+    require_once $controllerFile;
+} else {
+    Logger::error("Controlador no encontrado: " . $controllerFile);
+    header('HTTP/1.0 404 Not Found');
+    echo 'Error 404: Controlador no encontrado.';
+    exit;
+}
+
 
 // Crear instancia del controlador
 $controllerInstance = new $controllerName();

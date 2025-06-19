@@ -104,41 +104,45 @@ class Assistant {
      * @return bool|int ID del asistente creado o false en caso de error
      */
     public function create($data) {
+        // DEBUG: Log de datos recibidos
+        Logger::debug('[DEBUG Assistant::create] Datos recibidos: ' . print_r($data, true));
         // Validar datos mínimos requeridos
         if (!isset($data['company_id']) || !isset($data['first_name']) || 
             !isset($data['last_name']) || !isset($data['email'])) {
+            Logger::debug('[DEBUG Assistant::create] Faltan campos obligatorios');
             return false;
         }
-        
         // Validar que la empresa exista
         $companyModel = new Company($this->db);
         if (!$companyModel->findById($data['company_id'])) {
+            Logger::debug('[DEBUG Assistant::create] Empresa no existe: ' . $data['company_id']);
             return false;
         }
-        
         // Validar email
         if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            Logger::debug('[DEBUG Assistant::create] Email inválido: ' . $data['email']);
             return false;
         }
-        
         // Verificar que el email no esté duplicado en la misma empresa
         if ($this->exists($data['email'], $data['company_id'])) {
+            Logger::debug('[DEBUG Assistant::create] Email duplicado: ' . $data['email']);
             return false;
         }
-        
         // Generar consulta SQL
         $fields = array_keys($data);
         $placeholders = array_map(function($field) {
             return ":$field";
         }, $fields);
-        
         $query = "INSERT INTO {$this->table} (" . implode(', ', $fields) . ") 
                   VALUES (" . implode(', ', $placeholders) . ")";
-        
-        if ($this->db->query($query, $data)) {
-            return $this->db->lastInsertId();
+        $result = $this->db->query($query, $data);
+        Logger::debug('[DEBUG Assistant::create] Resultado query: ' . print_r($result, true));
+        if ($result) {
+            $id = $this->db->lastInsertId();
+            Logger::debug('[DEBUG Assistant::create] ID insertado: ' . $id);
+            return $id;
         }
-        
+        Logger::debug('[DEBUG Assistant::create] Falló el insert');
         return false;
     }
     

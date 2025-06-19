@@ -1,0 +1,30 @@
+/* Palabras clave y certificaciones para company (registro y edición) */
+.keywords-input {
+  min-height: 40px;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  cursor: text;
+  background: #fff;
+  margin-bottom: 8px;
+}
+.keywords-input:empty:before {
+  content: attr(placeholder);
+  color: #999;
+}
+.keywords-input span {
+  display: inline-block;
+  background-color: #e0f2f1;
+  color: #00796b;
+  padding: 5px 10px;
+  margin: 3px 3px 3px 0;
+  border-radius: 15px;
+  font-size: 14px;
+  position: relative;
+}
+.keywords-input span::after {
+  content: " ×";
+  cursor: pointer;
+  margin-left: 6px;
+  color: #b71c1c;
+}

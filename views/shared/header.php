@@ -64,9 +64,10 @@ $userName = $_SESSION['name'] ?? 'Usuario';
     <link rel="shortcut icon" href="<?= BASE_PUBLIC_URL ?>/assets/images/favicon.ico" type="image/x-icon">
     <!-- CSS de componentes comunes -->
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/forms.css">
+    <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/tables.css">
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/buttons.css">
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/notifications.css">
-    <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/components/tabs.css">
+    <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/tabs.css">
 
     <!-- CSS específicos de módulo -->
     <?php if (isset($moduleCSS)): ?>
@@ -81,9 +82,6 @@ $userName = $_SESSION['name'] ?? 'Usuario';
 <?php endif; ?>
 </head>
 <body>
-<?php
-echo 'BASE_URL: ' . BASE_PUBLIC_URL . '<br>';
-?>
     <div class="app-container">
         <!-- Header principal -->
         <header class="main-header">

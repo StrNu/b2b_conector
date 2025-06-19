@@ -13,7 +13,19 @@
         </footer>
     </div> <!-- Fin de .app-container -->
 
-    <?php include(VIEW_DIR . '/shared/modals.php'); ?>
+    <?php
+    // Asegurar que $csrfToken esté definido para los modals
+    if (!isset($csrfToken)) {
+        if (function_exists('generateCSRFToken')) {
+            $csrfToken = generateCSRFToken();
+        } elseif (class_exists('Security') && method_exists('Security', 'generateCsrfToken')) {
+            $csrfToken = Security::generateCsrfToken();
+        } else {
+            $csrfToken = '';
+        }
+    }
+    include(VIEW_DIR . '/shared/modals.php');
+    ?>
     
     <!-- JavaScript para funcionalidades básicas -->
      <!-- Scripts base -->
@@ -22,9 +34,9 @@
     window.BASE_URL = '<?= BASE_PUBLIC_URL ?>';
 </script>
     <script src="<?= BASE_PUBLIC_URL ?>/assets/js/main.js"></script>
-    <script src="<?= BASE_URL ?>/assets/js/components/autosearch.js"></script>
+    <script src="<?= BASE_PUBLIC_URL ?>/assets/js/components/autosearch.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="<?= BASE_URL ?>/assets/js/components/tabs.js"></script>
+    <script src="<?= BASE_PUBLIC_URL ?>/assets/js/components/tabs.js"></script>
         <!-- JS base siempre cargado -->
     <script src="<?= BASE_PUBLIC_URL ?>/assets/js/utils/form-validation.js"></script>
 

@@ -41,7 +41,7 @@
                             <tr data-role="<?= $company['role'] ?>">
                                 <td class="px-3 py-2 text-center">
                                     <?php if (!empty($company['company_logo'])): ?>
-                                        <img src="<?= BASE_URL ?>/uploads/logos/<?= htmlspecialchars($company['company_logo']) ?>" alt="Logo" style="max-height:40px;max-width:60px;">
+                                        <img src="<?= BASE_PUBLIC_URL ?>/uploads/logos/<?= htmlspecialchars($company['company_logo']) ?>" alt="Logo" style="max-height:40px;max-width:60px;">
                                     <?php else: ?>
                                         <span class="text-xs text-gray-400">Sin logo</span>
                                     <?php endif; ?>
@@ -65,7 +65,6 @@
                                 </td>
                                 <td class="px-3 py-2 flex gap-2">
                                     <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/view/<?= (int)$company['company_id'] ?>" class="btn btn-xs btn-secondary" title="Ver"><i class="fas fa-eye"></i></a>
-                                    <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/full_registration/<?= (int)$company['company_id'] ?>" class="btn btn-xs btn-info" title="Ver registro completo"><i class="fas fa-list"></i> Ver registro completo</a>
                                     <a href="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/edit/<?= (int)$company['company_id'] ?>" class="btn btn-xs btn-primary" title="Editar"><i class="fas fa-edit"></i></a>
                                     <form action="<?= BASE_URL ?>/events/companies/<?= (int)$eventId ?>/delete/<?= (int)$company['company_id'] ?>" method="POST" onsubmit="return confirm('Esta acción eliminará la empresa y todos los matches ligados a ella. ¿Está seguro de continuar?');" style="display:inline;">
                                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">

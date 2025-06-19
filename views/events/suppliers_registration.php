@@ -1,4 +1,4 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
+<?php include(VIEW_DIR . '/shared/header_public.php'); ?>
 <div class="container mx-auto py-8 max-w-2xl">
     <h1 class="text-3xl font-bold text-center mb-2">Registro para Proveedores</h1>
     <p class="text-center text-gray-600 mb-6">Complete el siguiente formulario para registrarse como proveedor en este evento. Podrá especificar sus ofertas y productos disponibles.</p>
@@ -13,9 +13,54 @@
                 <div><label class="block font-semibold mb-1">Sitio Web</label><input type="text" name="website" class="form-control w-full" placeholder="www.example.com"></div>
             </div>
             <div class="mb-2"><label class="block font-semibold mb-1">Descripción de la Empresa *</label><textarea name="description" class="form-control w-full" required placeholder="Describe brevemente tu empresa"></textarea></div>
+            <!-- Palabras clave -->
             <div class="mb-2">
-                <label class="block font-semibold mb-1">Logo de la Empresa</label>
-                <input type="file" name="company_logo" class="form-control-file">
+                <label for="keywords" class="label">Palabras clave</label>
+                <small class="form-text text-muted">
+                  Escribe las palabras clave separadas por comas. Ejemplo: acero inoxidable, ISO 9001, maquila textil
+                </small>
+                <input type="text" name="keywords" id="keywords" class="form-control" placeholder="Ej. acero inoxidable, ISO 9001, maquila textil">
+            </div>
+            <!-- Certificaciones -->
+            <fieldset class="card mb-4">
+                <legend class="font-semibold flex items-center gap-2 mb-2"><i class="fas fa-certificate"></i> Certificaciones</legend>
+                <div class="mb-2">
+                    <label class="label">Certificaciones de Calidad y Gestión</label>
+                    <div class="mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 9001" class="mr-2" <?= in_array('ISO 9001', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 9001 – Gestión de calidad
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 14001" class="mr-2" <?= in_array('ISO 14001', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 14001 – Gestión ambiental
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 45001" class="mr-2" <?= in_array('ISO 45001', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 45001 – Seguridad y salud ocupacional
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 22000" class="mr-2" <?= in_array('ISO 22000', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 22000 – Seguridad alimentaria
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="Six Sigma / Lean Six Sigma" class="mr-2" <?= in_array('Six Sigma / Lean Six Sigma', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            Six Sigma / Lean Six Sigma – Mejora de procesos y eficiencia
+                        </label>
+                    </div>
+                    <div class="mt-2">
+                        <label class="label">Otros:</label>
+                        <input type="text" name="certifications_otros" class="form-control" placeholder="Especifique otras certificaciones">
+                    </div>
+                </div>
+            </fieldset>
+            <div class="mb-2">
+                <label class="label">Logo de la Empresa</label>
+                <div class="border-dashed border-2 rounded flex flex-col items-center justify-center py-4 bg-gray-50">
+                    <input type="file" name="logo" accept="image/*" class="hidden" id="logo-upload">
+                    <label for="logo-upload" class="cursor-pointer btn btn-secondary">Seleccionar Archivo</label>
+                    <span class="text-xs text-gray-400 mt-2" id="logo-upload-feedback">Arrastre una imagen o haga clic para seleccionar</span>
+                </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 <div><label class="block font-semibold mb-1">Ciudad</label><input type="text" name="city" class="form-control w-full" placeholder="Ciudad"></div>
@@ -143,9 +188,23 @@ function showTab(tabId, btn) {
     document.querySelectorAll('#offer-tabs .tab-btn').forEach(function(b) {
         b.classList.remove('bg-gray-800', 'text-white');
         b.classList.add('bg-gray-100', 'text-gray-800');
-    });
+    });s
     btn.classList.remove('bg-gray-100', 'text-gray-800');
     btn.classList.add('bg-gray-800', 'text-white');
+}
+
+// Script para mostrar el nombre del archivo del logo seleccionado
+const logoUploadInput = document.getElementById('logo-upload');
+const logoUploadFeedback = document.getElementById('logo-upload-feedback');
+
+if (logoUploadInput && logoUploadFeedback) {
+    logoUploadInput.addEventListener('change', function(event) {
+        if (event.target.files && event.target.files.length > 0) {
+            logoUploadFeedback.textContent = event.target.files[0].name;
+        } else {
+            logoUploadFeedback.textContent = 'Arrastre una imagen o haga clic para seleccionar';
+        }
+    });
 }
 </script>
 <?php include(VIEW_DIR . '/shared/footer.php'); ?>

@@ -1,6 +1,26 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
+<?php include(VIEW_DIR . '/shared/header_public.php'); ?>
+<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/modules/company.css?v=1">
 </style>
+<?php
+// Eliminar manejo de $_SESSION['form_data']
+if (!isset($_SESSION['validation_errors'])) {
+    $_SESSION['validation_errors'] = [];
+}
+// Usar $_POST para repoblar campos tras error
+function old($name, $default = '') {
+    if (isset($_POST[$name])) {
+        return is_string($_POST[$name]) ? htmlspecialchars($_POST[$name]) : '';
+    }
+    return $default;
+}
+function old_array($arr, $key, $default = '') {
+    return isset($arr[$key]) ? htmlspecialchars($arr[$key]) : $default;
+}
+?>
 <div class="container mx-auto py-8 max-w-2xl">
+    <?php if (!empty($_SESSION['validation_errors']['general'])): ?>
+        <div class="error-message mb-4 text-center"> <?= htmlspecialchars($_SESSION['validation_errors']['general']) ?> </div>
+    <?php endif; ?>
     <h1 class="text-3xl font-bold text-center mb-2">Registro para Compradores</h1>
     <p class="text-center text-gray-600 mb-6">Complete el siguiente formulario para <a href="#" class="text-primary underline">registrarse</a> como comprador en este evento. Podrá especificar sus requerimientos y productos de interés.</p>
     <?php include(VIEW_DIR . '/shared/notifications.php'); ?>
@@ -12,17 +32,66 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 <div>
                     <label class="label">Nombre de la Empresa *</label>
-                    <input type="text" name="company_name" class="form-control" required placeholder="Nombre de su empresa">
+                    <input type="text" name="company_name" class="form-control" required placeholder="Nombre de su empresa" value="<?= old('company_name') ?>">
+                    <?php if (isset($_SESSION['validation_errors']['company_name'])): ?>
+                        <div class="error-message"><?= $_SESSION['validation_errors']['company_name'] ?></div>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <label class="label">Sitio Web</label>
-                    <input type="text" name="website" class="form-control" placeholder="www.example.com">
+                    <input type="text" name="website" class="form-control" placeholder="www.example.com" value="<?= old('website') ?>">
+                    <?php if (isset($_SESSION['validation_errors']['website'])): ?>
+                        <div class="error-message"><?= $_SESSION['validation_errors']['website'] ?></div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="mb-2">
                 <label class="label">Descripción de la Empresa *</label>
-                <textarea name="description" class="form-control" rows="10" required placeholder="Un párrafo de texto con información que describa el proceso productivo que hace su empresa"></textarea>
+                <textarea name="description" class="form-control" rows="40" required placeholder="Describa detalladamente el proceso productivo que hace su empresa"><?= old('description') ?></textarea>
+                <?php if (isset($_SESSION['validation_errors']['description'])): ?>
+                    <div class="error-message"><?= $_SESSION['validation_errors']['description'] ?></div>
+                <?php endif; ?>
             </div>
+            <div class="mb-2">
+                <label for="keywords" class="label">Palabras clave</label>
+                <small class="form-text text-muted">
+                  Escribe las palabras clave separadas por comas. Ejemplo: acero inoxidable, ISO 9001, maquila textil
+                </small>
+                <input type="text" name="keywords" id="keywords" class="form-control" placeholder="Ej. acero inoxidable, ISO 9001, maquila textil" value="<?= old('keywords') ?>">
+            </div>
+            <!-- Certificaciones -->
+            <fieldset class="card mb-4">
+                <legend class="font-semibold flex items-center gap-2 mb-2"><i class="fas fa-certificate"></i> Certificaciones</legend>
+                <div class="mb-2">
+                    <label class="label">Certificaciones de Calidad y Gestión</label>
+                    <div class="mb-2">
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 9001" class="mr-2" <?= in_array('ISO 9001', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 9001 – Gestión de calidad
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 14001" class="mr-2" <?= in_array('ISO 14001', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 14001 – Gestión ambiental
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 45001" class="mr-2" <?= in_array('ISO 45001', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 45001 – Seguridad y salud ocupacional
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="ISO 22000" class="mr-2" <?= in_array('ISO 22000', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            ISO 22000 – Seguridad alimentaria
+                        </label><br>
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" name="certifications[]" value="Six Sigma / Lean Six Sigma" class="mr-2" <?= in_array('Six Sigma / Lean Six Sigma', $_POST['certifications'] ?? []) ? 'checked' : '' ?>>
+                            Six Sigma / Lean Six Sigma – Mejora de procesos y eficiencia
+                        </label>
+                    </div>
+                    <div class="mt-2">
+                        <label class="label">Otros:</label>
+                        <input type="text" name="certifications_otros" class="form-control" placeholder="Especifique otras certificaciones" value="<?= old('certifications_otros') ?>">
+                    </div>
+                </div>
+            </fieldset>
             <div class="mb-2">
                 <label class="label">Logo de la Empresa</label>
                 <div class="border-dashed border-2 rounded flex flex-col items-center justify-center py-4 bg-gray-50">
@@ -34,11 +103,17 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="label">Ciudad</label>
-                    <input type="text" name="city" class="form-control" placeholder="Ciudad">
+                    <input type="text" name="city" class="form-control" placeholder="Ciudad" value="<?= old('city') ?>">
+                    <?php if (isset($_SESSION['validation_errors']['city'])): ?>
+                        <div class="error-message"><?= $_SESSION['validation_errors']['city'] ?></div>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <label class="label">País</label>
-                    <input type="text" name="country" class="form-control" value="México">
+                    <input type="text" name="country" class="form-control" value="<?= old('country', 'México') ?>">
+                    <?php if (isset($_SESSION['validation_errors']['country'])): ?>
+                        <div class="error-message"><?= $_SESSION['validation_errors']['country'] ?></div>
+                    <?php endif; ?>
                 </div>
             </div>
         </fieldset>
@@ -48,31 +123,37 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 <div>
                     <label class="label">Nombre *</label>
-                    <input type="text" name="contact_first_name" class="form-control" required placeholder="Nombre">
+                    <input type="text" name="contact_first_name" class="form-control" required placeholder="Nombre" value="<?= old('contact_first_name') ?>">
                 </div>
                 <div>
                     <label class="label">Apellido *</label>
-                    <input type="text" name="contact_last_name" class="form-control" required placeholder="Apellido">
+                    <input type="text" name="contact_last_name" class="form-control" required placeholder="Apellido" value="<?= old('contact_last_name') ?>">
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 <div>
                     <label class="label">Teléfono Celular</label>
-                    <input type="text" name="phone" class="form-control" placeholder="+52 222 123 4567">
+                    <input type="tel" name="phone" class="form-control" placeholder="+52 222 123 4567" value="<?= old('phone') ?>" pattern="[\d\s\-\+\(\)]{7,}" title="Ingrese un teléfono válido (mínimo 7 dígitos, solo números y símbolos válidos)">
+                    <?php if (isset($_SESSION['validation_errors']['phone'])): ?>
+                        <div class="error-message"><?= $_SESSION['validation_errors']['phone'] ?></div>
+                    <?php endif; ?>
                 </div>
                 <div>
                     <label class="label">Correo Electrónico *</label>
-                    <input type="email" name="email" class="form-control" required placeholder="email@ejemplo.com">
+                    <input type="email" name="email" class="form-control" required placeholder="email@ejemplo.com" value="<?= old('email') ?>">
+                    <?php if (isset($_SESSION['validation_errors']['email'])): ?>
+                        <div class="error-message"><?= $_SESSION['validation_errors']['email'] ?></div>
+                    <?php endif; ?>
                 </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="label">Ciudad</label>
-                    <input type="text" name="contact_city" class="form-control" placeholder="Ciudad">
+                    <input type="text" name="contact_city" class="form-control" placeholder="Ciudad" value="<?= old('contact_city') ?>">
                 </div>
                 <div>
                     <label class="label">País</label>
-                    <input type="text" name="contact_country" class="form-control" value="México">
+                    <input type="text" name="contact_country" class="form-control" value="México" value="<?= old('contact_country') ?>">
                 </div>
             </div>
         </fieldset>
@@ -82,7 +163,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
                 <div>
                     <label class="label">Correo Electrónico *</label>
-                    <input type="email" name="username" class="form-control" required placeholder="email@ejemplo.com">
+                    <input type="email" name="username" class="form-control" required placeholder="email@ejemplo.com" value="<?= old('username') ?>">
                 </div>
                 <div>
                     <label class="label">Contraseña *</label>
@@ -107,19 +188,19 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2 assistant-item">
                     <div>
                         <label class="label">Nombre *</label>
-                        <input type="text" name="assistants[0][first_name]" class="form-control" required placeholder="Nombre">
+                        <input type="text" name="assistants[0][first_name]" class="form-control" required placeholder="Nombre" value="<?= old('assistants[0][first_name]') ?>">
                     </div>
                     <div>
                         <label class="label">Apellido *</label>
-                        <input type="text" name="assistants[0][last_name]" class="form-control" required placeholder="Apellido">
+                        <input type="text" name="assistants[0][last_name]" class="form-control" required placeholder="Apellido" value="<?= old('assistants[0][last_name]') ?>">
                     </div>
                     <div>
                         <label class="label">Teléfono Celular</label>
-                        <input type="text" name="assistants[0][phone]" class="form-control" placeholder="+52 222 123 4567">
+                        <input type="text" name="assistants[0][phone]" class="form-control" placeholder="+52 222 123 4567" value="<?= old('assistants[0][phone]') ?>">
                     </div>
                     <div>
                         <label class="label">Correo Electrónico *</label>
-                        <input type="email" name="assistants[0][email]" class="form-control" required placeholder="email@ejemplo.com">
+                        <input type="email" name="assistants[0][email]" class="form-control" required placeholder="email@ejemplo.com" value="<?= old('assistants[0][email]') ?>">
                     </div>
                 </div>
             </div>

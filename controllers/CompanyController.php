@@ -114,11 +114,15 @@ class CompanyController {
         $eventId = $this->companyModel->getEventId();
         $attendanceDays = $this->companyModel->getAttendanceDays($eventId, $id);
         $assistants = $this->companyModel->getAssistants($id);
-        
+
         // Obtener evento relacionado
         $event = new Event($this->db);
         $event->findById($eventId);
-        
+
+        // Definir $company y $eventModel para la vista
+        $company = $this->companyModel;
+        $eventModel = $event;
+
         // Obtener ofertas o requerimientos según el rol de la empresa
         $role = $this->companyModel->getRole();
         if ($role == 'buyer') {
@@ -329,174 +333,157 @@ class CompanyController {
     }
     
     /**
-     * Mostrar formulario para editar una empresa existente
-     * 
-     * @param int $id ID de la empresa a editar
+     * Editar y guardar empresa (fusionado)
+     * @param int $id
      * @return void
      */
     public function edit($id) {
-        // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-            redirect(BASE_URL);
-            exit;
-        }
-        
-        // Buscar empresa por ID
-        if (!$this->companyModel->findById($id)) {
-            setFlashMessage('Empresa no encontrada', 'danger');
-            redirect(BASE_URL . '/companies');
-            exit;
-        }
-        
-        // Obtener eventos activos para el formulario
-        $events = $this->eventModel->getActiveEvents();
-        
-        // Obtener días de asistencia
-        $eventId = $this->companyModel->getEventId();
-        $attendanceDays = $this->companyModel->getAttendanceDays($eventId, $id);
-        
-        // Formatear días para el formulario
-        $formattedDays = [];
-        foreach ($attendanceDays as $day) {
-            $formattedDays[] = dateFromDatabase($day);
-        }
-        
-        // Token CSRF para el formulario
-        $csrfToken = generateCSRFToken();
-
-        // Definir variable $company para la vista
-        $company = $this->companyModel;
-        
-        // Cargar vista del formulario
-        include(VIEW_DIR . '/companies/edit.php');
-    }
-    
-    /**
-     * Procesar la actualización de una empresa
-     * 
-     * @param int $id ID de la empresa a actualizar
-     * @return void
-     */
-    public function update($id) {
-        // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
-            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-            redirect(BASE_URL);
-            exit;
-        }
-        
-        // Verificar método de solicitud
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-            redirect(BASE_URL . '/companies/edit/' . $id);
-            exit;
-        }
-        
-        // Verificar token CSRF
-        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
-            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
-            redirect(BASE_URL . '/companies/edit/' . $id);
-            exit;
-        }
-        
-        // Buscar empresa por ID
-        if (!$this->companyModel->findById($id)) {
-            setFlashMessage('Empresa no encontrada', 'danger');
-            redirect(BASE_URL . '/companies');
-            exit;
-        }
-        
-        // Validar datos del formulario
-        $this->validator->setData($_POST);
-        $this->validator->required('company_name', 'El nombre de la empresa es obligatorio')
-                       ->required('email', 'El email es obligatorio')
-                       ->required('event_id', 'El evento es obligatorio')
-                       ->required('role', 'El rol es obligatorio')
-                       ->email('email', 'El formato de email no es válido')
-                       ->in('role', ['buyer', 'supplier'], 'El rol debe ser comprador o proveedor');
-        
-        // Si hay errores de validación, volver al formulario
-        if ($this->validator->hasErrors()) {
-            $_SESSION['form_data'] = $_POST;
-            $_SESSION['validation_errors'] = $this->validator->getErrors();
-            
-            redirect(BASE_URL . '/companies/edit/' . $id);
-            exit;
-        }
-        
-        // Preparar datos para el modelo
-        $companyData = [
-            'company_name' => sanitize($_POST['company_name']),
-            'address' => sanitize($_POST['address'] ?? ''),
-            'city' => sanitize($_POST['city'] ?? ''),
-            'country' => sanitize($_POST['country'] ?? ''),
-            'website' => sanitize($_POST['website'] ?? ''),
-            'contact_first_name' => sanitize($_POST['contact_first_name'] ?? ''),
-            'contact_last_name' => sanitize($_POST['contact_last_name'] ?? ''),
-            'phone' => sanitize($_POST['phone'] ?? ''),
-            'email' => sanitize($_POST['email']),
-            'role' => sanitize($_POST['role']),
-            'event_id' => (int)$_POST['event_id'],
-            'is_active' => isset($_POST['is_active']) ? 1 : 0,
-            'description' => sanitize($_POST['description'] ?? '')
-        ];
-        
-        // Manejar actualización de logo si se proporciona
-        if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] === UPLOAD_ERR_OK) {
-            // Validar archivo
-            if (!isAllowedExtension($_FILES['company_logo']['name'], ALLOWED_EXTENSIONS)) {
-                setFlashMessage('Tipo de archivo no permitido para el logo. Formatos permitidos: ' . implode(', ', ALLOWED_EXTENSIONS), 'danger');
-                $_SESSION['form_data'] = $_POST;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // --- GUARDAR ---
+            if (class_exists('Logger')) {
+                Logger::info('Entrando a CompanyController::edit (POST)', ['POST' => $_POST, 'id' => $id]);
+            }
+            if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+                setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+                redirect(BASE_URL);
+                exit;
+            }
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
                 redirect(BASE_URL . '/companies/edit/' . $id);
                 exit;
             }
-            
-            if ($_FILES['company_logo']['size'] > MAX_UPLOAD_SIZE) {
-                setFlashMessage('El tamaño del archivo excede el límite permitido (' . (MAX_UPLOAD_SIZE / 1024 / 1024) . 'MB)', 'danger');
+            if (!$this->companyModel->findById($id)) {
+                setFlashMessage('Empresa no encontrada', 'danger');
+                redirect(BASE_URL . '/companies');
+                exit;
+            }
+            $this->validator->setData($_POST);
+            $this->validator->required('company_name', 'El nombre de la empresa es obligatorio')
+                           ->required('email', 'El email es obligatorio')
+                           ->required('event_id', 'El evento es obligatorio')
+                           ->required('role', 'El rol es obligatorio')
+                           ->email('email', 'El formato de email no es válido')
+                           ->in('role', ['buyer', 'supplier'], 'El rol debe ser comprador o proveedor');
+            if ($this->validator->hasErrors()) {
                 $_SESSION['form_data'] = $_POST;
+                $_SESSION['validation_errors'] = $this->validator->getErrors();
                 redirect(BASE_URL . '/companies/edit/' . $id);
                 exit;
             }
-            
-            // Actualizar logo
-            $this->companyModel->updateLogo($_FILES['company_logo'], $id);
-        }
-        
-        // Actualizar la empresa
-        try {
-            $updated = $this->companyModel->update($companyData);
-            
-            if ($updated) {
-                // Actualizar días de asistencia
-                $eventId = (int)$_POST['event_id'];
-                $currentAttendanceDays = $this->companyModel->getAttendanceDays($eventId, $id);
-                
-                // Eliminar días que ya no están seleccionados
-                foreach ($currentAttendanceDays as $day) {
-                    $formattedDay = dateFromDatabase($day);
-                    if (!isset($_POST['attendance_dates']) || !in_array($formattedDay, $_POST['attendance_dates'])) {
-                        $this->companyModel->removeAttendanceDay($eventId, $day, $id);
-                    }
+            $companyData = [
+                'company_name' => sanitize($_POST['company_name']),
+                'address' => sanitize($_POST['address'] ?? ''),
+                'city' => sanitize($_POST['city'] ?? ''),
+                'country' => sanitize($_POST['country'] ?? ''),
+                'website' => sanitize($_POST['website'] ?? ''),
+                'contact_first_name' => sanitize($_POST['contact_first_name'] ?? ''),
+                'contact_last_name' => sanitize($_POST['contact_last_name'] ?? ''),
+                'phone' => sanitize($_POST['phone'] ?? ''),
+                'email' => sanitize($_POST['email']),
+                'role' => sanitize($_POST['role']),
+                'event_id' => (int)$_POST['event_id'],
+                'is_active' => isset($_POST['is_active']) ? 1 : 0,
+                'description' => sanitize($_POST['description'] ?? '')
+            ];
+            if (isset($_POST['keywords'])) {
+                $raw = trim($_POST['keywords']);
+                if ($raw === '') {
+                    $companyData['keywords'] = null;
+                } else {
+                    $keywords = array_map('trim', explode(',', $raw));
+                    $keywords = array_filter($keywords, fn($k) => $k !== '');
+                    $companyData['keywords'] = $keywords ? json_encode(array_values($keywords), JSON_UNESCAPED_UNICODE) : null;
                 }
-                
-                // Agregar nuevos días seleccionados
-                if (isset($_POST['attendance_dates']) && is_array($_POST['attendance_dates'])) {
-                    foreach ($_POST['attendance_dates'] as $date) {
-                        if (!empty($date)) {
-                            $this->companyModel->addAttendanceDay($eventId, $date, $id);
+            } else {
+                $companyData['keywords'] = null;
+            }
+            $certifications = $_POST['certifications'] ?? [];
+            $otros = trim($_POST['certifications_otros'] ?? '');
+            if ($otros !== '') {
+                $certifications[] = $otros;
+            }
+            if (empty($certifications) || (count($certifications) === 1 && trim($certifications[0]) === '')) {
+                $companyData['certifications'] = null;
+            } else {
+                $companyData['certifications'] = json_encode(array_values($certifications), JSON_UNESCAPED_UNICODE);
+            }
+            if (isset($_FILES['company_logo']) && $_FILES['company_logo']['error'] === UPLOAD_ERR_OK) {
+                if (!isAllowedExtension($_FILES['company_logo']['name'], ALLOWED_EXTENSIONS)) {
+                    setFlashMessage('Tipo de archivo no permitido para el logo. Formatos permitidos: ' . implode(', ', ALLOWED_EXTENSIONS), 'danger');
+                    $_SESSION['form_data'] = $_POST;
+                    redirect(BASE_URL . '/companies/edit/' . $id);
+                    exit;
+                }
+                if ($_FILES['company_logo']['size'] > MAX_UPLOAD_SIZE) {
+                    setFlashMessage('El tamaño del archivo excede el límite permitido (' . (MAX_UPLOAD_SIZE / 1024 / 1024) . 'MB)', 'danger');
+                    $_SESSION['form_data'] = $_POST;
+                    redirect(BASE_URL . '/companies/edit/' . $id);
+                    exit;
+                }
+                $this->companyModel->updateLogo($_FILES['company_logo'], $id);
+            }
+            try {
+                $this->companyModel->findById($id);
+                if (class_exists('Logger')) {
+                    Logger::info('Datos preparados para update', ['companyData' => $companyData, 'company_id' => $id]);
+                }
+                $updated = $this->companyModel->update($companyData);
+                if (class_exists('Logger')) {
+                    Logger::info('Resultado de update empresa', ['updated' => $updated, 'company_id' => $id]);
+                }
+                if ($updated) {
+                    $eventId = (int)$_POST['event_id'];
+                    $currentAttendanceDays = $this->companyModel->getAttendanceDays($eventId, $id);
+                    foreach ($currentAttendanceDays as $day) {
+                        $formattedDay = dateFromDatabase($day);
+                        if (!isset($_POST['attendance_dates']) || !in_array($formattedDay, $_POST['attendance_dates'])) {
+                            $this->companyModel->removeAttendanceDay($eventId, $day, $id);
                         }
                     }
+                    if (isset($_POST['attendance_dates']) && is_array($_POST['attendance_dates'])) {
+                        foreach ($_POST['attendance_dates'] as $date) {
+                            if (!empty($date)) {
+                                $this->companyModel->addAttendanceDay($eventId, $date, $id);
+                            }
+                        }
+                    }
+                    setFlashMessage('Empresa actualizada exitosamente', 'success');
+                    $redirectTo = $_POST['redirect_to'] ?? (BASE_URL . '/companies/view/' . $id);
+                    redirect($redirectTo);
+                } else {
+                    throw new Exception('Error al actualizar la empresa');
                 }
-                
-                setFlashMessage('Empresa actualizada exitosamente', 'success');
-                redirect(BASE_URL . '/companies/view/' . $id);
-            } else {
-                throw new Exception('Error al actualizar la empresa');
+            } catch (Exception $e) {
+                setFlashMessage('Error al actualizar la empresa: ' . $e->getMessage(), 'danger');
+                redirect(BASE_URL . '/companies/edit/' . $id);
+                exit;
             }
-        } catch (Exception $e) {
-            setFlashMessage('Error al actualizar la empresa: ' . $e->getMessage(), 'danger');
-            redirect(BASE_URL . '/companies/edit/' . $id);
-            exit;
+        } else {
+            // --- MOSTRAR FORMULARIO ---
+            if (class_exists('Logger')) {
+                Logger::info('Entrando a CompanyController::edit (GET)', ['id' => $id]);
+            }
+            if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+                setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+                redirect(BASE_URL);
+                exit;
+            }
+            if (!$this->companyModel->findById($id)) {
+                setFlashMessage('Empresa no encontrada', 'danger');
+                redirect(BASE_URL . '/companies');
+                exit;
+            }
+            $events = $this->eventModel->getActiveEvents();
+            $eventId = $this->companyModel->getEventId();
+            $attendanceDays = $this->companyModel->getAttendanceDays($eventId, $id);
+            $formattedDays = [];
+            foreach ($attendanceDays as $day) {
+                $formattedDays[] = dateFromDatabase($day);
+            }
+            $csrfToken = generateCSRFToken();
+            $company = $this->companyModel;
+            include(VIEW_DIR . '/companies/edit.php');
         }
     }
     
