@@ -6,24 +6,20 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('input', function() {
             const filter = this.value.toLowerCase();
             const tableId = this.getAttribute('data-autosearch');
-            const table = document.getElementById(tableId);
-            if (!table) return;
-            const rows = table.querySelectorAll('tbody tr');
-            rows.forEach(row => {
-                // Si hay un campo específico, busca solo en ese campo
+            // Usar solo el sistema de filtro de la paginación
+            if (window.repaginateTable && typeof window.repaginateTable[tableId] === 'function') {
                 const searchField = this.getAttribute('data-search-field');
-                if (searchField) {
-                    const cell = row.querySelector(`[data-search-field="${searchField}"]`);
-                    if (cell) {
-                        const text = cell.textContent.toLowerCase();
-                        row.style.display = text.includes(filter) ? '' : 'none';
-                        return;
+                window.repaginateTable[tableId](row => {
+                    if (searchField) {
+                        const cell = row.querySelector(`[data-search-field="${searchField}"]`);
+                        if (cell) {
+                            return cell.textContent.toLowerCase().includes(filter);
+                        }
+                        return false;
                     }
-                }
-                // Si no, busca en todo el texto de la fila
-                const text = row.textContent.toLowerCase();
-                row.style.display = text.includes(filter) ? '' : 'none';
-            });
+                    return row.textContent.toLowerCase().includes(filter);
+                });
+            }
         });
     });
 });
