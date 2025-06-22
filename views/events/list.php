@@ -1,3 +1,8 @@
+<?php
+if (!isset($csrfToken)) {
+    $csrfToken = $_SESSION['csrf_token'] ?? bin2hex(random_bytes(32));
+}
+?>
 <!-- views/events/list.php -->
 <?php include(VIEW_DIR . '/shared/header.php'); ?>
 

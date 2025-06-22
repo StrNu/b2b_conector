@@ -345,29 +345,23 @@ public function import($eventId) {
     public function showEventCategories($eventId) {
         // Verificar permisos
         $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
-        
         // Verificar que el evento exista
         if (!$this->eventModel->findById($eventId)) {
             setFlashMessage('Evento no encontrado', 'danger');
             redirect(BASE_URL . '/events');
             exit;
         }
-        
-        // Obtener categorías del evento con sus subcategorías
-        $categoriesWithSubcategories = $this->getEventCategoriesWithSubcategories($eventId);
-        
+        // Obtener categorías del evento con sus subcategorías (centralizado)
+        $categoriesWithSubcategories = $this->categoryModel->getEventCategoriesWithSubcategories($eventId);
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
-
         // Configurar datos para la vista
         $pageData = [
             'pageTitle' => 'Categorías del Evento',
             'moduleCSS' => 'categories',
             'moduleJS' => ['categories', 'components/import_modal']
         ];
-        
         // Cargar vista con los datos
-        //$this->renderView('categories/event_categories', compact('categoriesWithSubcategories', 'eventId', 'csrfToken', 'pageData'));
         $this->renderView('events/categories', compact(
             'categoriesWithSubcategories', 
             'eventId', 
@@ -383,7 +377,7 @@ public function import($eventId) {
      * @param int $categoryId ID de la categoría
      * @return void
      */
-    public function deleteEventCategory($categoryId) {
+    public function deleteEventCategory($eventId, $categoryId) {
         // Verificar permisos
         $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
         
@@ -855,5 +849,220 @@ public function import($eventId) {
     private function renderView($view, $data = []) {
         extract($data);
         include(VIEW_DIR . '/' . $view . '.php');
+    }
+    
+    /**
+     * Editar una categoría de evento (GET: mostrar formulario, POST: guardar cambios)
+     * @param int $eventId
+     * @param int $categoryId
+     */
+    public function editEventCategory($eventId, $eventCategoryId) {
+        Logger::debug('[editEventCategory] eventId: ' . $eventId . ', eventCategoryId: ' . $eventCategoryId);
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            Logger::debug('[editEventCategory] Evento no encontrado: ' . $eventId);
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $category = $this->categoryModel->getEventCategory($eventCategoryId);
+        Logger::debug('[editEventCategory] getEventCategory result: ' . print_r($category, true));
+        if (!$category || $category['event_id'] != $eventId) {
+            Logger::debug('[editEventCategory] Categoría no encontrada o no pertenece al evento. eventId: ' . $eventId . ', eventCategoryId: ' . $eventCategoryId);
+            setFlashMessage('Categoría no encontrada', 'danger');
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = trim($_POST['name'] ?? '');
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            Logger::debug('[editEventCategory] POST name: ' . $name . ', is_active: ' . $is_active);
+            if ($name === '') {
+                Logger::debug('[editEventCategory] Nombre vacío');
+                setFlashMessage('El nombre es obligatorio', 'danger');
+                redirect(BASE_URL . "/events/categories/$eventId");
+                exit;
+            }
+            $update = $this->categoryModel->editEventCategory($eventCategoryId, [
+                'name' => $name,
+                'is_active' => $is_active
+            ]);
+            Logger::debug('[editEventCategory] update result: ' . print_r($update, true));
+            if ($update) {
+                setFlashMessage('Categoría actualizada correctamente', 'success');
+            } else {
+                setFlashMessage('No se pudo actualizar la categoría', 'danger');
+            }
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        // GET: mostrar formulario
+        $csrfToken = generateCSRFToken();
+        $pageData = [
+            'pageTitle' => 'Editar Categoría',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories']
+        ];
+        $this->renderView('events/edit_event_category', compact('category', 'eventId', 'csrfToken', 'pageData'));
+    }
+
+    /**
+     * Editar una subcategoría de evento (GET: mostrar formulario, POST: guardar cambios)
+     * @param int $eventId
+     * @param int $subcategoryId
+     */
+    public function editEventSubcategory($eventId, $subcategoryId) {
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $subcategory = $this->categoryModel->getEventSubcategory($subcategoryId);
+        if (!$subcategory) {
+            setFlashMessage('Subcategoría no encontrada', 'danger');
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = trim($_POST['name'] ?? '');
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            if ($name === '') {
+                setFlashMessage('El nombre es obligatorio', 'danger');
+                redirect(BASE_URL . "/events/categories/$eventId");
+                exit;
+            }
+            $update = $this->categoryModel->editEventSubcategory($subcategoryId, [
+                'name' => $name,
+                'is_active' => $is_active
+            ]);
+            if ($update) {
+                setFlashMessage('Subcategoría actualizada correctamente', 'success');
+            } else {
+                setFlashMessage('No se pudo actualizar la subcategoría', 'danger');
+            }
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        // GET: mostrar formulario (puedes adaptar la vista si lo necesitas)
+        $csrfToken = generateCSRFToken();
+        $pageData = [
+            'pageTitle' => 'Editar Subcategoría',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories']
+        ];
+        $this->renderView('events/edit_event_subcategory', compact('subcategory', 'eventId', 'csrfToken', 'pageData'));
+    }
+
+    /**
+     * Eliminar una subcategoría de evento
+     * @param int $eventId
+     * @param int $subcategoryId
+     */
+    public function deleteEventSubcategory($eventId, $subcategoryId) {
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $deleted = $this->categoryModel->deleteEventSubcategory($subcategoryId);
+        if ($deleted) {
+            setFlashMessage('Subcategoría eliminada correctamente', 'success');
+        } else {
+            setFlashMessage('No se pudo eliminar la subcategoría', 'danger');
+        }
+        redirect(BASE_URL . "/events/categories/$eventId");
+        exit;
+    }
+    
+    /**
+     * Agregar una categoría a un evento (GET: mostrar formulario, POST: guardar)
+     * @param int $eventId
+     */
+    public function addEventCategory($eventId) {
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = trim($_POST['name'] ?? '');
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            if ($name === '') {
+                setFlashMessage('El nombre es obligatorio', 'danger');
+                redirect(BASE_URL . "/events/categories/$eventId");
+                exit;
+            }
+            $categoryId = $this->categoryModel->addEventCategory($eventId, $name, $is_active);
+            if ($categoryId) {
+                setFlashMessage('Categoría agregada correctamente', 'success');
+            } else {
+                setFlashMessage('No se pudo agregar la categoría', 'danger');
+            }
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        // GET: mostrar formulario
+        $csrfToken = generateCSRFToken();
+        $pageData = [
+            'pageTitle' => 'Agregar Categoría',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories']
+        ];
+        $this->renderView('events/add_event_category', compact('eventId', 'csrfToken', 'pageData'));
+    }
+
+    /**
+     * Agregar una subcategoría a una categoría de evento (GET: mostrar formulario, POST: guardar)
+     * @param int $eventId
+     * @param int $categoryId
+     */
+    public function addEventSubcategory($eventId, $eventCategoryId) {
+        Logger::debug('[addEventSubcategory] eventId: ' . $eventId . ', eventCategoryId: ' . $eventCategoryId);
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        if (!$this->eventModel->findById($eventId)) {
+            Logger::debug('[addEventSubcategory] Evento no encontrado: ' . $eventId);
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/events');
+            exit;
+        }
+        $category = $this->categoryModel->getEventCategory($eventCategoryId);
+        Logger::debug('[addEventSubcategory] getEventCategory result: ' . print_r($category, true));
+        if (!$category || $category['event_id'] != $eventId) {
+            Logger::debug('[addEventSubcategory] Categoría no encontrada o no pertenece al evento. eventId: ' . $eventId . ', eventCategoryId: ' . $eventCategoryId);
+            setFlashMessage('Categoría no encontrada', 'danger');
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $name = trim($_POST['name'] ?? '');
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            Logger::debug('[addEventSubcategory] POST name: ' . $name . ', is_active: ' . $is_active);
+            if ($name === '') {
+                Logger::debug('[addEventSubcategory] Nombre vacío');
+                setFlashMessage('El nombre es obligatorio', 'danger');
+                redirect(BASE_URL . "/events/categories/$eventId");
+                exit;
+            }
+            $subcategoryId = $this->categoryModel->addEventSubcategory($eventCategoryId, $name, $is_active);
+            Logger::debug('[addEventSubcategory] addEventSubcategory result: ' . print_r($subcategoryId, true));
+            if ($subcategoryId) {
+                setFlashMessage('Subcategoría agregada correctamente', 'success');
+            } else {
+                setFlashMessage('No se pudo agregar la subcategoría', 'danger');
+            }
+            redirect(BASE_URL . "/events/categories/$eventId");
+            exit;
+        }
+        // GET: mostrar formulario
+        $csrfToken = generateCSRFToken();
+        $pageData = [
+            'pageTitle' => 'Agregar Subcategoría',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories']
+        ];
+        $this->renderView('events/add_event_subcategory', compact('eventId', 'eventCategoryId', 'csrfToken', 'pageData'));
     }
 }

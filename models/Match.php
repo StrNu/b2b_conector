@@ -962,4 +962,161 @@ public function countWithoutParticipants() {
         unset($row);
         return $filtered;
     }
+
+    /**
+     * Obtener matches potenciales avanzados para un evento usando pesos y umbral
+     * @param int $eventId
+     * @param array $weights [W_REQ, W_DATE, W_KW, W_DESC, MIN_STRENGTH]
+     * @return array
+     */
+    public function getAdvancedPotentialMatches($eventId, $weights) {
+        $W_REQ = (int)($weights['W_REQ'] ?? 50);
+        $W_KW = (int)($weights['W_KW'] ?? 30);
+        $W_DESC = (int)($weights['W_DESC'] ?? 10);
+        $MIN_STRENGTH = (int)($weights['MIN_STRENGTH'] ?? 0);
+        // Use unique parameter names for each event_id occurrence
+        $sql = "
+       WITH
+  buyer_reqs AS (
+    SELECT r.buyer_id, COUNT(*) AS total_reqs
+    FROM requirements r
+    JOIN company b ON r.buyer_id = b.company_id
+    WHERE b.event_id = :event_id1
+    GROUP BY r.buyer_id
+  ),
+
+  req_offer_matches AS (
+    SELECT r.buyer_id, o.supplier_id, COUNT(*) AS matched_offers
+    FROM requirements r
+    JOIN supplier_offers o ON o.event_subcategory_id = r.event_subcategory_id
+    JOIN company b ON r.buyer_id = b.company_id
+    JOIN company s ON o.supplier_id = s.company_id
+    WHERE b.event_id = :event_id2 AND s.event_id = :event_id3
+    GROUP BY r.buyer_id, o.supplier_id
+  ),
+
+  date_matches AS (
+    SELECT a1.company_id AS buyer_id, a2.company_id AS supplier_id, 1 AS date_match
+    FROM attendance_days a1
+    JOIN attendance_days a2
+      ON a1.attendance_date = a2.attendance_date
+     AND a1.company_id <> a2.company_id
+    WHERE a1.event_id = :event_id4 AND a2.event_id = :event_id5
+    GROUP BY a1.company_id, a2.company_id
+  ),
+
+   -- 4. Keywords score por evento (normalizado)
+keyword_score AS (
+  SELECT
+    b.company_id AS buyer_id,
+    s.company_id AS supplier_id,
+    -- total keywords del buyer
+    COUNT(bk.kw) AS total_bkw,
+    -- coincidencias de keywords
+    COUNT(sk.kw) AS matched_bkw
+  FROM company b
+  JOIN JSON_TABLE(b.keywords, '$[*]' COLUMNS(kw VARCHAR(255) PATH '$')) bk
+    ON b.role='buyer' AND b.event_id= :event_id6
+  JOIN company s
+    ON s.role='supplier' AND s.event_id = b.event_id
+  -- left join para contar coincidencias
+  LEFT JOIN JSON_TABLE(s.keywords, '$[*]' COLUMNS(kw VARCHAR(255) PATH '$')) sk
+    ON bk.kw = sk.kw
+  GROUP BY b.company_id, s.company_id
+),
+
+  desc_score AS (
+    SELECT b.company_id AS buyer_id, s.company_id AS supplier_id,
+           SUM(CASE WHEN LOWER(s.description) LIKE CONCAT('%', LOWER(bk.kw), '%') THEN 1 ELSE 0 END) AS desc_matches
+    FROM company b
+    JOIN JSON_TABLE(b.keywords, '$[*]' COLUMNS(kw VARCHAR(255) PATH '$')) bk ON b.role='buyer'
+    JOIN company s ON s.role='supplier' AND s.event_id = b.event_id
+    WHERE b.event_id = :event_id7
+    GROUP BY b.company_id, s.company_id
+  )
+
+-- 3) Query final
+SELECT
+  b.company_id    AS buyer_id,
+  s.company_id    AS supplier_id,
+  b.company_name  AS buyer_name,
+  s.company_name  AS supplier_name,
+
+   -- Componentes de score
+  COALESCE(rom.matched_offers/br.total_reqs,0)*100 AS pct_req_match,
+  COALESCE(dm.date_match,0)                   AS date_match,
+  COALESCE(ks.matched_bkw,0)                   AS keyword_matches,
+  COALESCE(ds.desc_matches,0)                 AS description_matches,
+
+  -- Score final normalizado utilizando porcentajes de coincidencias
+  (
+    -- Porcentaje de requerimientos cubiertos
+    COALESCE(rom.matched_offers/br.total_reqs, 0)*100 * $W_REQ
+    -- Porcentaje de keywords que coinciden
+    + COALESCE((ks.matched_bkw/ks.total_bkw)*100, 0) * $W_KW
+    -- Porcentaje de coincidencias en descripción (normalizado con total_bkw)
+    + COALESCE((ds.desc_matches/ks.total_bkw)*100, 0) * $W_DESC
+  ) / ($W_REQ + $W_KW + $W_DESC) AS match_strength
+
+FROM company b
+JOIN company s ON s.role = 'supplier' AND s.event_id = b.event_id
+LEFT JOIN buyer_reqs        br ON br.buyer_id      = b.company_id
+LEFT JOIN req_offer_matches rom ON rom.buyer_id    = b.company_id AND rom.supplier_id = s.company_id
+LEFT JOIN date_matches      dm ON dm.buyer_id      = b.company_id AND dm.supplier_id   = s.company_id
+LEFT JOIN keyword_score     ks ON ks.buyer_id      = b.company_id AND ks.supplier_id    = s.company_id
+LEFT JOIN desc_score        ds ON ds.buyer_id      = b.company_id AND ds.supplier_id    = s.company_id
+LEFT JOIN matches m ON m.event_id = :event_id8 AND m.buyer_id = b.company_id AND m.supplier_id = s.company_id
+
+WHERE b.role='buyer' AND b.event_id=:event_id9
+  AND (
+    COALESCE(rom.matched_offers,0) > 0
+    OR COALESCE(ks.matched_bkw,0) > 0
+    OR COALESCE(ds.desc_matches,0) > 0
+  )
+  AND m.match_id IS NULL
+ORDER BY match_strength DESC
+;";
+        $params = [
+            ':event_id1' => $eventId,
+            ':event_id2' => $eventId,
+            ':event_id3' => $eventId,
+            ':event_id4' => $eventId,
+            ':event_id5' => $eventId,
+            ':event_id6' => $eventId,
+            ':event_id7' => $eventId,
+            ':event_id8' => $eventId,
+            ':event_id9' => $eventId
+        ];
+        error_log('[DEBUG SQL] SQL: ' . $sql);
+        error_log('[DEBUG SQL] PARAMS: ' . print_r($params, true));
+        $stmt = $this->db->query($sql, $params);
+        if (!$stmt) {
+            error_log('[MATCHES] Error SQL en getAdvancedPotentialMatches: ' . $sql);
+            return [];
+        }
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtener empresas del evento que no tienen ningún match (ni como buyer ni como supplier)
+     * @param int $eventId
+     * @return array
+     */
+    public function getUnmatchedCompaniesByEvent($eventId) {
+        $sql = "
+            SELECT c.*
+            FROM company c
+            WHERE c.event_id = :event_id
+            AND NOT EXISTS (
+                SELECT 1 FROM matches m
+                WHERE m.event_id = c.event_id
+                AND (m.buyer_id = c.company_id OR m.supplier_id = c.company_id)
+            )
+            ORDER BY c.company_name
+        ";
+        $params = [':event_id' => $eventId];
+        $stmt = $this->db->query($sql, $params);
+        if (!$stmt) return [];
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

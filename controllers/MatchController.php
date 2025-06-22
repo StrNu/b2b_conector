@@ -1,4 +1,31 @@
 <?php
+require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../models/Match.php';
+// --- Logging y manejo global de errores para endpoints AJAX ---
+require_once __DIR__ . '/../utils/Logger.php';
+Logger::init(__DIR__ . '/../logs');
+Logger::debug('MatchController.php recibido', [
+    'GET' => $_GET,
+    'POST' => $_POST,
+    'REQUEST_URI' => $_SERVER['REQUEST_URI'] ?? '',
+    'SESSION' => $_SESSION ?? []
+]);
+set_exception_handler(function($e) {
+    Logger::error('Excepción no capturada en MatchController.php: ' . $e->getMessage(), [
+        'trace' => $e->getTraceAsString(),
+        'file' => $e->getFile(),
+        'line' => $e->getLine()
+    ]);
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error interno del servidor (excepción)']);
+    exit;
+});
+set_error_handler(function($errno, $errstr, $errfile, $errline) {
+    Logger::error("Error PHP [$errno] $errstr en $errfile línea $errline");
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Error interno del servidor (error PHP)']);
+    exit;
+});
 /**
  * Controlador de Matches (Coincidencias)
  * 
@@ -1139,46 +1166,18 @@ class MatchController {
             echo json_encode(['success' => false, 'message' => 'Evento no especificado']);
             exit;
         }
-        // Buscar matches confirmados (matched o accepted)
+        // Obtener matches con status 'matched' para el evento
         $matches = $this->matchModel->getAll([
             'event_id' => $eventId,
+            'status' => 'matched'
         ]);
-        // Filtrar por status matched o accepted
-        $confirmed = array_filter($matches, function($m) {
-            return in_array($m['status'], [MatchModel::STATUS_MATCHED, MatchModel::STATUS_ACCEPTED]);
-        });
-        $result = [];
-        foreach ($confirmed as $row) {
-            $result[] = [
-                'match_id' => $row['match_id'] ?? null,
-                'buyer_id' => $row['buyer_id'] ?? '-',
-                'supplier_id' => $row['supplier_id'] ?? '-',
-                'event_id' => $row['event_id'] ?? '-',
-                'match_strength' => $row['match_strength'] ?? 0,
-                'created_at' => $row['created_at'] ?? null,
-                'status' => $row['status'] ?? '-',
-                'matched_categories' => $row['matched_categories'] ?? '-',
-                'programed' => $row['programed'] ?? '-',
-                'match_level' => $row['match_level'] ?? '-',
-                'buyer_subcategories' => $row['buyer_subcategories'] ?? '-',
-                'supplier_subcategories' => $row['supplier_subcategories'] ?? '-',
-                'buyer_dates' => $row['buyer_dates'] ?? '-',
-                'supplier_dates' => $row['supplier_dates'] ?? '-',
-                'buyer_keywords' => $row['buyer_keywords'] ?? '-',
-                'supplier_keywords' => $row['supplier_keywords'] ?? '-',
-                'buyer_description' => $row['buyer_description'] ?? '-',
-                'supplier_description' => $row['supplier_description'] ?? '-',
-                'reason' => $row['reason'] ?? '-',
-                'keywords_match' => $row['keywords_match'] ?? '-',
-                'coincidence_of_dates' => $row['coincidence_of_dates'] ?? '-',
-            ];
-        }
-        echo json_encode(['success' => true, 'matches' => $result]);
+        echo json_encode(['success' => true, 'matches' => $matches]);
         exit;
     }
 
     /**
-     * Obtener matches potenciales para un evento (AJAX, usando la tabla matches)
+     * Devuelve matches potenciales para un evento (no insertados en la tabla matches)
+     * Utiliza la consulta avanzada para sugerir matches con score y razones
      */
     public function getPotentialMatchesAjax() {
         header('Content-Type: application/json');
@@ -1191,33 +1190,167 @@ class MatchController {
             echo json_encode(['success' => false, 'message' => 'Evento no especificado']);
             exit;
         }
-        // Buscar matches con status 'pending' (potenciales)
-        $matches = $this->matchModel->getByEvent($eventId, MatchModel::STATUS_PENDING);
-        $result = [];
-        foreach ($matches as $row) {
-            $result[] = [
-                'match_id' => $row['match_id'] ?? null,
-                'buyer_id' => $row['buyer_id'] ?? '-',
-                'buyer_name' => $row['buyer_name'] ?? '-',
-                'supplier_id' => $row['supplier_id'] ?? '-',
-                'supplier_name' => $row['supplier_name'] ?? '-',
-                'reason' => $row['reason'] ?? '-',
-                'keywords_match' => $row['keywords_match'] ?? '-',
-                'coincidence_of_dates' => $row['coincidence_of_dates'] ?? '-',
-                'buyer_description' => $row['buyer_description'] ?? '-',
-                'supplier_description' => $row['supplier_description'] ?? '-',
-                'buyer_dates' => $row['buyer_dates'] ?? '-',
-                'supplier_dates' => $row['supplier_dates'] ?? '-',
-                'buyer_subcategories' => $row['buyer_subcategories'] ?? '-',
-                'supplier_subcategories' => $row['supplier_subcategories'] ?? '-',
-                'buyer_keywords' => $row['buyer_keywords'] ?? '-',
-                'supplier_keywords' => $row['supplier_keywords'] ?? '-',
-                'match_strength' => $row['match_strength'] ?? 0,
-                'created_at' => $row['created_at'] ?? null,
-                'status' => $row['status'] ?? '-',
-            ];
+        // Definir pesos y umbral
+        $weights = [
+            'W_REQ'        => 50,   // peso de requisitos
+            'W_DATE'       => 10,   // peso de fecha
+            'W_KW'         => 30,   // peso de keywords
+            'W_DESC'       => 10,   // peso de descripción
+            'MIN_STRENGTH' => 0    // umbral mínimo
+        ];
+        try {
+            $matches = $this->matchModel->getAdvancedPotentialMatches($eventId, $weights);
+            Logger::debug('[MATCHES] SQL getAdvancedPotentialMatches', ['event_id' => $eventId, 'weights' => $weights]);
+            Logger::debug('[MATCHES] Resultados getAdvancedPotentialMatches', $matches);
+            // Puedes agregar lógica para "reason" si lo deseas aquí
+            foreach ($matches as &$row) {
+                $reasons = [];
+                if ($row['pct_req_match'] > 0) $reasons[] = 'Requisitos';
+                if ($row['date_match']) $reasons[] = 'Fecha';
+                if ($row['keyword_matches'] > 0) $reasons[] = 'Palabra clave';
+                if ($row['description_matches'] > 0) $reasons[] = 'Descripción';
+                $row['reason'] = implode(' + ', $reasons);
+            }
+            Logger::debug('[MATCHES] Matches con razones', $matches);
+            echo json_encode(['success' => true, 'matches' => $matches]);
+            exit;
+        } catch (Exception $e) {
+            Logger::error('[MATCHES] Exception getPotentialMatchesAjax: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Excepción: ' . $e->getMessage()]);
+            exit;
         }
-        echo json_encode(['success' => true, 'matches' => $result]);
+    }
+
+    /**
+     * AJAX: Devuelve empresas sin ningún match para un evento
+     */
+    public function getUnmatchedCompaniesAjax() {
+        Logger::debug('[AJAX] Entrando a getUnmatchedCompaniesAjax', ['POST' => $_POST, 'SESSION' => $_SESSION]);
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            Logger::warning('[AJAX] Solicitud inválida o CSRF incorrecto en getUnmatchedCompaniesAjax', ['POST' => $_POST, 'SESSION' => $_SESSION]);
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida']);
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        if (!$eventId) {
+            Logger::warning('[AJAX] Evento no especificado en getUnmatchedCompaniesAjax', ['POST' => $_POST]);
+            echo json_encode(['success' => false, 'message' => 'Evento no especificado']);
+            exit;
+        }
+        try {
+            $companies = $this->matchModel->getUnmatchedCompaniesByEvent($eventId);
+            Logger::debug('[AJAX] Empresas sin match encontradas', ['companies' => $companies]);
+            // Mapear campos para el frontend
+            $companiesMapped = array_map(function($c) {
+                return [
+                    'id' => $c['company_id'] ?? $c['id'] ?? null,
+                    'name' => $c['company_name'] ?? $c['name'] ?? '',
+                    'type' => $c['role'] ?? $c['type'] ?? '',
+                ];
+            }, $companies);
+            echo json_encode(['success' => true, 'companies' => $companiesMapped]);
+            exit;
+        } catch (Exception $e) {
+            Logger::error('[AJAX] Excepción en getUnmatchedCompaniesAjax', ['error' => $e->getMessage()]);
+            echo json_encode(['success' => false, 'message' => 'Excepción: ' . $e->getMessage()]);
+            exit;
+        }
+    }
+
+    /**
+     * AJAX: Guardar un match potencial como match real
+     */
+    public function savePotentialMatchAjax() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida']);
+            exit;
+        }
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        $buyerId = isset($_POST['buyer_id']) ? (int)$_POST['buyer_id'] : 0;
+        $supplierId = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : 0;
+        $matchStrength = isset($_POST['match_strength']) ? floatval($_POST['match_strength']) : 0;
+        $pctReqMatch = isset($_POST['pct_req_match']) ? floatval($_POST['pct_req_match']) : 0;
+        $dateMatch = isset($_POST['date_match']) ? $_POST['date_match'] : null;
+        $keywordMatches = isset($_POST['keyword_matches']) ? $_POST['keyword_matches'] : null;
+        $descriptionMatches = isset($_POST['description_matches']) ? $_POST['description_matches'] : null;
+        $reason = isset($_POST['reason']) ? $_POST['reason'] : null;
+        if (!$eventId || !$buyerId || !$supplierId) {
+            echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+            exit;
+        }
+        // Validar que no exista el match
+        if ($this->matchModel->exists($buyerId, $supplierId, $eventId)) {
+            echo json_encode(['success' => false, 'message' => 'El match ya existe']);
+            exit;
+        }
+        // Guardar el match
+        $data = [
+            'buyer_id' => $buyerId,
+            'supplier_id' => $supplierId,
+            'event_id' => $eventId,
+            'match_strength' => $matchStrength,
+            'status' => MatchModel::STATUS_MATCHED,
+            'created_at' => date('Y-m-d H:i:s'),
+            'reason' => $reason,
+            'pct_req_match' => $pctReqMatch,
+            'date_match' => $dateMatch,
+            'keyword_matches' => $keywordMatches,
+            'description_matches' => $descriptionMatches
+        ];
+        $result = $this->matchModel->create($data);
+        if ($result) {
+            echo json_encode(['success' => true]);
+        } else {
+            echo json_encode(['success' => false, 'message' => 'No se pudo guardar el match']);
+        }
+        exit;
+    }
+
+    /**
+     * AJAX: Actualizar datos de un match potencial editado (solo frontend, no tabla matches real)
+     */
+    public function updatePotentialMatchAjax() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida']);
+            exit;
+        }
+        // Solo responder éxito, sin persistencia
+        echo json_encode(['success' => true]);
+        exit;
+    }
+
+    /**
+     * AJAX: Devuelve datos básicos de comprador y proveedor para el modal (solo keywords y descripción)
+     */
+    public function getCompanyFullDetailsAjax() {
+        header('Content-Type: application/json');
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida']);
+            exit;
+        }
+        $buyerId = isset($_POST['buyer_id']) ? (int)$_POST['buyer_id'] : 0;
+        $supplierId = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : 0;
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0; // Aceptar event_id aunque no se use
+        if (!$buyerId || !$supplierId) {
+            echo json_encode(['success' => false, 'message' => 'IDs incompletos']);
+            exit;
+        }
+        $buyer = $this->companyModel->findById($buyerId) ? clone $this->companyModel : null;
+        $supplier = $this->companyModel->findById($supplierId) ? clone $this->companyModel : null;
+        echo json_encode([
+            'success' => true,
+            'buyer' => [
+                'keywords' => $buyer ? $buyer->getKeywords() : '',
+                'description' => $buyer ? $buyer->description : ''
+            ],
+            'supplier' => [
+                'keywords' => $supplier ? $supplier->getKeywords() : '',
+                'description' => $supplier ? $supplier->description : ''
+            ]
+        ]);
         exit;
     }
 }
@@ -1255,4 +1388,52 @@ if (isset($_GET['action']) && $_GET['action'] === 'getPotentialMatchesAjax') {
     $controller = new MatchController();
     $controller->getPotentialMatchesAjax();
     exit;
+}
+
+// Registrar endpoint AJAX para savePotentialMatchAjax
+if (isset($_GET['action']) && $_GET['action'] === 'savePotentialMatchAjax') {
+    $controller = new MatchController();
+    $controller->savePotentialMatchAjax();
+    exit;
+}
+// Registrar endpoint AJAX para updatePotentialMatchAjax
+if (isset($_GET['action']) && $_GET['action'] === 'updatePotentialMatchAjax') {
+    $controller = new MatchController();
+    $controller->updatePotentialMatchAjax();
+    exit;
+}
+// Registrar endpoint AJAX para getCompanyFullDetailsAjax
+if (isset($_GET['action']) && $_GET['action'] === 'getCompanyFullDetailsAjax') {
+    $controller = new MatchController();
+    $controller->getCompanyFullDetailsAjax();
+    exit;
+}
+
+// Router simple para endpoints AJAX
+if (isset($_GET['action'])) {
+    $controller = new MatchController();
+    switch ($_GET['action']) {
+        case 'getConfirmedMatchesAjax':
+            $controller->getConfirmedMatchesAjax();
+            break;
+        case 'getPotentialMatchesAjax':
+            $controller->getPotentialMatchesAjax();
+            break;
+        case 'getUnmatchedCompaniesAjax':
+            $controller->getUnmatchedCompaniesAjax();
+            break;
+        case 'savePotentialMatchAjax':
+            $controller->savePotentialMatchAjax();
+            break;
+        case 'updatePotentialMatchAjax':
+            $controller->updatePotentialMatchAjax();
+            break;
+        case 'getCompanyFullDetailsAjax':
+            $controller->getCompanyFullDetailsAjax();
+            break;
+        case 'searchByDescriptionAjax':
+            $controller->searchByDescriptionAjax();
+            break;
+        // Agrega aquí otros endpoints AJAX si es necesario
+    }
 }

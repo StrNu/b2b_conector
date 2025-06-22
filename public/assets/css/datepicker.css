@@ -1,0 +1,14 @@
+/* Estilos UX/UI para datepicker */
+input[type="date"].datepicker-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  color: #374151;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+input[type="date"].datepicker-input:focus {
+  border-color: #6366f1;
+  outline: none;
+}

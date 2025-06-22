@@ -344,14 +344,17 @@ class Category {
     // Obtener una subcategoría de evento por su ID
     public function getEventSubcategory($subcategoryId) {
         $query = "SELECT * FROM event_subcategories WHERE event_subcategory_id = :id LIMIT 1";
-        return $this->db->fetchOne($query, [':id' => $subcategoryId]);
+        return $this->db->single($query, [':id' => $subcategoryId]);
     }
 
     // Obtener una categoría de evento por su ID
     public function getEventCategory($categoryId) {
+        Logger::debug('[getEventCategory] Llamado con categoryId: ' . var_export($categoryId, true));
         $query = "SELECT * FROM event_categories WHERE event_category_id = :id LIMIT 1";
-        $result = $this->db->fetchOne($query, [':id' => $categoryId]);
+        $result = $this->db->single($query, [':id' => $categoryId]);
+        Logger::debug('[getEventCategory] Resultado de single: ' . var_export($result, true));
         if (!$result || !is_array($result) || empty($result)) {
+            Logger::debug('[getEventCategory] No se encontró la categoría.');
             return null;
         }
         return $result;
@@ -532,6 +535,24 @@ public function editEventSubcategory($subcategoryId, $data) {
         $insert = "INSERT INTO event_subcategories (event_category_id, subcategory_id, name, is_active) VALUES (:event_category_id, :subcategory_id, :name, 1)";
         $this->db->query($insert, [':event_category_id' => $eventCategoryId, ':subcategory_id' => $subcategoryId, ':name' => $name]);
         return $this->db->lastInsertId();
+    }
+
+    /**
+     * Obtener categorías de un evento con sus subcategorías (centralizado)
+     * @param int $eventId
+     * @return array
+     */
+    public function getEventCategoriesWithSubcategories($eventId) {
+        $categories = $this->getEventCategories($eventId);
+        $categoriesWithSubcategories = [];
+        foreach ($categories as $category) {
+            $subcategories = $this->getEventSubcategories($category['event_category_id']);
+            $categoriesWithSubcategories[] = [
+                'category' => $category,
+                'subcategories' => $subcategories
+            ];
+        }
+        return $categoriesWithSubcategories;
     }
 
 }

@@ -53,8 +53,7 @@ file_put_contents($logFile, $logMsg, FILE_APPEND);
                 <div class="flex gap-2">
                     <?php if (isset($eventModel) && $eventModel): ?>
                     <button type="button" class="btn btn-xs btn-warning edit-category-btn-modal" data-cat-id="<?= $cat['category']['event_category_id'] ?>" data-cat-name="<?= htmlspecialchars($cat['category']['name']) ?>"><i class="fas fa-edit"></i></button>
-                    <form action="<?= BASE_URL ?>/events/deleteEventCategory/<?= $cat['category']['event_category_id'] ?>" method="POST" onsubmit="return confirm('¿Eliminar esta categoría y todas sus subcategorías?');">
-                        <input type="hidden" name="event_id" value="<?= $eventModel->getId() ?>">
+                    <form action="<?= BASE_URL ?>/events/deleteEventCategory/<?= $eventModel->getId() ?>/<?= $cat['category']['event_category_id'] ?>" method="POST" onsubmit="return confirm('¿Eliminar esta categoría y todas sus subcategorías?');">
                         <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                         <button type="submit" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></button>
                     </form>
@@ -70,7 +69,7 @@ file_put_contents($logFile, $logMsg, FILE_APPEND);
                     <span class="flex gap-1">
                         <?php if (isset($eventModel) && $eventModel): ?>
                         <button type="button" class="btn btn-xs btn-warning edit-subcategory-btn-modal" data-subcat-id="<?= $sub['event_subcategory_id'] ?>" data-subcat-name="<?= htmlspecialchars($sub['name']) ?>"><i class="fas fa-edit"></i></button>
-                        <form action="<?= BASE_URL ?>/events/deleteEventSubcategory/<?= $sub['event_subcategory_id'] ?>/<?= $eventModel->getId() ?>" method="POST" onsubmit="return confirm('¿Eliminar esta subcategoría?');">
+                        <form action="<?= BASE_URL ?>/events/deleteEventSubcategory/<?= $eventModel->getId() ?>/<?= $sub['event_subcategory_id'] ?>" method="POST" onsubmit="return confirm('¿Eliminar esta subcategoría?');">
                             <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
                             <button type="submit" class="btn btn-xs btn-danger"><i class="fas fa-trash"></i></button>
                         </form>
@@ -82,7 +81,7 @@ file_put_contents($logFile, $logMsg, FILE_APPEND);
             <?php if (isset($eventModel) && $eventModel): ?>
             <form action="<?= BASE_URL ?>/events/addEventSubcategory/<?= $eventModel->getId() ?>/<?= $cat['category']['event_category_id'] ?>" method="POST" class="flex gap-2 mt-2">
                 <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                <input type="text" name="subcategory_name" class="form-control" required placeholder="Nueva subcategoría">
+                <input type="text" name="name" class="form-control" required placeholder="Nueva subcategoría">
                 <button type="submit" class="btn btn-xs btn-primary"><i class="fas fa-plus"></i></button>
             </form>
             <?php endif; ?>
@@ -122,8 +121,8 @@ document.addEventListener('DOMContentLoaded', function() {
             currentEditType = 'category';
             currentEditId = this.getAttribute('data-cat-id');
             editNameInput.value = this.getAttribute('data-cat-name');
-            editNameInput.name = 'category_name'; // Cambia el name para categoría
-            editNameForm.action = `<?= BASE_URL ?>/events/editEventCategory/${currentEditId}/${currentEventId}`;
+            editNameInput.name = 'name'; // Corrige: el name debe ser 'name' para categoría
+            editNameForm.action = `<?= BASE_URL ?>/events/editEventCategory/${currentEventId}/${currentEditId}`;
             editNameModal.classList.remove('hidden');
         });
     });
@@ -133,8 +132,8 @@ document.addEventListener('DOMContentLoaded', function() {
             currentEditType = 'subcategory';
             currentEditId = this.getAttribute('data-subcat-id');
             editNameInput.value = this.getAttribute('data-subcat-name');
-            editNameInput.name = 'subcategory_name'; // Cambia el name para subcategoría
-            editNameForm.action = `<?= BASE_URL ?>/events/editEventSubcategory/${currentEditId}/${currentEventId}`;
+            editNameInput.name = 'name'; // Corrige: el name debe ser 'subcategory_name' para subcategoría
+            editNameForm.action = `<?= BASE_URL ?>/events/editEventSubcategory/${currentEventId}/${currentEditId}`;
             editNameModal.classList.remove('hidden');
         });
     });

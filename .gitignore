@@ -1,0 +1,14 @@
+# Ignorar archivos de log
+logs/
+
+# Ignorar archivos de errores grandes
+php_errors.log
+
+# Ignorar archivos subidos
+public/uploads/
+
+# Otros archivos temporales
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

@@ -1242,4 +1242,30 @@ public function editParticipant($eventId, $assistantId) {
         // Pasar variables a la vista
         include(VIEW_DIR . '/events/time_slots.php');
     }
+
+    /**
+     * Mostrar categorías y subcategorías de un evento específico
+     * Ruta: /events/categories/{event_id}
+     * @param int $eventId
+     * @return void
+     */
+    public function categories($eventId) {
+        // Verificar permisos
+        $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+        // Verificar que el evento exista
+        if (!$this->eventModel->findById($eventId)) {
+            $this->_showNotFoundError('Evento no encontrado');
+        }
+        // Obtener categorías del evento con sus subcategorías (centralizado)
+        $categoriesWithSubcategories = $this->categoryModel->getEventCategoriesWithSubcategories($eventId);
+        $csrfToken = generateCSRFToken();
+        $eventModel = $this->eventModel;
+        $pageData = [
+            'pageTitle' => 'Categorías del Evento',
+            'moduleCSS' => 'categories',
+            'moduleJS' => ['categories', 'components/import_modal']
+        ];
+        // Cargar vista (usa la misma que CategoryController)
+        include(VIEW_DIR . '/events/categories.php');
+    }
 } // End of EventController class

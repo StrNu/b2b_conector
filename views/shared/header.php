@@ -68,6 +68,7 @@ $userName = $_SESSION['name'] ?? 'Usuario';
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/buttons.css">
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/notifications.css">
     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/tabs.css">
+     <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/components/pagination.css">
 
     <!-- CSS específicos de módulo -->
     <?php if (isset($moduleCSS)): ?>

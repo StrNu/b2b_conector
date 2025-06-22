@@ -216,3 +216,50 @@ MariaDB [b2b_conector]> describe users;
 | is_active         | tinyint(1)   | YES  |     | 1                   |                |
 | registration_date | timestamp    | YES  |     | current_timestamp() |                |
 | name              | varchar(255) | YES  |     | NULL                |                |
+
+describe events;
++------------------+--------------+------+-----+---------+----------------+
+| Field            | Type         | Null | Key | Default | Extra          |
++------------------+--------------+------+-----+---------+----------------+
+| event_id         | int(11)      | NO   | PRI | NULL    | auto_increment |
+| event_name       | varchar(255) | YES  |     | NULL    |                |
+| venue            | varchar(255) | YES  |     | NULL    |                |
+| start_date       | date         | YES  |     | NULL    |                |
+| end_date         | date         | YES  |     | NULL    |                |
+| available_tables | int(11)      | YES  |     | NULL    |                |
+| meeting_duration | int(11)      | YES  |     | NULL    |                |
+| is_active        | tinyint(1)   | YES  |     | NULL    |                |
+| start_time       | time         | YES  |     | NULL    |                |
+| end_time         | time         | YES  |     | NULL    |                |
+| has_break        | tinyint(1)   | YES  |     | NULL    |                |
+| company_name     | text         | YES  |     | NULL    |                |
+| contact_name     | text         | YES  |     | NULL    |                |
+| contact_phone    | text         | YES  |     | NULL    |                |
+| contact_email    | text         | YES  |     | NULL    |                |
+| company_logo     | varchar(255) | YES  |     | NULL    |                |
+| event_logo       | varchar(255) | YES  |     | NULL    |                |
++------------------+--------------+------+-----+---------+----------------+
+
+describe company;
++--------------------+--------------+------+-----+---------------------+----------------+
+| Field              | Type         | Null | Key | Default             | Extra          |
++--------------------+--------------+------+-----+---------------------+----------------+
+| company_id         | int(11)      | NO   | PRI | NULL                | auto_increment |
+| company_name       | varchar(255) | YES  |     | NULL                |                |
+| address            | varchar(255) | YES  |     | NULL                |                |
+| city               | varchar(100) | YES  |     | NULL                |                |
+| country            | varchar(100) | YES  |     | NULL                |                |
+| website            | varchar(255) | YES  |     | NULL                |                |
+| company_logo       | varchar(255) | YES  |     | NULL                |                |
+| contact_first_name | varchar(255) | YES  |     | NULL                |                |
+| contact_last_name  | varchar(255) | YES  |     | NULL                |                |
+| phone              | varchar(20)  | YES  |     | NULL                |                |
+| email              | varchar(255) | YES  |     | NULL                |                |
+| created_at         | timestamp    | YES  |     | current_timestamp() |                |
+| is_active          | tinyint(1)   | YES  |     | NULL                |                |
+| role               | varchar(20)  | YES  |     | NULL                |                |
+| event_id           | int(11)      | YES  | MUL | NULL                |                |
+| description        | text         | YES  |     | NULL                |                |
+| keywords           | longtext     | YES  |     | NULL                |                |
+| certifications     | longtext     | YES  |     | NULL                |                |
++--------------------+--------------+------+-----+---------------------+----------------+

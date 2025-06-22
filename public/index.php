@@ -239,6 +239,52 @@ if (
     exit;
 }
 
+// --- Routing manual para edición de categorías/subcategorías de evento ---
+if (
+    isset($urlParts[0], $urlParts[1], $urlParts[2], $urlParts[3]) &&
+    $urlParts[0] === 'events' &&
+    in_array($urlParts[1], ['editEventCategory', 'editEventSubcategory']) &&
+    is_numeric($urlParts[2]) && is_numeric($urlParts[3])
+) {
+    require_once CONTROLLER_DIR . '/CategoryController.php';
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Subcategory.php';
+    require_once MODEL_DIR . '/Event.php';
+    $controller = new CategoryController();
+    if ($urlParts[1] === 'editEventCategory') {
+        $controller->editEventCategory((int)$urlParts[2], (int)$urlParts[3]);
+    } else {
+        $controller->editEventSubcategory((int)$urlParts[2], (int)$urlParts[3]);
+    }
+    exit;
+}
+
+// --- Routing manual para agregar/eliminar categorías y subcategorías de evento ---
+if (
+    isset($urlParts[0], $urlParts[1], $urlParts[2]) &&
+    $urlParts[0] === 'events' &&
+    in_array($urlParts[1], ['addEventCategory', 'addEventSubcategory', 'deleteEventCategory', 'deleteEventSubcategory'])
+) {
+    require_once CONTROLLER_DIR . '/CategoryController.php';
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Subcategory.php';
+    require_once MODEL_DIR . '/Event.php';
+    $controller = new CategoryController();
+    if ($urlParts[1] === 'addEventCategory') {
+        $controller->addEventCategory((int)$urlParts[2]);
+    } elseif ($urlParts[1] === 'addEventSubcategory' && isset($urlParts[3])) {
+        $controller->addEventSubcategory((int)$urlParts[2], (int)$urlParts[3]);
+    } elseif ($urlParts[1] === 'deleteEventCategory' && isset($urlParts[3])) {
+        $controller->deleteEventCategory((int)$urlParts[2], (int)$urlParts[3]);
+    } elseif ($urlParts[1] === 'deleteEventSubcategory' && isset($urlParts[3])) {
+        $controller->deleteEventSubcategory((int)$urlParts[2], (int)$urlParts[3]);
+    } else {
+        header('HTTP/1.0 404 Not Found');
+        echo 'Error 404: Acción no encontrada.';
+    }
+    exit;
+}
+
 // Mapa de controladores (slug => NombreClase)
 $controllerMap = [
     'auth' => 'AuthController',
@@ -500,6 +546,28 @@ if (
     require_once CONTROLLER_DIR . '/AppointmentController.php';
     $controller = new AppointmentController();
     $controller->scheduleAll();
+    exit;
+}
+
+// --- Routing especial para endpoints AJAX tipo /controllers/MatchController.php?action=... ---
+if (
+    isset($_SERVER['SCRIPT_NAME']) &&
+    strpos($_SERVER['SCRIPT_NAME'], '/controllers/MatchController.php') !== false &&
+    isset($_GET['action'])
+) {
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Event.php';
+    require_once UTILS_DIR . '/Validator.php';
+    require_once CONTROLLER_DIR . '/MatchController.php';
+    $controller = new MatchController();
+    $action = $_GET['action'];
+    if (method_exists($controller, $action)) {
+        $controller->$action();
+    } else {
+        header('HTTP/1.0 404 Not Found');
+        echo json_encode(['success' => false, 'message' => 'Acción no encontrada']);
+    }
     exit;
 }
 
