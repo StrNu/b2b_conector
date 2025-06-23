@@ -1,0 +1,227 @@
+/* public/assets/css/modules/companies.css */
+/* Estilos específicos para el módulo de empresas */
+
+/* Lista de empresas */
+.companies-table-container {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.company-row:hover {
+    background-color: #f7fafc;
+}
+
+.company-logo-small {
+    max-width: 40px;
+    max-height: 40px;
+    border-radius: 6px;
+    object-fit: contain;
+    border: 1px solid #e2e8f0;
+}
+
+/* Formularios de empresa */
+.company-form-section {
+    margin-bottom: 24px;
+}
+
+.company-form-section:last-child {
+    margin-bottom: 0;
+}
+
+.logo-upload-area {
+    border: 2px dashed #cbd5e0;
+    border-radius: 8px;
+    padding: 24px;
+    text-align: center;
+    background: #f7fafc;
+    transition: all 0.2s ease;
+}
+
+.logo-upload-area:hover {
+    border-color: #a0aec0;
+    background: #edf2f7;
+}
+
+.logo-upload-area.dragover {
+    border-color: #3182ce;
+    background: #ebf8ff;
+}
+
+.logo-preview {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    margin: 16px auto;
+}
+
+/* Estados de empresa */
+.company-status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.company-status-indicator.active {
+    color: #22543d;
+}
+
+.company-status-indicator.inactive {
+    color: #742a2a;
+}
+
+.company-status-indicator i {
+    font-size: 0.75rem;
+}
+
+/* Métricas de empresa */
+.company-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.company-stat-card {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px;
+    text-align: center;
+}
+
+.company-stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1a202c;
+    margin-bottom: 4px;
+}
+
+.company-stat-label {
+    font-size: 0.875rem;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+/* Keywords y Certificaciones */
+.keywords-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.keyword-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ebf8ff;
+    color: #2c5282;
+    border: 1px solid #90cdf4;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.keyword-tag:hover {
+    background: #bee3f8;
+    transform: translateY(-1px);
+}
+
+.keyword-tag i {
+    font-size: 0.75rem;
+    opacity: 0.8;
+}
+
+.certifications-container {
+    width: 100%;
+}
+
+.certifications-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.certification-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f0fff4;
+    border: 1px solid #9ae6b4;
+    border-left: 4px solid #38a169;
+    padding: 12px 16px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.certification-item:hover {
+    background: #e6fffa;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.certification-item i {
+    color: #38a169;
+    font-size: 1.125rem;
+    flex-shrink: 0;
+}
+
+.certification-item span {
+    color: #22543d;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+    .company-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+    
+    .company-stat-card {
+        padding: 12px;
+    }
+    
+    .company-stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .logo-upload-area {
+        padding: 16px;
+    }
+    
+    .keywords-container {
+        gap: 6px;
+    }
+    
+    .keyword-tag {
+        font-size: 0.8rem;
+        padding: 4px 10px;
+    }
+    
+    .certifications-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .certification-item {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+    
+    .certification-item i {
+        font-size: 1rem;
+    }
+    
+    .certification-item span {
+        font-size: 0.9rem;
+    }
+}

@@ -559,3 +559,59 @@ ul {
         margin-top: 10px;
     }
 }
+
+/* Clases utilitarias modernas */
+.flex {
+    display: flex;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.mb-1 {
+    margin-bottom: 0.25rem;
+}
+
+.mb-6 {
+    margin-bottom: 1.5rem;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+}
+
+.font-bold {
+    font-weight: 700;
+}
+
+.text-gray-800 {
+    color: #1f2937;
+}
+
+.text-gray-600 {
+    color: #4b5563;
+}
+
+.ml-1 {
+    margin-left: 0.25rem;
+}
+
+/* Asegurar que los modales estén ocultos por defecto */
+.modal.hidden,
+.hidden {
+    display: none !important;
+}
+
+#potentialMatchModal.hidden {
+    display: none !important;
+}

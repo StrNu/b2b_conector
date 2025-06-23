@@ -165,6 +165,28 @@
                     </button>
                 </div>
             </fieldset>
+            <!-- Usuario Administrador del Evento -->
+            <fieldset class="form-section mb-6">
+                <legend class="section-title">Usuario Administrador del Evento</legend>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="admin_email">Email del Administrador <span class="text-danger">*</span></label>
+                        <input type="email" id="admin_email" name="admin_email" class="form-control" required value="<?= isset($_SESSION['form_data']['admin_email']) ? htmlspecialchars($_SESSION['form_data']['admin_email']) : '' ?>">
+                        <?php if (isset($_SESSION['validation_errors']['admin_email'])): ?>
+                            <div class="error-message"><?= $_SESSION['validation_errors']['admin_email'] ?></div>
+                        <?php endif; ?>
+                        <small class="form-text text-muted">Se enviará un correo con las credenciales de acceso a esta dirección</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="admin_password">Contraseña <span class="text-danger">*</span></label>
+                        <input type="password" id="admin_password" name="admin_password" class="form-control" required minlength="6">
+                        <?php if (isset($_SESSION['validation_errors']['admin_password'])): ?>
+                            <div class="error-message"><?= $_SESSION['validation_errors']['admin_password'] ?></div>
+                        <?php endif; ?>
+                        <small class="form-text text-muted">Mínimo 6 caracteres. Se enviará de forma segura por correo</small>
+                    </div>
+                </div>
+            </fieldset>
             <!-- Estado del Evento -->
             <fieldset class="form-section mb-6">
                 <legend class="section-title">Estado del Evento</legend>

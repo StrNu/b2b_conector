@@ -35,3 +35,55 @@
     padding: 16px 6px;
   }
 }
+
+/* Estilos para campos solo lectura y editables en el modal de match potencial */
+.pm-readonly {
+  background: #f7fafc;
+  color: #888;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 0.98em;
+  border: 1px solid #e5e7eb;
+  min-height: 38px;
+  margin-bottom: 2px;
+}
+.pm-editable {
+  border: 2px solid #2563eb;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 1em;
+  background: #fff;
+  color: #222;
+  transition: border-color 0.2s;
+}
+.pm-editable:focus {
+  border-color: #1d4ed8;
+  outline: none;
+}
+
+#potentialMatchModal .modal-content {
+  box-shadow: 0 4px 32px rgba(0,0,0,0.10);
+  padding: 32px 24px;
+}
+#potentialMatchModal .modal-header {
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+}
+#potentialMatchModal .close-modal-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.5rem;
+  line-height: 1;
+}
+@media (max-width: 700px) {
+  #potentialMatchModal .modal-content {
+    min-width: 0;
+    padding: 16px 4px;
+  }
+  #potentialMatchModal .grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+}

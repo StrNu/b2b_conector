@@ -89,68 +89,10 @@ file_put_contents($logFile, $logMsg, FILE_APPEND);
         <?php endforeach; ?>
     </div>
 </div>
-<div id="editNameModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
-        <h2 class="text-lg font-bold mb-4">Editar Nombre</h2>
-        <form id="editNameForm" method="POST">
-            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-            <div class="mb-4">
-                <label for="editNameInput" class="block text-sm font-medium text-gray-700">Nuevo Nombre</label>
-                <input type="text" id="editNameInput" name="name" class="form-control" required>
-            </div>
-            <div class="flex justify-end gap-2">
-                <button type="button" id="cancelEditName" class="btn btn-secondary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-        </form>
-    </div>
-</div>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Modal edición nombre categoría/subcategoría
-    const editNameModal = document.getElementById('editNameModal');
-    const editNameInput = document.getElementById('editNameInput');
-    const editNameForm = document.getElementById('editNameForm');
-    let currentEditType = null;
-    let currentEditId = null;
-    let currentEventId = "<?= isset($eventModel) ? $eventModel->getId() : '' ?>";
-
-    // Abrir modal para categoría
-    document.querySelectorAll('.edit-category-btn-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-            currentEditType = 'category';
-            currentEditId = this.getAttribute('data-cat-id');
-            editNameInput.value = this.getAttribute('data-cat-name');
-            editNameInput.name = 'name'; // Corrige: el name debe ser 'name' para categoría
-            editNameForm.action = `<?= BASE_URL ?>/events/editEventCategory/${currentEventId}/${currentEditId}`;
-            editNameModal.classList.remove('hidden');
-        });
-    });
-    // Abrir modal para subcategoría
-    document.querySelectorAll('.edit-subcategory-btn-modal').forEach(btn => {
-        btn.addEventListener('click', function() {
-            currentEditType = 'subcategory';
-            currentEditId = this.getAttribute('data-subcat-id');
-            editNameInput.value = this.getAttribute('data-subcat-name');
-            editNameInput.name = 'name'; // Corrige: el name debe ser 'subcategory_name' para subcategoría
-            editNameForm.action = `<?= BASE_URL ?>/events/editEventSubcategory/${currentEventId}/${currentEditId}`;
-            editNameModal.classList.remove('hidden');
-        });
-    });
-    // Cancelar modal
-    document.getElementById('cancelEditName').addEventListener('click', function() {
-        editNameModal.classList.add('hidden');
-        editNameInput.value = '';
-        editNameForm.action = '';
-    });
-    // Cerrar modal al hacer click fuera del contenido
-    editNameModal.addEventListener('click', function(e) {
-        if (e.target === editNameModal) {
-            editNameModal.classList.add('hidden');
-            editNameInput.value = '';
-            editNameForm.action = '';
-        }
-    });
-});
+<?php if (isset($eventModel) && $eventModel): ?>
+window.eventModelId = "<?= $eventModel->getId() ?>";
+<?php endif; ?>
 </script>
+<!-- El modal de edición de nombre ha sido movido a shared/modals.php para uso global. -->
 <?php include(VIEW_DIR . '/shared/footer.php'); ?>

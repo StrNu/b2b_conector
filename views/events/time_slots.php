@@ -26,6 +26,79 @@
   .card-breaks { flex: 0 0 320px; max-width: 340px; }
   .card-slots { flex: 1 1 0%; min-width: 340px; max-width: 100%; }
 }
+
+/* Estilos mejorados para tooltips de slots */
+.slot-tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.slot-tooltip .tooltip-content {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    z-index: 1000;
+    bottom: 125%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1f2937;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    max-width: 300px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.2s, visibility 0.2s;
+}
+
+.slot-tooltip .tooltip-content::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #1f2937 transparent transparent transparent;
+}
+
+.slot-tooltip:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+/* Estilos para diferentes estados de slots */
+.slot-occupied {
+    background: linear-gradient(135deg, #fecaca 0%, #f87171 100%);
+    border: 1px solid #dc2626;
+}
+
+.slot-available {
+    background: linear-gradient(135deg, #bbf7d0 0%, #22c55e 100%);
+    border: 1px solid #16a34a;
+}
+
+.slot-unavailable {
+    background: linear-gradient(135deg, #f3f4f6 0%, #9ca3af 100%);
+    border: 1px solid #6b7280;
+}
+
+/* Animaciones para slots */
+.slot-occupied:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.slot-available:hover {
+    transform: scale(1.05);
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
+}
+
+.slot-status {
+    transition: all 0.2s ease;
+}
 </style>
 <div class="content">
     <div class="flex items-center justify-between mb-6">
@@ -172,23 +245,80 @@
                                             // Buscar slot para esta hora y mesa
                                             $start = explode('-', $hora)[0];
                                             $slot = null;
+                                            $appointment = null;
+                                            
+                                            // Buscar en los slots generados
                                             foreach ($slotsByDate[$activeDay] as $s) {
                                                 if (substr($s['start_datetime'], 11, 5) === $start && $s['table_number'] == $mesa) {
                                                     $slot = $s;
                                                     break;
                                                 }
                                             }
-                                            $appt = $slot ? ($ocupados[$activeDay][$start][$mesa] ?? null) : null;
+                                            
+                                            // Buscar appointment correspondiente
+                                            if ($slot) {
+                                                foreach ($appointments as $appt) {
+                                                    if ($appt['schedule_id'] == $slot['schedule_id']) {
+                                                        $appointment = $appt;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            
+                                            // Determinar el estado del slot
+                                            $isOccupied = $appointment && !empty($appointment['match_id']);
                                             ?>
-                                            <td class="text-center" style="min-width:90px;">
-                                                <?php if ($appt): ?>
-                                                    <span class="inline-block rounded px-1.5 py-0.5 text-xs font-semibold bg-red-100 text-red-800" style="font-size:0.8em; cursor:pointer;" title="<?= htmlspecialchars(($appt['buyer_name'] ?? '').' / '.($appt['supplier_name'] ?? '')) ?>">
-                                                        Ocupado<br><?= htmlspecialchars($appt['buyer_name'] ?? '') ?> / <?= htmlspecialchars($appt['supplier_name'] ?? '') ?>
-                                                    </span>
+                                            <td class="text-center" style="min-width:100px;">
+                                                <?php if ($isOccupied): ?>
+                                                    <?php 
+                                                    $buyerName = htmlspecialchars($appointment['buyer_name'] ?? 'N/A');
+                                                    $supplierName = htmlspecialchars($appointment['supplier_name'] ?? 'N/A');
+                                                    $buyerContact = htmlspecialchars($appointment['buyer_contact'] ?? '');
+                                                    $supplierContact = htmlspecialchars($appointment['supplier_contact'] ?? '');
+                                                    $requirements = htmlspecialchars(substr($appointment['buyer_requirements'] ?? '', 0, 150));
+                                                    ?>
+                                                    <div class="slot-tooltip">
+                                                        <span class="slot-status slot-occupied inline-block rounded px-2 py-1 text-xs font-semibold text-white cursor-help" 
+                                                              style="font-size:0.75em; max-width:95px;">
+                                                            <i class="fas fa-handshake" style="font-size:0.7em;"></i> Ocupado
+                                                            <div class="text-xs mt-0.5" style="font-size:0.6em; line-height:1;">
+                                                                <?= substr($buyerName, 0, 12) ?><?= strlen($buyerName) > 12 ? '...' : '' ?>
+                                                            </div>
+                                                        </span>
+                                                        <div class="tooltip-content">
+                                                            <strong>🤝 Match Confirmado</strong><br>
+                                                            <strong>Comprador:</strong> <?= $buyerName ?><br>
+                                                            <?php if ($buyerContact): ?><em>Contacto:</em> <?= $buyerContact ?><br><?php endif; ?>
+                                                            <strong>Proveedor:</strong> <?= $supplierName ?><br>
+                                                            <?php if ($supplierContact): ?><em>Contacto:</em> <?= $supplierContact ?><br><?php endif; ?>
+                                                            <?php if ($requirements): ?><em>Requerimientos:</em> <?= $requirements ?>...<?php endif; ?>
+                                                        </div>
+                                                    </div>
                                                 <?php elseif ($slot): ?>
-                                                    <span class="inline-block rounded px-1.5 py-0.5 text-xs font-semibold bg-green-100 text-green-800" style="font-size:0.8em">Disponible</span>
+                                                    <div class="slot-tooltip">
+                                                        <span class="slot-status slot-available inline-block rounded px-2 py-1 text-xs font-semibold text-white" 
+                                                              style="font-size:0.75em;">
+                                                            <i class="fas fa-check-circle" style="font-size:0.7em;"></i> Disponible
+                                                        </span>
+                                                        <div class="tooltip-content">
+                                                            <strong>✅ Slot Disponible</strong><br>
+                                                            Mesa: <?= $mesa ?><br>
+                                                            Horario: <?= htmlspecialchars($hora) ?><br>
+                                                            <em>Disponible para asignar match</em>
+                                                        </div>
+                                                    </div>
                                                 <?php else: ?>
-                                                    <span class="inline-block rounded px-1.5 py-0.5 text-xs font-semibold bg-gray-100 text-gray-400" style="font-size:0.8em">-</span>
+                                                    <div class="slot-tooltip">
+                                                        <span class="slot-status slot-unavailable inline-block rounded px-2 py-1 text-xs font-semibold text-gray-500" 
+                                                              style="font-size:0.75em;">
+                                                            <i class="fas fa-minus" style="font-size:0.7em;"></i> -
+                                                        </span>
+                                                        <div class="tooltip-content">
+                                                            <strong>⏸️ Sin Slot</strong><br>
+                                                            Horario no programado<br>
+                                                            <em>Posible período de break</em>
+                                                        </div>
+                                                    </div>
                                                 <?php endif; ?>
                                             </td>
                                         <?php endforeach; ?>

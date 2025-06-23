@@ -88,14 +88,107 @@ const genericModal = {
         if (this.footerElement) this.footerElement.innerHTML = footer;
         this.onClose = onClose;
         this.modal.classList.remove('hidden');
+        this.modal.style.display = 'flex';
     },
     close: function() {
         if (this.modal) {
             this.modal.classList.add('hidden');
+            this.modal.style.display = 'none';
             if (typeof this.onClose === 'function') this.onClose();
         }
     }
 };
+
+// --- Modal edición match potencial (matches) ---
+(function() {
+    const modal = document.getElementById('potentialMatchModal');
+    const form = document.getElementById('potentialMatchForm');
+    const closeBtns = modal ? modal.querySelectorAll('.close-modal-btn') : [];
+    
+    // Asegurar que el modal esté oculto al cargar la página
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+    
+    // Campos comprador (solo lectura)
+    const buyerCompany = document.getElementById('pm-buyer-company');
+    const buyerDescription = document.getElementById('pm-buyer-description');
+    const buyerKeywords = document.getElementById('pm-buyer-keywords');
+    const buyerAttendance = document.getElementById('pm-buyer-attendance');
+    // Campos proveedor (editables)
+    const supplierDescription = document.getElementById('pm-supplier-description');
+    const supplierKeywords = document.getElementById('pm-supplier-keywords');
+    const supplierAttendance = document.getElementById('pm-supplier-attendance');
+
+    function openPotentialMatchModal({
+        buyer = {},
+        supplier = {},
+        onSave = null
+    }) {
+        if (!modal) return;
+        // Precargar datos comprador
+        buyerCompany.textContent = buyer.company || '';
+        buyerDescription.textContent = buyer.description || '';
+        buyerKeywords.textContent = buyer.keywords || '';
+        buyerAttendance.textContent = buyer.attendance || '';
+        // Precargar datos proveedor
+        supplierDescription.value = supplier.description || '';
+        supplierKeywords.value = supplier.keywords || '';
+        supplierAttendance.value = supplier.attendance || '';
+        // Mostrar modal
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        supplierDescription.focus();
+        // Guardar callback
+        modal._onSave = typeof onSave === 'function' ? onSave : null;
+    }
+
+    function closePotentialMatchModal() {
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+        if (form) form.reset();
+    }
+
+    // Cerrar con botón X o Cancelar
+    closeBtns.forEach(btn => btn.addEventListener('click', closePotentialMatchModal));
+    // Cerrar con click fuera del contenido
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) closePotentialMatchModal();
+        });
+    }
+    // Cerrar con ESC
+    document.addEventListener('keydown', function(e) {
+        if (!modal.classList.contains('hidden') && e.key === 'Escape') closePotentialMatchModal();
+    });
+    // Validación y submit
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Validación básica
+            if (!supplierDescription.value.trim() || !supplierKeywords.value.trim() || !supplierAttendance.value.trim()) {
+                alert('Todos los campos del proveedor son obligatorios.');
+                return;
+            }
+            // Simular guardado
+            if (typeof modal._onSave === 'function') {
+                modal._onSave({
+                    description: supplierDescription.value.trim(),
+                    keywords: supplierKeywords.value.trim(),
+                    attendance: supplierAttendance.value.trim()
+                });
+            } else {
+                alert('Cambios guardados (simulado).');
+            }
+            closePotentialMatchModal();
+        });
+    }
+    // Exponer global
+    window.openPotentialMatchModal = openPotentialMatchModal;
+    window.closePotentialMatchModal = closePotentialMatchModal;
+})();
 
 // Inicializar modales cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', function() {
@@ -113,10 +206,17 @@ window.closeDeleteModal = function() {
 
 // Función global para abrir el modal de edición de match potencial
 window.openEditPotentialMatchModal = function({buyerId, supplierId, eventId}) {
+    // Solo proceder si se tienen todos los parámetros necesarios
+    if (!buyerId || !supplierId || !eventId) {
+        console.warn('openEditPotentialMatchModal: Parámetros faltantes', {buyerId, supplierId, eventId});
+        return;
+    }
+    
     console.log('openEditPotentialMatchModal llamada', {buyerId, supplierId, eventId});
-    console.trace();
+    
     // Inicializar el modal si no está
     if (!genericModal.modal) genericModal.init('potentialMatchModalId');
+    
     // Mostrar loader mientras se cargan los datos
     genericModal.open({
         title: 'Editar match potencial',

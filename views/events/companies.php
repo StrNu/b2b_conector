@@ -80,23 +80,43 @@
                 </tbody>
             </table>
         </div>
+        
+        <!-- Contenedor para paginación -->
+        <div id="companiesPagination" class="mt-4"></div>
+        
         <script>
-        // Filtro por rol en tiempo real
         document.addEventListener('DOMContentLoaded', function() {
+            // Inicializar paginación para que funcione la búsqueda automática
+            pagination('companiesPagination', 'companiesTable', 10);
+            
+            // Filtro por rol combinado con búsqueda automática
             const roleFilter = document.querySelector('[data-role-filter]');
-            const table = document.getElementById('companiesTable');
-            if (roleFilter && table) {
-                roleFilter.addEventListener('change', function() {
-                    const value = this.value;
-                    const rows = table.querySelectorAll('tbody tr');
-                    rows.forEach(row => {
-                        if (!value || row.getAttribute('data-role') === value) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
-                    });
-                });
+            const searchInput = document.getElementById('searchCompany');
+            
+            if (roleFilter && searchInput) {
+                function applyFilters() {
+                    const roleValue = roleFilter.value;
+                    const searchValue = searchInput.value.toLowerCase();
+                    
+                    if (window.repaginateTable && window.repaginateTable['companiesTable']) {
+                        window.repaginateTable['companiesTable'](row => {
+                            // Filtro por rol
+                            const roleMatch = !roleValue || row.getAttribute('data-role') === roleValue;
+                            
+                            // Filtro por búsqueda
+                            let searchMatch = true;
+                            if (searchValue) {
+                                const searchField = row.querySelector('[data-search-field="company_name"]');
+                                searchMatch = searchField && searchField.textContent.toLowerCase().includes(searchValue);
+                            }
+                            
+                            return roleMatch && searchMatch;
+                        });
+                    }
+                }
+                
+                roleFilter.addEventListener('change', applyFilters);
+                searchInput.addEventListener('input', applyFilters);
             }
         });
         </script>

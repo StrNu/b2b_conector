@@ -403,7 +403,7 @@ public function getEventStats($eventId) {
             // Contar requerimientos de compradores
             $query = "SELECT COUNT(*) as count FROM requirements r 
                       JOIN company c ON r.buyer_id = c.company_id 
-                      WHERE r.subcategory_id = :subcategory_id 
+                      WHERE r.event_subcategory_id = :subcategory_id 
                       AND c.event_id = :event_id";
             
             $params = [
@@ -417,7 +417,7 @@ public function getEventStats($eventId) {
             // Contar ofertas de proveedores
             $query = "SELECT COUNT(*) as count FROM supplier_offers so 
                       JOIN company c ON so.supplier_id = c.company_id 
-                      WHERE so.subcategory_id = :subcategory_id 
+                      WHERE so.event_subcategory_id = :subcategory_id 
                       AND c.event_id = :event_id";
             
             $params = [

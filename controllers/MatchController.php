@@ -235,16 +235,9 @@ class MatchController {
         }
         
         // --- SUGERENCIAS POR ROL PARA EMPRESAS SIN MATCH ---
-        $buyerSuggestions = [];
-        $supplierSuggestions = [];
-        if (isset($eventId)) {
-            $sugByRole = $this->matchModel->getUnmatchedSuggestionsByRole($eventId, 7);
-            $buyerSuggestions = $sugByRole['buyer'];
-            $supplierSuggestions = $sugByRole['supplier'];
-        }
-        error_log('[SUG-ROL-BUYER] ' . print_r($buyerSuggestions, true));
-        error_log('[SUG-ROL-SUPPLIER] ' . print_r($supplierSuggestions, true));
-        error_log('[SUG-ROL-UNMATCHED] ' . print_r($unmatchedCompanies, true));
+        // Las sugerencias ya están calculadas arriba en $unmatchedSuggestions
+        error_log('[SUG-UNMATCHED] ' . print_r($unmatchedCompanies, true));
+        error_log('[SUG-OPTIMIZATION] ' . print_r($unmatchedSuggestions, true));
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
@@ -1353,6 +1346,581 @@ class MatchController {
         ]);
         exit;
     }
+
+    /**
+     * Endpoint AJAX para obtener detalles completos de una empresa y sus días de asistencia
+     * @return void
+     */
+    public function getCompanyPotentialMatchesDetailAjax() {
+        header('Content-Type: application/json');
+        // Solo POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+        // Validar parámetros
+        $companyId = isset($_POST['company_id']) ? (int)$_POST['company_id'] : 0;
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        if (!$companyId || !$eventId) {
+            echo json_encode(['success' => false, 'message' => 'Parámetros incompletos']);
+            exit;
+        }
+        // Obtener detalles
+        $details = $this->matchModel->getCompanyPotentialMatchesDetail($companyId, $eventId);
+        if (!$details) {
+            echo json_encode(['success' => false, 'message' => 'Empresa no encontrada']);
+            exit;
+        }
+        echo json_encode(['success' => true, 'data' => $details]);
+        exit;
+    }
+
+    /**
+     * Actualizar datos del proveedor de un match potencial (AJAX)
+     * Espera: supplier_id, event_id, description, keywords, attendance_days[]
+     */
+    public function updateSupplierPotentialMatchAjax() {
+        header('Content-Type: application/json');
+        
+        // Verificar método y CSRF token
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+        
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
+            exit;
+        }
+        
+        // Obtener y validar parámetros
+        $supplierId = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : 0;
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        $description = trim($_POST['description'] ?? '');
+        $keywords = trim($_POST['keywords'] ?? '');
+        $attendanceDays = isset($_POST['attendance_days']) ? $_POST['attendance_days'] : [];
+        
+        Logger::debug('updateSupplierPotentialMatchAjax called', [
+            'supplier_id' => $supplierId,
+            'event_id' => $eventId,
+            'description' => $description,
+            'keywords_raw' => $keywords,
+            'attendance_days' => $attendanceDays
+        ]);
+        
+        if (!$supplierId || !$eventId) {
+            Logger::error('updateSupplierPotentialMatchAjax: Faltan parámetros requeridos', [
+                'supplier_id' => $supplierId,
+                'event_id' => $eventId
+            ]);
+            echo json_encode(['success' => false, 'message' => 'Faltan parámetros requeridos (supplier_id y event_id)']);
+            exit;
+        }
+        
+        try {
+            // Verificar que la empresa existe y corresponde al evento
+            $companyExists = $this->db->single(
+                "SELECT company_id FROM company WHERE company_id = :supplier_id AND event_id = :event_id",
+                [
+                    'supplier_id' => $supplierId,
+                    'event_id' => $eventId
+                ]
+            );
+            
+            if (!$companyExists) {
+                Logger::error('updateSupplierPotentialMatchAjax: Empresa no encontrada', [
+                    'supplier_id' => $supplierId,
+                    'event_id' => $eventId
+                ]);
+                echo json_encode(['success' => false, 'message' => 'Empresa no encontrada para este evento']);
+                exit;
+            }
+            
+            // Procesar keywords: convertir string separado por comas a JSON array
+            $keywordsJson = null;
+            if (!empty($keywords)) {
+                $keywordArray = array_map('trim', explode(',', $keywords));
+                $keywordArray = array_filter($keywordArray, fn($k) => !empty($k));
+                $keywordsJson = !empty($keywordArray) ? json_encode(array_values($keywordArray), JSON_UNESCAPED_UNICODE) : null;
+            }
+            
+            Logger::debug('Keywords processing', [
+                'raw_keywords' => $keywords,
+                'processed_json' => $keywordsJson
+            ]);
+            
+            // Actualizar datos en tabla company
+            $companyUpdate = $this->db->query(
+                "UPDATE company SET description = :description, keywords = :keywords WHERE company_id = :supplier_id AND event_id = :event_id",
+                [
+                    'description' => $description,
+                    'keywords' => $keywordsJson,
+                    'supplier_id' => $supplierId,
+                    'event_id' => $eventId
+                ]
+            );
+            
+            if (!$companyUpdate) {
+                Logger::error('updateSupplierPotentialMatchAjax: Error al actualizar company', [
+                    'supplier_id' => $supplierId,
+                    'event_id' => $eventId
+                ]);
+                echo json_encode(['success' => false, 'message' => 'Error al actualizar los datos de la empresa']);
+                exit;
+            }
+            
+            Logger::info('updateSupplierPotentialMatchAjax: Company actualizada correctamente', [
+                'supplier_id' => $supplierId,
+                'event_id' => $eventId
+            ]);
+            
+            // Actualizar attendance_days: eliminar y volver a insertar
+            $deleteResult = $this->db->query("DELETE FROM attendance_days WHERE company_id = :supplier_id AND event_id = :event_id", [
+                'supplier_id' => $supplierId,
+                'event_id' => $eventId
+            ]);
+            
+            Logger::debug('updateSupplierPotentialMatchAjax: Attendance days eliminados', [
+                'delete_result' => $deleteResult
+            ]);
+            
+            // Insertar nuevas fechas de asistencia
+            $insertedDates = 0;
+            if (is_array($attendanceDays) && !empty($attendanceDays)) {
+                foreach ($attendanceDays as $date) {
+                    if (!empty(trim($date))) {
+                        $insertResult = $this->db->query(
+                            "INSERT INTO attendance_days (company_id, event_id, attendance_date) VALUES (:supplier_id, :event_id, :attendance_date)",
+                            [
+                                'supplier_id' => $supplierId,
+                                'event_id' => $eventId,
+                                'attendance_date' => trim($date)
+                            ]
+                        );
+                        
+                        if ($insertResult) {
+                            $insertedDates++;
+                        }
+                    }
+                }
+            }
+            
+            Logger::info('updateSupplierPotentialMatchAjax: Fechas de asistencia insertadas', [
+                'inserted_dates' => $insertedDates,
+                'total_dates' => count($attendanceDays)
+            ]);
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Datos del proveedor actualizados correctamente',
+                'updated_fields' => [
+                    'description' => $description,
+                    'keywords' => $keywords,
+                    'attendance_dates' => $insertedDates
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            Logger::error('updateSupplierPotentialMatchAjax: Excepción', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            echo json_encode(['success' => false, 'message' => 'Error interno del servidor: ' . $e->getMessage()]);
+        }
+        
+        exit;
+    }
+    
+    /**
+     * Obtener sugerencias de optimización basadas en keywords y requirements más repetidos
+     * 
+     * @return void
+     */
+    public function getOptimizationSuggestionsAjax() {
+        header('Content-Type: application/json');
+        
+        // Verificar método
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+        
+        // Verificar CSRF token
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
+            exit;
+        }
+        
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        
+        if (!$eventId) {
+            echo json_encode(['success' => false, 'message' => 'Event ID requerido']);
+            exit;
+        }
+        
+        try {
+            $suggestions = [
+                'buyer_keywords' => [],
+                'supplier_keywords' => [],
+                'buyer_description_words' => [],
+                'supplier_description_words' => [],
+                'popular_requirements' => [],
+                'popular_supplier_offers' => []
+            ];
+            
+            // 1. Keywords más repetidas por buyers
+            $buyerKeywords = $this->db->resultSet(
+                "SELECT keywords FROM company WHERE event_id = :event_id AND role = 'buyer' AND keywords IS NOT NULL AND keywords != ''",
+                ['event_id' => $eventId]
+            );
+            
+            $buyerKeywordCount = [];
+            foreach ($buyerKeywords as $row) {
+                if (!empty($row['keywords'])) {
+                    $keywords = json_decode($row['keywords'], true);
+                    if (is_array($keywords)) {
+                        foreach ($keywords as $keyword) {
+                            $keyword = trim(strtolower($keyword));
+                            if (!empty($keyword)) {
+                                $buyerKeywordCount[$keyword] = ($buyerKeywordCount[$keyword] ?? 0) + 1;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 2. Keywords más repetidas por suppliers
+            $supplierKeywords = $this->db->resultSet(
+                "SELECT keywords FROM company WHERE event_id = :event_id AND role = 'supplier' AND keywords IS NOT NULL AND keywords != ''",
+                ['event_id' => $eventId]
+            );
+            
+            $supplierKeywordCount = [];
+            foreach ($supplierKeywords as $row) {
+                if (!empty($row['keywords'])) {
+                    $keywords = json_decode($row['keywords'], true);
+                    if (is_array($keywords)) {
+                        foreach ($keywords as $keyword) {
+                            $keyword = trim(strtolower($keyword));
+                            if (!empty($keyword)) {
+                                $supplierKeywordCount[$keyword] = ($supplierKeywordCount[$keyword] ?? 0) + 1;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // 3. Palabras repetidas en descripciones de buyers
+            $buyerDescriptions = $this->db->resultSet(
+                "SELECT description FROM company WHERE event_id = :event_id AND role = 'buyer' AND description IS NOT NULL AND description != ''",
+                ['event_id' => $eventId]
+            );
+            
+            $buyerDescWords = [];
+            foreach ($buyerDescriptions as $row) {
+                if (!empty($row['description'])) {
+                    $words = preg_split('/[\s,\.;:!?\-]+/', strtolower($row['description']));
+                    foreach ($words as $word) {
+                        $word = trim($word);
+                        if (strlen($word) > 3) { // Solo palabras de más de 3 caracteres
+                            $buyerDescWords[$word] = ($buyerDescWords[$word] ?? 0) + 1;
+                        }
+                    }
+                }
+            }
+            
+            // 4. Palabras repetidas en descripciones de suppliers
+            $supplierDescriptions = $this->db->resultSet(
+                "SELECT description FROM company WHERE event_id = :event_id AND role = 'supplier' AND description IS NOT NULL AND description != ''",
+                ['event_id' => $eventId]
+            );
+            
+            $supplierDescWords = [];
+            foreach ($supplierDescriptions as $row) {
+                if (!empty($row['description'])) {
+                    $words = preg_split('/[\s,\.;:!?\-]+/', strtolower($row['description']));
+                    foreach ($words as $word) {
+                        $word = trim($word);
+                        if (strlen($word) > 3) { // Solo palabras de más de 3 caracteres
+                            $supplierDescWords[$word] = ($supplierDescWords[$word] ?? 0) + 1;
+                        }
+                    }
+                }
+            }
+            
+            // 5. Requirements más populares
+            $requirements = $this->db->resultSet(
+                "SELECT ec.name as category, es.name as subcategory, COUNT(*) as count 
+                 FROM requirements r
+                 JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
+                 JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+                 JOIN company c ON r.buyer_id = c.company_id
+                 WHERE c.event_id = :event_id
+                 GROUP BY ec.name, es.name
+                 ORDER BY count DESC
+                 LIMIT 10",
+                ['event_id' => $eventId]
+            );
+            
+            // 6. Supplier offers más populares
+            $supplierOffers = $this->db->resultSet(
+                "SELECT ec.name as category, es.name as subcategory, COUNT(*) as count 
+                 FROM supplier_offers so
+                 JOIN event_subcategories es ON so.event_subcategory_id = es.event_subcategory_id
+                 JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+                 JOIN company c ON so.supplier_id = c.company_id
+                 WHERE c.event_id = :event_id
+                 GROUP BY ec.name, es.name
+                 ORDER BY count DESC
+                 LIMIT 10",
+                ['event_id' => $eventId]
+            );
+            
+            // Ordenar y limitar resultados
+            arsort($buyerKeywordCount);
+            arsort($supplierKeywordCount);
+            arsort($buyerDescWords);
+            arsort($supplierDescWords);
+            
+            $suggestions['buyer_keywords'] = array_slice($buyerKeywordCount, 0, 10, true);
+            $suggestions['supplier_keywords'] = array_slice($supplierKeywordCount, 0, 10, true);
+            $suggestions['buyer_description_words'] = array_slice($buyerDescWords, 0, 10, true);
+            $suggestions['supplier_description_words'] = array_slice($supplierDescWords, 0, 10, true);
+            $suggestions['popular_requirements'] = $requirements;
+            $suggestions['popular_supplier_offers'] = $supplierOffers;
+            
+            // Guardar las estadísticas en la tabla event_statistics
+            $statisticsData = [
+                'keywords' => [
+                    'buyer_keywords' => $suggestions['buyer_keywords'],
+                    'supplier_keywords' => $suggestions['supplier_keywords']
+                ],
+                'categories' => $suggestions['popular_requirements'],
+                'subcategories' => $suggestions['popular_supplier_offers'], 
+                'descriptions' => [
+                    'buyer_words' => $suggestions['buyer_description_words'],
+                    'supplier_words' => $suggestions['supplier_description_words']
+                ]
+            ];
+            
+            // Guardar estadísticas usando el método del modelo
+            try {
+                $saved = $this->matchModel->saveEventStatistics($eventId, $statisticsData);
+                if ($saved) {
+                    Logger::info('Event statistics saved successfully', [
+                        'event_id' => $eventId,
+                        'data_keys' => array_keys($statisticsData)
+                    ]);
+                } else {
+                    Logger::warning('Failed to save event statistics', [
+                        'event_id' => $eventId
+                    ]);
+                }
+            } catch (Exception $e) {
+                Logger::error('Error saving event statistics', [
+                    'event_id' => $eventId,
+                    'error' => $e->getMessage()
+                ]);
+            }
+            
+            echo json_encode([
+                'success' => true,
+                'suggestions' => $suggestions,
+                'statistics_saved' => $saved ?? false
+            ]);
+            
+        } catch (Exception $e) {
+            Logger::error('getOptimizationSuggestionsAjax: Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            echo json_encode(['success' => false, 'message' => 'Error al obtener sugerencias: ' . $e->getMessage()]);
+        }
+        
+        exit;
+    }
+    
+    /**
+     * Optimizar datos de una empresa (AJAX)
+     * Actualiza keywords y description de una empresa
+     */
+    public function optimizeCompanyAjax() {
+        header('Content-Type: application/json');
+        
+        // Verificar método
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+        
+        // Verificar CSRF token
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
+            exit;
+        }
+        
+        // Obtener y validar parámetros
+        $companyId = isset($_POST['company_id']) ? (int)$_POST['company_id'] : 0;
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        $description = trim($_POST['description'] ?? '');
+        $keywords = trim($_POST['keywords'] ?? '');
+        
+        Logger::debug('optimizeCompanyAjax called', [
+            'company_id' => $companyId,
+            'event_id' => $eventId,
+            'description_length' => strlen($description),
+            'keywords_raw' => $keywords
+        ]);
+        
+        if (!$companyId || !$eventId) {
+            echo json_encode(['success' => false, 'message' => 'Faltan parámetros requeridos (company_id y event_id)']);
+            exit;
+        }
+        
+        try {
+            // Verificar que la empresa existe y corresponde al evento
+            $companyExists = $this->db->single(
+                "SELECT company_id FROM company WHERE company_id = :company_id AND event_id = :event_id",
+                [
+                    'company_id' => $companyId,
+                    'event_id' => $eventId
+                ]
+            );
+            
+            if (!$companyExists) {
+                echo json_encode(['success' => false, 'message' => 'Empresa no encontrada para este evento']);
+                exit;
+            }
+            
+            // Procesar keywords: convertir string separado por comas a JSON array
+            $keywordsJson = null;
+            if (!empty($keywords)) {
+                $keywordArray = array_map('trim', explode(',', $keywords));
+                $keywordArray = array_filter($keywordArray, fn($k) => !empty($k));
+                $keywordsJson = !empty($keywordArray) ? json_encode(array_values($keywordArray), JSON_UNESCAPED_UNICODE) : null;
+            }
+            
+            Logger::debug('Keywords processing for optimization', [
+                'raw_keywords' => $keywords,
+                'processed_json' => $keywordsJson
+            ]);
+            
+            // Actualizar datos en tabla company
+            $companyUpdate = $this->db->query(
+                "UPDATE company SET description = :description, keywords = :keywords WHERE company_id = :company_id AND event_id = :event_id",
+                [
+                    'description' => $description,
+                    'keywords' => $keywordsJson,
+                    'company_id' => $companyId,
+                    'event_id' => $eventId
+                ]
+            );
+            
+            if (!$companyUpdate) {
+                Logger::error('optimizeCompanyAjax: Error al actualizar company', [
+                    'company_id' => $companyId,
+                    'event_id' => $eventId
+                ]);
+                echo json_encode(['success' => false, 'message' => 'Error al actualizar los datos de la empresa']);
+                exit;
+            }
+            
+            Logger::info('optimizeCompanyAjax: Company optimizada correctamente', [
+                'company_id' => $companyId,
+                'event_id' => $eventId,
+                'updated_fields' => [
+                    'description' => $description,
+                    'keywords' => $keywords
+                ]
+            ]);
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Empresa optimizada correctamente',
+                'updated_fields' => [
+                    'description' => $description,
+                    'keywords' => $keywords
+                ]
+            ]);
+            
+        } catch (Exception $e) {
+            Logger::error('optimizeCompanyAjax: Excepción', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            echo json_encode(['success' => false, 'message' => 'Error interno del servidor: ' . $e->getMessage()]);
+        }
+        
+        exit;
+    }
+    
+    /**
+     * Obtener detalles de una empresa (AJAX)
+     */
+    public function getCompanyDetailsAjax() {
+        header('Content-Type: application/json');
+        
+        // Verificar método
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+        
+        // Verificar CSRF token
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
+            exit;
+        }
+        
+        $companyId = isset($_POST['company_id']) ? (int)$_POST['company_id'] : 0;
+        
+        if (!$companyId) {
+            echo json_encode(['success' => false, 'message' => 'Company ID requerido']);
+            exit;
+        }
+        
+        try {
+            // Obtener datos de la empresa
+            $company = $this->db->single(
+                "SELECT company_id, company_name, description, keywords, role FROM company WHERE company_id = :company_id",
+                ['company_id' => $companyId]
+            );
+            
+            if (!$company) {
+                echo json_encode(['success' => false, 'message' => 'Empresa no encontrada']);
+                exit;
+            }
+            
+            // Procesar keywords para el frontend
+            $keywords = null;
+            if (!empty($company['keywords'])) {
+                $decoded = json_decode($company['keywords'], true);
+                $keywords = is_array($decoded) ? $decoded : $company['keywords'];
+            }
+            
+            $companyData = [
+                'company_id' => $company['company_id'],
+                'company_name' => $company['company_name'],
+                'description' => $company['description'],
+                'keywords' => $keywords,
+                'role' => $company['role']
+            ];
+            
+            echo json_encode([
+                'success' => true,
+                'company' => $companyData
+            ]);
+            
+        } catch (Exception $e) {
+            Logger::error('getCompanyDetailsAjax: Error', [
+                'error' => $e->getMessage(),
+                'company_id' => $companyId
+            ]);
+            echo json_encode(['success' => false, 'message' => 'Error al obtener detalles de la empresa: ' . $e->getMessage()]);
+        }
+        
+        exit;
+    }
 }
 
 // Registrar endpoint AJAX si la URL lo requiere (solo si el router es simple)
@@ -1433,6 +2001,18 @@ if (isset($_GET['action'])) {
             break;
         case 'searchByDescriptionAjax':
             $controller->searchByDescriptionAjax();
+            break;
+        case 'updateSupplierPotentialMatchAjax':
+            $controller->updateSupplierPotentialMatchAjax();
+            break;
+        case 'getOptimizationSuggestionsAjax':
+            $controller->getOptimizationSuggestionsAjax();
+            break;
+        case 'optimizeCompanyAjax':
+            $controller->optimizeCompanyAjax();
+            break;
+        case 'getCompanyDetailsAjax':
+            $controller->getCompanyDetailsAjax();
             break;
         // Agrega aquí otros endpoints AJAX si es necesario
     }

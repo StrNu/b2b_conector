@@ -1245,6 +1245,94 @@ public function getAvailableTables() {
 }
 
 /**
+ * Obtener duración del evento en días
+ * 
+ * @return int Número de días del evento
+ */
+public function getDurationDays() {
+    if (!isset($this->start_date) || !isset($this->end_date)) {
+        return 1;
+    }
+    
+    $start = new DateTime($this->start_date);
+    $end = new DateTime($this->end_date);
+    $diff = $start->diff($end);
+    
+    return $diff->days + 1; // +1 porque incluimos ambos días
+}
+
+/**
+ * Obtener slots por día (calculado)
+ * 
+ * @return int Número de slots por día
+ */
+public function getSlotsPerDay() {
+    if (!isset($this->start_time) || !isset($this->end_time) || !isset($this->meeting_duration)) {
+        return 0;
+    }
+    
+    $startMinutes = $this->timeToMinutes($this->start_time);
+    $endMinutes = $this->timeToMinutes($this->end_time);
+    $meetingDuration = (int)$this->meeting_duration;
+    
+    if ($meetingDuration <= 0) {
+        return 0;
+    }
+    
+    $totalMinutes = $endMinutes - $startMinutes;
+    $slots = floor($totalMinutes / $meetingDuration);
+    
+    // Restar tiempo de breaks
+    $breaks = $this->getBreaks($this->event_id);
+    $breakMinutes = 0;
+    
+    foreach ($breaks as $break) {
+        $breakStart = $this->timeToMinutes($break['start_time']);
+        $breakEnd = $this->timeToMinutes($break['end_time']);
+        $breakMinutes += ($breakEnd - $breakStart);
+    }
+    
+    $slotsLostToBreaks = floor($breakMinutes / $meetingDuration);
+    
+    return max(0, $slots - $slotsLostToBreaks);
+}
+
+/**
+ * Obtener slots agrupados por fecha
+ * 
+ * @return array Slots organizados por fecha
+ */
+public function getSlotsByDate() {
+    if (!$this->event_id) {
+        return [];
+    }
+    
+    $query = "SELECT * FROM event_schedules WHERE event_id = :event_id ORDER BY start_datetime";
+    $params = ['event_id' => $this->event_id];
+    
+    $slots = $this->db->resultSet($query, $params);
+    $slotsByDate = [];
+    
+    foreach ($slots as $slot) {
+        $date = date('Y-m-d', strtotime($slot['start_datetime']));
+        $slotsByDate[$date][] = $slot;
+    }
+    
+    return $slotsByDate;
+}
+
+/**
+ * Convertir tiempo HH:MM a minutos
+ * 
+ * @param string $time Tiempo en formato HH:MM
+ * @return int Minutos desde medianoche
+ */
+private function timeToMinutes($time) {
+    $parts = explode(':', $time);
+    return (int)$parts[0] * 60 + (int)$parts[1];
+}
+
+/**
  * Obtener la duración de las reuniones en el evento (en minutos)
  * 
  * @return int Duración de las reuniones en minutos

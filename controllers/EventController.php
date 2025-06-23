@@ -415,6 +415,28 @@ private function processLogo($fileData, $type = 'event') {
         }
         $event = $this->eventModel;
         $appointmentModel = new Appointment($this->db);
+        
+        // Manejar regeneración de horarios
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['regenerate_schedules'])) {
+            // Verificar CSRF token
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                setFlashMessage('Token de seguridad inválido', 'danger');
+                redirect(BASE_URL . "/events/schedules/$id");
+                exit;
+            }
+            
+            // Regenerar horarios
+            $result = $this->regenerateEventSchedules($id);
+            
+            if ($result['success']) {
+                setFlashMessage('Horarios regenerados exitosamente. ' . $result['message'], 'success');
+            } else {
+                setFlashMessage('Error al regenerar horarios: ' . $result['message'], 'danger');
+            }
+            
+            redirect(BASE_URL . "/events/schedules/$id");
+            exit;
+        }
         // Obtener días del evento
         $startDate = new DateTime($event->getStartDate());
         $endDate = new DateTime($event->getEndDate());
@@ -1235,10 +1257,29 @@ public function editParticipant($eventId, $assistantId) {
         $eventModel = $this->eventModel;
         // Obtener datos necesarios para la vista
         $availableTables = $eventModel->getAvailableTables();
-        $eventDurationDays = $eventModel->getDurationDays ? $eventModel->getDurationDays() : 1;
-        $slotsPerDay = method_exists($eventModel, 'getSlotsPerDay') ? $eventModel->getSlotsPerDay() : 0;
-        $slotsByDate = method_exists($eventModel, 'getSlotsByDate') ? $eventModel->getSlotsByDate() : [];
-        $breaks = method_exists($eventModel, 'getBreaks') ? $eventModel->getBreaks($eventId) : [];
+        $eventDurationDays = $eventModel->getDurationDays();
+        $slotsPerDay = $eventModel->getSlotsPerDay();
+        $slotsByDate = $eventModel->getSlotsByDate();
+        $breaks = $eventModel->getBreaks($eventId);
+        
+        // Actualizar status de slots ocupados automáticamente
+        $this->updateSlotStatuses($eventId);
+        
+        // Obtener appointments para mostrar slots ocupados con información completa
+        $query = "SELECT es.*, 
+                         m.match_id,
+                         c1.company_name as buyer_name, 
+                         c2.company_name as supplier_name,
+                         c1.contact_name as buyer_contact,
+                         c2.contact_name as supplier_contact,
+                         m.buyer_requirements,
+                         m.supplier_offers
+                  FROM event_schedules es 
+                  LEFT JOIN matches m ON es.match_id = m.match_id 
+                  LEFT JOIN company c1 ON m.buyer_id = c1.company_id 
+                  LEFT JOIN company c2 ON m.supplier_id = c2.company_id 
+                  WHERE es.event_id = :event_id";
+        $appointments = $this->db->resultSet($query, ['event_id' => $eventId]);
         // Pasar variables a la vista
         include(VIEW_DIR . '/events/time_slots.php');
     }
@@ -1267,5 +1308,198 @@ public function editParticipant($eventId, $assistantId) {
         ];
         // Cargar vista (usa la misma que CategoryController)
         include(VIEW_DIR . '/events/categories.php');
+    }
+    
+    /**
+     * Regenerar horarios (time slots) para un evento
+     * 
+     * @param int $eventId ID del evento
+     * @return array Resultado de la operación
+     */
+    private function regenerateEventSchedules($eventId) {
+        try {
+            // Obtener datos del evento
+            if (!$this->eventModel->findById($eventId)) {
+                return ['success' => false, 'message' => 'Evento no encontrado'];
+            }
+            
+            $event = $this->eventModel;
+            $startDate = $event->getStartDate();
+            $endDate = $event->getEndDate();
+            $startTime = $event->getStartTime();
+            $endTime = $event->getEndTime();
+            $meetingDuration = $event->getMeetingDuration();
+            $availableTables = $event->getAvailableTables();
+            
+            // Validar datos necesarios
+            if (!$startDate || !$endDate || !$startTime || !$endTime || !$meetingDuration || !$availableTables) {
+                return ['success' => false, 'message' => 'Faltan datos necesarios del evento (fechas, horarios, duración, mesas)'];
+            }
+            
+            // Eliminar horarios existentes
+            $deleteQuery = "DELETE FROM event_schedules WHERE event_id = :event_id";
+            $this->db->query($deleteQuery, ['event_id' => $eventId]);
+            
+            // Generar fechas del evento
+            $currentDate = new DateTime($startDate);
+            $lastDate = new DateTime($endDate);
+            $dates = [];
+            
+            while ($currentDate <= $lastDate) {
+                $dates[] = $currentDate->format('Y-m-d');
+                $currentDate->modify('+1 day');
+            }
+            
+            // Obtener breaks del evento
+            $breaks = $event->getBreaks($eventId);
+            $breakPeriods = [];
+            foreach ($breaks as $break) {
+                $breakPeriods[] = [
+                    'start' => $this->timeToMinutes($break['start_time']),
+                    'end' => $this->timeToMinutes($break['end_time'])
+                ];
+            }
+            
+            // Generar time slots para cada día
+            $totalSlotsGenerated = 0;
+            
+            foreach ($dates as $date) {
+                $slots = $this->generateTimeSlotsForDay($startTime, $endTime, $meetingDuration, $breakPeriods);
+                
+                // Crear registros en la base de datos para cada mesa
+                foreach ($slots as $slot) {
+                    for ($table = 1; $table <= $availableTables; $table++) {
+                        $startDatetime = $date . ' ' . $slot['start_time'];
+                        $endDatetime = $date . ' ' . $slot['end_time'];
+                        
+                        $insertQuery = "INSERT INTO event_schedules (event_id, table_number, start_datetime, end_datetime, status) 
+                                       VALUES (:event_id, :table_number, :start_datetime, :end_datetime, 'available')";
+                        
+                        $params = [
+                            'event_id' => $eventId,
+                            'table_number' => $table,
+                            'start_datetime' => $startDatetime,
+                            'end_datetime' => $endDatetime
+                        ];
+                        
+                        $this->db->query($insertQuery, $params);
+                        $totalSlotsGenerated++;
+                    }
+                }
+            }
+            
+            return [
+                'success' => true, 
+                'message' => "Se generaron $totalSlotsGenerated slots de tiempo para " . count($dates) . " días."
+            ];
+            
+        } catch (Exception $e) {
+            return ['success' => false, 'message' => 'Error interno: ' . $e->getMessage()];
+        }
+    }
+    
+    /**
+     * Generar slots de tiempo para un día específico
+     * 
+     * @param string $startTime Hora de inicio (HH:MM:SS)
+     * @param string $endTime Hora de fin (HH:MM:SS)
+     * @param int $meetingDuration Duración en minutos
+     * @param array $breakPeriods Períodos de descanso
+     * @return array Array de slots
+     */
+    private function generateTimeSlotsForDay($startTime, $endTime, $meetingDuration, $breakPeriods = []) {
+        $slots = [];
+        $currentMinutes = $this->timeToMinutes($startTime);
+        $endMinutes = $this->timeToMinutes($endTime);
+        
+        while ($currentMinutes + $meetingDuration <= $endMinutes) {
+            $slotEndMinutes = $currentMinutes + $meetingDuration;
+            
+            // Verificar si el slot se superpone con algún break
+            $overlapsWithBreak = false;
+            foreach ($breakPeriods as $break) {
+                if ($this->slotsOverlap($currentMinutes, $slotEndMinutes, $break['start'], $break['end'])) {
+                    $overlapsWithBreak = true;
+                    break;
+                }
+            }
+            
+            // Si no se superpone con un break, agregar el slot
+            if (!$overlapsWithBreak) {
+                $slots[] = [
+                    'start_time' => $this->minutesToTime($currentMinutes),
+                    'end_time' => $this->minutesToTime($slotEndMinutes)
+                ];
+            }
+            
+            $currentMinutes += $meetingDuration;
+        }
+        
+        return $slots;
+    }
+    
+    /**
+     * Verificar si dos períodos de tiempo se superponen
+     * 
+     * @param int $start1 Inicio del primer período (en minutos)
+     * @param int $end1 Fin del primer período (en minutos)
+     * @param int $start2 Inicio del segundo período (en minutos)
+     * @param int $end2 Fin del segundo período (en minutos)
+     * @return bool True si se superponen
+     */
+    private function slotsOverlap($start1, $end1, $start2, $end2) {
+        return !($end1 <= $start2 || $start1 >= $end2);
+    }
+    
+    /**
+     * Convertir tiempo en formato HH:MM:SS a minutos desde medianoche
+     * 
+     * @param string $time Tiempo en formato HH:MM:SS
+     * @return int Minutos desde medianoche
+     */
+    private function timeToMinutes($time) {
+        $parts = explode(':', $time);
+        return (int)$parts[0] * 60 + (int)$parts[1];
+    }
+    
+    /**
+     * Convertir minutos desde medianoche a formato HH:MM:SS
+     * 
+     * @param int $minutes Minutos desde medianoche
+     * @return string Tiempo en formato HH:MM:SS
+     */
+    private function minutesToTime($minutes) {
+        $hours = floor($minutes / 60);
+        $mins = $minutes % 60;
+        return sprintf('%02d:%02d:00', $hours, $mins);
+    }
+    
+    /**
+     * Actualizar el status de los slots basado en si tienen matches asignados
+     * 
+     * @param int $eventId ID del evento
+     * @return void
+     */
+    private function updateSlotStatuses($eventId) {
+        try {
+            // Marcar como ocupados los slots que tienen match_id
+            $updateOccupied = "UPDATE event_schedules 
+                              SET status = 'occupied' 
+                              WHERE event_id = :event_id 
+                              AND match_id IS NOT NULL 
+                              AND status != 'occupied'";
+            $this->db->query($updateOccupied, ['event_id' => $eventId]);
+            
+            // Marcar como disponibles los slots que no tienen match_id
+            $updateAvailable = "UPDATE event_schedules 
+                               SET status = 'available' 
+                               WHERE event_id = :event_id 
+                               AND match_id IS NULL 
+                               AND status != 'available'";
+            $this->db->query($updateAvailable, ['event_id' => $eventId]);
+            
+        } catch (Exception $e) {
+            Logger::getInstance()->error("Error updating slot statuses for event $eventId: " . $e->getMessage());
+        }
     }
 } // End of EventController class

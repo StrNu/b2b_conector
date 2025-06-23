@@ -73,7 +73,7 @@ class MatchModel {
         
         $params = [
             'buyer_id' => $buyerId,
-            'supplier_id' => $SupplierId,
+            'supplier_id' => $supplierId,
             'event_id' => $eventId
         ];
         
@@ -1056,7 +1056,10 @@ SELECT
     + COALESCE((ks.matched_bkw/ks.total_bkw)*100, 0) * $W_KW
     -- Porcentaje de coincidencias en descripción (normalizado con total_bkw)
     + COALESCE((ds.desc_matches/ks.total_bkw)*100, 0) * $W_DESC
-  ) / ($W_REQ + $W_KW + $W_DESC) AS match_strength
+  ) / ($W_REQ + $W_KW + $W_DESC) AS match_strength,
+  
+  -- Strength Match: (requirements coincidentes / total buyer requirements) * 100
+  COALESCE(rom.matched_offers/br.total_reqs, 0)*100 AS strength_match
 
 FROM company b
 JOIN company s ON s.role = 'supplier' AND s.event_id = b.event_id
@@ -1118,5 +1121,109 @@ ORDER BY match_strength DESC
         $stmt = $this->db->query($sql, $params);
         if (!$stmt) return [];
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Obtener detalles completos de una empresa y sus días de asistencia para un evento
+     * @param int $companyId
+     * @param int $eventId
+     * @return array|null
+     */
+    public function getCompanyPotentialMatchesDetail($companyId, $eventId) {
+        if (!$companyId || !$eventId) return null;
+        
+        // Obtener datos de la empresa
+        $companyQuery = "SELECT * FROM company WHERE company_id = :company_id AND event_id = :event_id LIMIT 1";
+        $company = $this->db->single($companyQuery, [
+            'company_id' => $companyId,
+            'event_id' => $eventId
+        ]);
+        if (!$company) return null;
+        
+        // Obtener días de asistencia
+        $attendanceQuery = "SELECT attendance_date FROM attendance_days WHERE company_id = :company_id AND event_id = :event_id ORDER BY attendance_date ASC";
+        $attendanceDays = $this->db->resultSet($attendanceQuery, [
+            'company_id' => $companyId,
+            'event_id' => $eventId
+        ]);
+        $attendanceDates = array_map(function($row) { return $row['attendance_date']; }, $attendanceDays);
+        
+        // Decodificar keywords si es JSON
+        $keywords = $company['keywords'];
+        if (is_string($keywords) && ($decoded = json_decode($keywords, true)) !== null) {
+            $company['keywords'] = $decoded;
+        }
+        
+        // Obtener requirements si es buyer
+        $requirements = [];
+        if ($company['role'] === 'buyer') {
+            $requirementsQuery = "
+                SELECT r.*, 
+                       es.name as event_subcategory_name,
+                       ec.name as event_category_name
+                FROM requirements r
+                JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
+                JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+                WHERE r.buyer_id = :company_id 
+                AND ec.event_id = :event_id
+                AND es.is_active = 1
+                AND ec.is_active = 1
+                ORDER BY ec.name, es.name
+            ";
+            
+            // Debug log para requirements
+            error_log('[DEBUG] Requirements query: ' . $requirementsQuery);
+            error_log('[DEBUG] Requirements params: ' . print_r(['company_id' => $companyId, 'event_id' => $eventId], true));
+            
+            $result = $this->db->resultSet($requirementsQuery, [
+                'company_id' => $companyId,
+                'event_id' => $eventId
+            ]);
+            
+            // Si la consulta falló, inicializar como array vacío
+            $requirements = ($result !== false) ? $result : [];
+            
+            error_log('[DEBUG] Requirements result: ' . print_r($requirements, true));
+        }
+        
+        // Obtener supplier_offers si es supplier
+        $supplierOffers = [];
+        if ($company['role'] === 'supplier') {
+            $offersQuery = "
+                SELECT so.*, 
+                       es.name as event_subcategory_name,
+                       ec.name as event_category_name
+                FROM supplier_offers so
+                JOIN event_subcategories es ON so.event_subcategory_id = es.event_subcategory_id
+                JOIN event_categories ec ON es.event_category_id = ec.event_category_id
+                WHERE so.supplier_id = :company_id 
+                AND ec.event_id = :event_id
+                AND es.is_active = 1
+                AND ec.is_active = 1
+                ORDER BY ec.name, es.name
+            ";
+            
+            // Debug log para supplier_offers
+            error_log('[DEBUG] Supplier offers query: ' . $offersQuery);
+            error_log('[DEBUG] Supplier offers params: ' . print_r(['company_id' => $companyId, 'event_id' => $eventId], true));
+            
+            $result = $this->db->resultSet($offersQuery, [
+                'company_id' => $companyId,
+                'event_id' => $eventId
+            ]);
+            
+            // Si la consulta falló, inicializar como array vacío
+            $supplierOffers = ($result !== false) ? $result : [];
+            
+            error_log('[DEBUG] Supplier offers result: ' . print_r($supplierOffers, true));
+        }
+        
+        // Retornar datos
+        return [
+            'company' => $company,
+            'attendance_days' => $attendanceDates,
+            'requirements' => $requirements,
+            'supplier_offers' => $supplierOffers
+        ];
     }
 }
