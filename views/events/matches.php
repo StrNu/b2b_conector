@@ -121,10 +121,10 @@ function loadDirectMatches() {
         }
         const matches = data.matches || [];
         let html = '<table class="table" id="direct-matches-table"><thead><tr>' +
-            '<th>ID</th><th>Comprador</th><th>Proveedor</th><th>Score</th>' +
+            '<th>ID</th><th>Comprador</th><th>Proveedor</th><th>Score</th><th>Acciones</th>' +
             '</tr></thead><tbody>';
         if (matches.length === 0) {
-            html += '<tr><td colspan="4" class="text-center text-gray-400">No hay matches directos.</td></tr>';
+            html += '<tr><td colspan="5" class="text-center text-gray-400">No hay matches directos.</td></tr>';
         } else {
             matches.forEach(m => {
                 html += `<tr>` +
@@ -132,6 +132,19 @@ function loadDirectMatches() {
                     `<td>${m.buyer_name ?? '-'}</td>` +
                     `<td>${m.supplier_name ?? '-'}</td>` +
                     `<td>${m.match_strength ?? '-'}</td>` +
+                    `<td>
+                        <button class="btn btn-success btn-xs btn-schedule-appointment" 
+                                data-match-id="${m.match_id}" 
+                                data-buyer-id="${m.buyer_id}" 
+                                data-supplier-id="${m.supplier_id}" 
+                                data-event-id="${eventId}"
+                                data-buyer-name="${m.buyer_name ?? ''}"
+                                data-supplier-name="${m.supplier_name ?? ''}"
+                                data-coincidence-dates="${m.coincidence_of_dates ?? ''}"
+                                title="Programar cita para este match">
+                            <i class="fas fa-calendar-plus"></i> Programar cita
+                        </button>
+                    </td>` +
                     `</tr>`;
             });
         }
@@ -997,6 +1010,70 @@ window.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
+    // Event listener para botones "Programar cita"
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.btn-schedule-appointment')) {
+            e.preventDefault();
+            
+            const btn = e.target.closest('.btn-schedule-appointment');
+            const matchId = btn.dataset.matchId;
+            const buyerId = btn.dataset.buyerId;
+            const supplierId = btn.dataset.supplierId;
+            const eventId = btn.dataset.eventId;
+            const buyerName = btn.dataset.buyerName;
+            const supplierName = btn.dataset.supplierName;
+            const coincidenceDates = btn.dataset.coincidenceDates;
+            
+            // Validar datos requeridos
+            if (!matchId || !buyerId || !supplierId || !eventId) {
+                alert('Error: Faltan datos necesarios para programar la cita');
+                return;
+            }
+            
+            // Confirmar acción
+            const confirmMessage = `¿Desea programar una cita entre:\n${buyerName} (Comprador)\n${supplierName} (Proveedor)?\n\nSe asignará automáticamente el primer horario disponible.`;
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+            
+            // Deshabilitar botón temporalmente
+            const originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Programando...';
+            
+            // Enviar solicitud AJAX
+            fetch(`${window.BASE_URL}/agendas/scheduleAppointment`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: `match_id=${encodeURIComponent(matchId)}&buyer_id=${encodeURIComponent(buyerId)}&supplier_id=${encodeURIComponent(supplierId)}&event_id=${encodeURIComponent(eventId)}&csrf_token=${encodeURIComponent(csrfToken)}`
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    alert(`¡Cita programada exitosamente!\n\nFecha: ${data.appointment.date}\nHora: ${data.appointment.time}\nMesa: ${data.appointment.table}`);
+                    
+                    // Cambiar estado del botón
+                    btn.innerHTML = '<i class="fas fa-check"></i> Programada';
+                    btn.classList.remove('btn-success');
+                    btn.classList.add('btn-secondary');
+                    btn.disabled = true;
+                } else {
+                    alert('Error al programar la cita: ' + (data.message || 'Error desconocido'));
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+            })
+            .catch(err => {
+                console.error('Error scheduling appointment:', err);
+                alert('Error de conexión al programar la cita');
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            });
+        }
+    });
 });
 </script>
 

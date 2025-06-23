@@ -21,6 +21,7 @@ class EventController {
     private $eventScheduleModel;
     private $requirementModel;
     private $attendanceDayModel;
+    private $userModel;
     private $validator;
 
     /**
@@ -42,6 +43,7 @@ class EventController {
         $this->eventScheduleModel = new Appointment($this->db);
         $this->requirementModel = new Requirement($this->db);
         $this->attendanceDayModel = new AttendanceDay($this->db);
+        $this->userModel = new User($this->db);
         
         // Inicializar validador
         $this->validator = new Validator();
@@ -165,6 +167,10 @@ public function store() {
                    ->required('end_time', 'La hora de finalización es obligatoria')
                    ->required('available_tables', 'El número de mesas es obligatorio')
                    ->required('meeting_duration', 'La duración de reuniones es obligatoria')
+                   ->required('admin_email', 'El email del administrador es obligatorio')
+                   ->required('admin_password', 'La contraseña del administrador es obligatoria')
+                   ->email('admin_email', 'El email del administrador no es válido')
+                   ->minLength('admin_password', 6, 'La contraseña debe tener al menos 6 caracteres')
                    ->numeric('available_tables', 'El número de mesas debe ser un valor numérico')
                    ->numeric('meeting_duration', 'La duración de reuniones debe ser un valor numérico');
     
@@ -186,6 +192,15 @@ public function store() {
     // Validar que la hora de fin sea posterior a la hora de inicio si es el mismo día
     if ($startDateDb === $endDateDb && strtotime($endTime) <= strtotime($startTime)) {
         $this->validator->errors['end_time'] = 'La hora de finalización debe ser posterior a la hora de inicio';
+    }
+    
+    // Validar que el email del administrador no exista ya en event_users
+    $adminEmail = sanitize($_POST['admin_email']);
+    if (!empty($adminEmail)) {
+        $existingUser = $this->userModel->findByEmailInEventUsers($adminEmail);
+        if ($existingUser) {
+            $this->validator->errors['admin_email'] = 'Ya existe un usuario administrador con este email';
+        }
     }
     
     // Si hay errores de validación, volver al formulario
@@ -262,11 +277,48 @@ public function store() {
             }
         }
         
+        // Crear usuario administrador del evento
+        $adminPassword = sanitize($_POST['admin_password']);
+        $adminUserData = [
+            'company_id' => null, // Administrador no pertenece a una empresa específica
+            'event_id' => $eventId,
+            'role' => 'event_admin',
+            'is_active' => 1,
+            'created_at' => date('Y-m-d H:i:s'),
+            'email' => $adminEmail,
+            'password' => $adminPassword
+        ];
+        
+        $adminUserId = $this->userModel->createEventUser($adminUserData);
+        
+        if (!$adminUserId) {
+            throw new Exception('Error al crear el usuario administrador del evento');
+        }
+        
+        // Enviar correo con credenciales de forma segura
+        require_once UTILS_DIR . '/EmailService.php';
+        $emailSent = EmailService::sendEventAdminCredentials(
+            $adminEmail,
+            $adminPassword,
+            $eventData['event_name'],
+            $eventData['contact_name'] ?? ''
+        );
+        
+        if (!$emailSent) {
+            Logger::warning('No se pudo enviar el correo de credenciales al administrador. Email: ' . $adminEmail . ', Event ID: ' . $eventId);
+        }
+        
         // Confirmar transacción
         $this->db->commit();
         
         // Mensaje de éxito y redirección
-        setFlashMessage('Evento creado exitosamente', 'success');
+        $successMessage = 'Evento creado exitosamente';
+        if ($emailSent) {
+            $successMessage .= '. Se ha enviado un correo con las credenciales del administrador.';
+        } else {
+            $successMessage .= '. IMPORTANTE: No se pudo enviar el correo automático. Proporcione manualmente las credenciales al administrador.';
+        }
+        setFlashMessage($successMessage, 'success');
         redirect(BASE_URL . '/events/view/' . $eventId);
         
     } catch (Exception $e) {

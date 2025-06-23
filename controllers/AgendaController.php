@@ -254,4 +254,131 @@ class AgendaController {
         }
         exit;
     }
+    
+    /**
+     * Programar una cita automáticamente para un match
+     * Busca el primer time_slot disponible en la primera fecha de asistencia coincidente
+     * 
+     * @return void (JSON response)
+     */
+    public function scheduleAppointment() {
+        header('Content-Type: application/json');
+        
+        // Validar método y CSRF
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            echo json_encode(['success' => false, 'message' => 'Solicitud inválida']);
+            exit;
+        }
+        
+        // Obtener y validar parámetros
+        $matchId = isset($_POST['match_id']) ? (int)$_POST['match_id'] : 0;
+        $buyerId = isset($_POST['buyer_id']) ? (int)$_POST['buyer_id'] : 0;
+        $supplierId = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : 0;
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+        
+        if (!$matchId || !$buyerId || !$supplierId || !$eventId) {
+            echo json_encode(['success' => false, 'message' => 'Faltan parámetros requeridos']);
+            exit;
+        }
+        
+        try {
+            // Verificar que el evento existe
+            if (!$this->eventModel->findById($eventId)) {
+                echo json_encode(['success' => false, 'message' => 'Evento no encontrado']);
+                exit;
+            }
+            
+            // Obtener información del match para las fechas de coincidencia
+            $match = $this->matchModel->findById($matchId);
+            if (!$match) {
+                echo json_encode(['success' => false, 'message' => 'Match no encontrado']);
+                exit;
+            }
+            
+            // Verificar si ya existe una cita para este match
+            $existingAppointment = $this->db->single(
+                'SELECT * FROM event_schedules WHERE match_id = :match_id',
+                ['match_id' => $matchId]
+            );
+            
+            if ($existingAppointment) {
+                echo json_encode(['success' => false, 'message' => 'Ya existe una cita programada para este match']);
+                exit;
+            }
+            
+            // Obtener fechas de coincidencia
+            $coincidenceDates = !empty($match['coincidence_of_dates']) ? 
+                explode(',', $match['coincidence_of_dates']) : [];
+            
+            if (empty($coincidenceDates)) {
+                echo json_encode(['success' => false, 'message' => 'No hay fechas de asistencia coincidentes para este match']);
+                exit;
+            }
+            
+            // Buscar el primer slot disponible en la primera fecha de coincidencia
+            $firstDate = trim($coincidenceDates[0]);
+            
+            $availableSlot = $this->db->single(
+                'SELECT * FROM event_schedules 
+                 WHERE event_id = :event_id 
+                 AND DATE(start_datetime) = :date 
+                 AND match_id IS NULL 
+                 AND status = "available"
+                 ORDER BY start_datetime ASC, table_number ASC 
+                 LIMIT 1',
+                [
+                    'event_id' => $eventId,
+                    'date' => $firstDate
+                ]
+            );
+            
+            if (!$availableSlot) {
+                echo json_encode(['success' => false, 'message' => "No hay slots disponibles para la fecha $firstDate"]);
+                exit;
+            }
+            
+            // Asignar el match al slot
+            $updateResult = $this->db->query(
+                'UPDATE event_schedules 
+                 SET match_id = :match_id, status = "occupied" 
+                 WHERE schedule_id = :schedule_id',
+                [
+                    'match_id' => $matchId,
+                    'schedule_id' => $availableSlot['schedule_id']
+                ]
+            );
+            
+            if (!$updateResult) {
+                echo json_encode(['success' => false, 'message' => 'Error al asignar el slot']);
+                exit;
+            }
+            
+            // Obtener información de las empresas para la respuesta
+            $buyer = $this->companyModel->getById($buyerId);
+            $supplier = $this->companyModel->getById($supplierId);
+            
+            // Preparar respuesta con información de la cita
+            $appointmentInfo = [
+                'match_id' => $matchId,
+                'buyer_name' => $buyer['company_name'] ?? 'Comprador',
+                'supplier_name' => $supplier['company_name'] ?? 'Proveedor',
+                'date' => date('d/m/Y', strtotime($availableSlot['start_datetime'])),
+                'time' => date('H:i', strtotime($availableSlot['start_datetime'])) . ' - ' . date('H:i', strtotime($availableSlot['end_datetime'])),
+                'table' => $availableSlot['table_number'],
+                'schedule_id' => $availableSlot['schedule_id']
+            ];
+            
+            echo json_encode([
+                'success' => true, 
+                'message' => 'Cita programada exitosamente',
+                'appointment' => $appointmentInfo
+            ]);
+            
+        } catch (Exception $e) {
+            error_log('Error in scheduleAppointment: ' . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
+        }
+        
+        exit;
+    }
 }

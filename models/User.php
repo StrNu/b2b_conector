@@ -586,4 +586,16 @@ public function getRegistrationDate($format = 'Y-m-d H:i:s') {
         $result = $this->db->query($query, $params);
         return $result ? true : false;
     }
+
+    /**
+     * Buscar usuario por email en la tabla event_users
+     * @param string $email
+     * @return array|false
+     */
+    public function findByEmailInEventUsers($email) {
+        $query = "SELECT * FROM event_users WHERE email = :email LIMIT 1";
+        $params = [':email' => $email];
+        $result = $this->db->single($query, $params);
+        return $result ? $result : false;
+    }
 }
