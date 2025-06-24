@@ -339,3 +339,228 @@ function dateToDatabase($date) {
     
     return $dateTime->format('Y-m-d');
 }
+
+// === FUNCIONES DE AUTENTICACIÓN DE USUARIOS DE EVENTOS ===
+
+/**
+ * Verificar si un usuario de evento está autenticado
+ * 
+ * @return bool True si está autenticado, false en caso contrario
+ */
+function isEventUserAuthenticated() {
+    return isset($_SESSION['event_user_id']) && 
+           isset($_SESSION['event_user_email']) && 
+           isset($_SESSION['event_user_type']) &&
+           isset($_SESSION['event_id']);
+}
+
+/**
+ * Obtener el ID del usuario de evento autenticado
+ * 
+ * @return int|null ID del usuario o null si no está autenticado
+ */
+function getEventUserId() {
+    return isEventUserAuthenticated() ? $_SESSION['event_user_id'] : null;
+}
+
+/**
+ * Obtener el email del usuario de evento autenticado
+ * 
+ * @return string|null Email del usuario o null si no está autenticado
+ */
+function getEventUserEmail() {
+    return isEventUserAuthenticated() ? $_SESSION['event_user_email'] : null;
+}
+
+/**
+ * Obtener el tipo de usuario de evento autenticado
+ * 
+ * @return string|null Tipo de usuario ('event_admin' o 'assistant') o null si no está autenticado
+ */
+function getEventUserType() {
+    return isEventUserAuthenticated() ? $_SESSION['event_user_type'] : null;
+}
+
+/**
+ * Obtener el ID del evento del usuario autenticado
+ * 
+ * @return int|null ID del evento o null si no está autenticado
+ */
+function getEventId() {
+    return isEventUserAuthenticated() ? $_SESSION['event_id'] : null;
+}
+
+/**
+ * Obtener el ID de la empresa del usuario autenticado (para asistentes)
+ * 
+ * @return int|null ID de la empresa o null si no está disponible
+ */
+function getEventUserCompanyId() {
+    return isEventUserAuthenticated() && isset($_SESSION['company_id']) ? $_SESSION['company_id'] : null;
+}
+
+/**
+ * Obtener el nombre del evento del usuario autenticado
+ * 
+ * @return string|null Nombre del evento o null si no está disponible
+ */
+function getEventName() {
+    return isEventUserAuthenticated() && isset($_SESSION['event_name']) ? $_SESSION['event_name'] : null;
+}
+
+/**
+ * Verificar si el usuario de evento tiene un rol específico
+ * 
+ * @param string|array $roles Rol o array de roles permitidos
+ * @return bool True si tiene el rol, false en caso contrario
+ */
+function hasEventRole($roles) {
+    if (!isEventUserAuthenticated()) {
+        return false;
+    }
+    
+    $userType = getEventUserType();
+    
+    if (is_array($roles)) {
+        return in_array($userType, $roles);
+    }
+    
+    return $userType === $roles;
+}
+
+/**
+ * Verificar si el usuario es administrador de evento
+ * 
+ * @return bool True si es administrador de evento, false en caso contrario
+ */
+function isEventAdmin() {
+    return hasEventRole('event_admin');
+}
+
+/**
+ * Verificar si el usuario es asistente de evento
+ * 
+ * @return bool True si es asistente de evento, false en caso contrario
+ */
+function isEventAssistant() {
+    return hasEventRole('assistant');
+}
+
+/**
+ * Cerrar sesión de usuario de evento
+ * 
+ * @return void
+ */
+function logoutEventUser() {
+    // Limpiar variables de sesión relacionadas con eventos
+    $eventSessionKeys = [
+        'event_user_id',
+        'event_user_email', 
+        'event_user_type',
+        'event_id',
+        'company_id',
+        'event_name'
+    ];
+    
+    foreach ($eventSessionKeys as $key) {
+        if (isset($_SESSION[$key])) {
+            unset($_SESSION[$key]);
+        }
+    }
+    
+    Logger::info('Usuario de evento cerró sesión');
+}
+
+/**
+ * Redirigir si el usuario de evento no está autenticado
+ * 
+ * @param string $redirectUrl URL de redirección (por defecto al login de eventos)
+ * @return void
+ */
+function requireEventAuth($redirectUrl = null) {
+    if (!isEventUserAuthenticated()) {
+        $redirectUrl = $redirectUrl ?: BASE_URL . '/auth/event-login';
+        setFlashMessage('Debe iniciar sesión para acceder a esta sección', 'warning');
+        redirect($redirectUrl);
+        exit;
+    }
+}
+
+/**
+ * Redirigir si el usuario de evento no tiene los roles requeridos
+ * 
+ * @param string|array $requiredRoles Roles requeridos
+ * @param string $redirectUrl URL de redirección
+ * @return void
+ */
+function requireEventRole($requiredRoles, $redirectUrl = null) {
+    requireEventAuth(); // Primero verificar autenticación
+    
+    if (!hasEventRole($requiredRoles)) {
+        $redirectUrl = $redirectUrl ?: BASE_URL . '/event-dashboard';
+        setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+        redirect($redirectUrl);
+        exit;
+    }
+}
+
+/**
+ * Incluir header apropiado según el tipo de usuario
+ * 
+ * @param array $options Opciones para el header (pageTitle, moduleCSS, moduleJS, breadcrumbs)
+ * @return void
+ */
+function includeAppropriateHeader($options = []) {
+    // Configurar variables por defecto
+    $pageTitle = $options['pageTitle'] ?? 'B2B Conector';
+    $moduleCSS = $options['moduleCSS'] ?? 'main';
+    $moduleJS = $options['moduleJS'] ?? 'main';
+    $breadcrumbs = $options['breadcrumbs'] ?? null;
+    
+    if (isEventUserAuthenticated()) {
+        // Usuario de evento - usar header específico de eventos
+        $eventId = getEventId();
+        if ($eventId) {
+            // Cargar información del evento
+            require_once MODEL_DIR . '/Event.php';
+            $eventModel = new Event(Database::getInstance());
+            if ($eventModel->findById($eventId)) {
+                $event = $eventModel;
+                include(VIEW_DIR . '/shared/event_header.php');
+                return;
+            }
+        }
+    }
+    
+    // Usuario normal - usar header principal
+    include(VIEW_DIR . '/shared/header.php');
+}
+
+/**
+ * Incluir footer apropiado según el tipo de usuario
+ * 
+ * @return void
+ */
+function includeAppropriateFooter() {
+    if (isEventUserAuthenticated()) {
+        // Usuario de evento - usar footer específico de eventos
+        $eventId = getEventId();
+        if ($eventId) {
+            // Cargar información del evento si no está disponible
+            if (!isset($event)) {
+                require_once MODEL_DIR . '/Event.php';
+                $eventModel = new Event(Database::getInstance());
+                if ($eventModel->findById($eventId)) {
+                    $event = $eventModel;
+                }
+            }
+            if (isset($event)) {
+                include(VIEW_DIR . '/shared/event_footer.php');
+                return;
+            }
+        }
+    }
+    
+    // Usuario normal - usar footer principal
+    include(VIEW_DIR . '/shared/footer.php');
+}

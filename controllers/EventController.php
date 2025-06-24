@@ -48,8 +48,8 @@ class EventController {
         // Inicializar validador
         $this->validator = new Validator();
         
-        // Verificar si el usuario está autenticado
-        if (!isAuthenticated()) {
+        // Verificar si el usuario está autenticado (admin normal o usuario de evento)
+        if (!isAuthenticated() && !isEventUserAuthenticated()) {
             setFlashMessage('Debe iniciar sesión para acceder a esta sección', 'danger');
             redirect(BASE_URL . '/auth/login');
             exit;
@@ -186,12 +186,12 @@ public function store() {
     
     // Validar que la fecha de fin sea posterior o igual a la fecha de inicio
     if (strtotime($endDateDb) < strtotime($startDateDb)) {
-        $this->validator->errors['end_date'] = 'La fecha de finalización debe ser posterior o igual a la fecha de inicio';
+        $this->validator->addError('end_date', 'La fecha de finalización debe ser posterior o igual a la fecha de inicio');
     }
     
     // Validar que la hora de fin sea posterior a la hora de inicio si es el mismo día
     if ($startDateDb === $endDateDb && strtotime($endTime) <= strtotime($startTime)) {
-        $this->validator->errors['end_time'] = 'La hora de finalización debe ser posterior a la hora de inicio';
+        $this->validator->addError('end_time', 'La hora de finalización debe ser posterior a la hora de inicio');
     }
     
     // Validar que el email del administrador no exista ya en event_users
@@ -199,7 +199,7 @@ public function store() {
     if (!empty($adminEmail)) {
         $existingUser = $this->userModel->findByEmailInEventUsers($adminEmail);
         if ($existingUser) {
-            $this->validator->errors['admin_email'] = 'Ya existe un usuario administrador con este email';
+            $this->validator->addError('admin_email', 'Ya existe un usuario administrador con este email');
         }
     }
     
@@ -315,10 +315,18 @@ public function store() {
         $successMessage = 'Evento creado exitosamente';
         if ($emailSent) {
             $successMessage .= '. Se ha enviado un correo con las credenciales del administrador.';
+            setFlashMessage($successMessage, 'success');
         } else {
-            $successMessage .= '. IMPORTANTE: No se pudo enviar el correo automático. Proporcione manualmente las credenciales al administrador.';
+            $successMessage .= '. IMPORTANTE: No se pudo enviar el correo automático.';
+            setFlashMessage($successMessage, 'warning');
+            
+            // Guardar las credenciales en sesión para mostrarlas en la siguiente página
+            $_SESSION['admin_credentials'] = [
+                'email' => $adminEmail,
+                'password' => $adminPassword,
+                'event_name' => $eventData['event_name']
+            ];
         }
-        setFlashMessage($successMessage, 'success');
         redirect(BASE_URL . '/events/view/' . $eventId);
         
     } catch (Exception $e) {
@@ -389,11 +397,21 @@ private function processLogo($fileData, $type = 'event') {
      * @return void
      */
     public function view($id) {
-        // Verificar permisos
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+        // Verificar permisos (incluir event_admin para acceso a su evento específico)
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER]) && !isEventAdmin()) {
             setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
             redirect(BASE_URL);
             exit;
+        }
+        
+        // Si es event_admin, verificar que sea su evento
+        if (isEventAdmin()) {
+            $userEventId = getEventId();
+            if ((int)$id !== $userEventId) {
+                setFlashMessage('No tiene acceso a este evento', 'danger');
+                redirect(BASE_URL . '/events/view/' . $userEventId);
+                exit;
+            }
         }
         $eventId = filter_var($id, FILTER_VALIDATE_INT);
         if ($eventId === false || $eventId <= 0) {
@@ -418,6 +436,16 @@ private function processLogo($fileData, $type = 'event') {
         $participants = $this->eventModel->getParticipants($eventId);
         $matches = method_exists($this->matchModel, 'findAllByEventId') ? $this->matchModel->findAllByEventId($eventId) : [];
         $schedules = $this->eventModel->getSchedules($eventId);
+
+        // Statistics
+        $participantsCount = count($participants);
+        $matchCount = count($matches);
+        $scheduleCount = count($schedules);
+
+        // Contar empresas por rol usando el modelo
+        $buyerCompaniesCount = $this->eventModel->countCompaniesByRole($eventId, 'buyer');
+        $supplierCompaniesCount = $this->eventModel->countCompaniesByRole($eventId, 'supplier');
+        
         // CORRECCIÓN: Construir correctamente categoriesWithSubcategories
         $eventCategories = $this->categoryModel->getEventCategories($eventId);
         $categoriesWithSubcategories = [];
@@ -439,7 +467,12 @@ private function processLogo($fileData, $type = 'event') {
             'schedules' => $schedules,
             'hasCategories' => $hasCategories,
             'categoriesWithSubcategories' => $categoriesWithSubcategories,
-            'csrfToken' => $csrfToken
+            'csrfToken' => $csrfToken,
+            'participantsCount' => $participantsCount,
+            'matchCount' => $matchCount,
+            'scheduleCount' => $scheduleCount,
+            'buyerCompaniesCount' => $buyerCompaniesCount,
+            'supplierCompaniesCount' => $supplierCompaniesCount
         ];
         foreach ($viewData as $key => $value) {
             $$key = $value;

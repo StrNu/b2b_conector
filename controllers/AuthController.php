@@ -261,6 +261,218 @@ class AuthController {
     }
     
     /**
+     * Mostrar formulario de login para usuarios de eventos
+     * 
+     * @param int $eventId ID del evento (opcional)
+     * @return void
+     */
+    public function eventLogin($eventId = null) {
+        // Si el usuario ya está autenticado como event user, redirigir
+        if (isEventUserAuthenticated()) {
+            redirect(BASE_URL . '/event-dashboard');
+            exit;
+        }
+        
+        // Token CSRF para el formulario
+        $csrfToken = generateCSRFToken();
+        
+        // Si se proporciona un ID de evento, obtener información del evento
+        $eventName = null;
+        if ($eventId) {
+            $eventModel = new Event($this->db);
+            if ($eventModel->findById($eventId)) {
+                $eventName = $eventModel->getEventName();
+            }
+        }
+        
+        // Cargar vista del formulario de login de eventos
+        include(VIEW_DIR . '/auth/event_login.php');
+    }
+    
+    /**
+     * Procesar el inicio de sesión para usuarios de eventos
+     * 
+     * @return void
+     */
+    public function eventAuthenticate() {
+        Logger::info('Iniciando proceso de autenticación de evento');
+        
+        // Si el usuario ya está autenticado como event user, redirigir
+        if (isEventUserAuthenticated()) {
+            redirect(BASE_URL . '/event-dashboard');
+            exit;
+        }
+        
+        // Verificar método de solicitud
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        // Verificar token CSRF
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        // Validar datos del formulario
+        $this->validator->setData($_POST);
+        $this->validator->required('email', 'El email es obligatorio')
+                       ->required('password', 'La contraseña es obligatoria')
+                       ->required('user_type', 'El tipo de usuario es obligatorio')
+                       ->email('email', 'El formato del email no es válido');
+        
+        // Si hay errores de validación, volver al formulario
+        if ($this->validator->hasErrors()) {
+            $_SESSION['form_data'] = ['email' => $_POST['email'] ?? '', 'user_type' => $_POST['user_type'] ?? ''];
+            $_SESSION['validation_errors'] = $this->validator->getErrors();
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        // Obtener y sanitizar datos
+        $email = sanitize($_POST['email']);
+        $password = $_POST['password'];
+        $userType = sanitize($_POST['user_type']);
+        $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : null;
+        
+        Logger::debug("Intentando autenticar usuario de evento: $email, tipo: $userType");
+        
+        // Intentar autenticar según el tipo de usuario
+        $authenticated = false;
+        $userData = null;
+        
+        if ($userType === 'event_admin') {
+            // Autenticar administrador de evento
+            $userData = $this->authenticateEventAdmin($email, $password, $eventId);
+        } elseif ($userType === 'assistant') {
+            // Autenticar asistente de evento
+            $userData = $this->authenticateEventAssistant($email, $password, $eventId);
+        }
+        
+        if ($userData) {
+            Logger::info("Autenticación de evento exitosa para: $email");
+            
+            // Regenerar ID de sesión por seguridad
+            Security::regenerateSession();
+            
+            // Guardar información del usuario en la sesión
+            $_SESSION['event_user_id'] = $userData['id'];
+            $_SESSION['event_user_email'] = $userData['email'];
+            $_SESSION['event_user_type'] = $userData['type'];
+            $_SESSION['event_id'] = $userData['event_id'];
+            $_SESSION['company_id'] = $userData['company_id'] ?? null;
+            $_SESSION['event_name'] = $userData['event_name'] ?? '';
+            
+            Logger::debug('Datos de sesión de evento guardados: ' . json_encode([
+                'event_user_id' => $_SESSION['event_user_id'],
+                'event_user_email' => $_SESSION['event_user_email'],
+                'event_user_type' => $_SESSION['event_user_type'],
+                'event_id' => $_SESSION['event_id']
+            ]));
+            
+            // Redirigir según el tipo de usuario
+            setFlashMessage('Acceso exitoso. Bienvenido(a) al evento', 'success');
+            
+            if ($userData['type'] === 'event_admin') {
+                // Event admin va a la vista del evento con layout de evento
+                redirect(BASE_URL . '/events/view/' . $userData['event_id']);
+            } else {
+                // Asistentes van al dashboard de eventos
+                redirect(BASE_URL . '/event-dashboard');
+            }
+        } else {
+            // Autenticación fallida
+            Logger::warning("Autenticación de evento fallida para: $email");
+            setFlashMessage('Credenciales inválidas o no tiene acceso a este evento', 'danger');
+            $_SESSION['form_data'] = ['email' => $email, 'user_type' => $userType];
+            redirect(BASE_URL . '/auth/event-login');
+        }
+    }
+    
+    /**
+     * Autenticar administrador de evento
+     * 
+     * @param string $email Email del administrador
+     * @param string $password Contraseña
+     * @param int|null $eventId ID del evento (opcional)
+     * @return array|false Datos del usuario o false si falla
+     */
+    private function authenticateEventAdmin($email, $password, $eventId = null) {
+        $query = "SELECT eu.*, e.event_name 
+                  FROM event_users eu 
+                  INNER JOIN events e ON eu.event_id = e.event_id 
+                  WHERE eu.email = :email 
+                  AND eu.role = 'event_admin' 
+                  AND eu.is_active = 1";
+        
+        $params = [':email' => $email];
+        
+        if ($eventId) {
+            $query .= " AND eu.event_id = :event_id";
+            $params[':event_id'] = $eventId;
+        }
+        
+        $user = $this->db->single($query, $params);
+        
+        if ($user && password_verify($password, $user['password'])) {
+            return [
+                'id' => $user['id'],
+                'email' => $user['email'],
+                'type' => 'event_admin',
+                'event_id' => $user['event_id'],
+                'company_id' => $user['company_id'],
+                'event_name' => $user['event_name']
+            ];
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Autenticar asistente de evento
+     * 
+     * @param string $email Email del asistente
+     * @param string $password Contraseña
+     * @param int|null $eventId ID del evento (opcional)
+     * @return array|false Datos del usuario o false si falla
+     */
+    private function authenticateEventAssistant($email, $password, $eventId = null) {
+        $query = "SELECT eu.*, e.event_name, c.company_name 
+                  FROM event_users eu 
+                  INNER JOIN events e ON eu.event_id = e.event_id 
+                  LEFT JOIN company c ON eu.company_id = c.company_id
+                  WHERE eu.email = :email 
+                  AND eu.role IN ('buyer', 'supplier') 
+                  AND eu.is_active = 1";
+        
+        $params = [':email' => $email];
+        
+        if ($eventId) {
+            $query .= " AND eu.event_id = :event_id";
+            $params[':event_id'] = $eventId;
+        }
+        
+        $user = $this->db->single($query, $params);
+        
+        if ($user && password_verify($password, $user['password'])) {
+            return [
+                'id' => $user['id'],
+                'email' => $user['email'],
+                'type' => 'assistant',
+                'role' => $user['role'], // buyer o supplier
+                'event_id' => $user['event_id'],
+                'company_id' => $user['company_id'],
+                'event_name' => $user['event_name'],
+                'company_name' => $user['company_name']
+            ];
+        }
+        
+        return false;
+    }
+    
+    /**
      * Cerrar sesión
      * 
      * @return void
@@ -900,5 +1112,24 @@ redirect(BASE_URL . '/auth/admin/users');
         }
         $redirectUrl = !empty($_POST['redirect']) ? $_POST['redirect'] : (BASE_URL . '/auth/change_password_event');
         redirect($redirectUrl);
+    }
+    
+    /**
+     * Alias for eventLogin method to support snake_case URL routing
+     * 
+     * @param int $eventId ID del evento (opcional)
+     * @return void
+     */
+    public function event_login($eventId = null) {
+        return $this->eventLogin($eventId);
+    }
+    
+    /**
+     * Alias for eventAuthenticate method to support snake_case URL routing
+     * 
+     * @return void
+     */
+    public function event_authenticate() {
+        return $this->eventAuthenticate();
     }
 }

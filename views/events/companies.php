@@ -1,4 +1,21 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
+<?php 
+// Configurar variables para el header
+$pageTitle = 'Empresas Registradas - ' . (isset($event) ? $event->getEventName() : 'Evento');
+$moduleCSS = 'events';
+$moduleJS = 'events';
+$breadcrumbs = [
+    ['title' => 'Dashboard', 'url' => isEventUserAuthenticated() ? BASE_URL . '/event-dashboard' : BASE_URL . '/dashboard'],
+    ['title' => 'Evento', 'url' => BASE_URL . '/events/view/' . $eventId],
+    ['title' => 'Empresas']
+];
+
+includeAppropriateHeader([
+    'pageTitle' => $pageTitle,
+    'moduleCSS' => $moduleCSS,
+    'moduleJS' => $moduleJS,
+    'breadcrumbs' => $breadcrumbs
+]); 
+?>
 <div class="content">
     <div class="content-header flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-1">Empresas Registradas</h1>
@@ -122,4 +139,4 @@
         </script>
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>
+<?php includeAppropriateFooter(); ?>

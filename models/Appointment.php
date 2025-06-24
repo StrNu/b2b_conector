@@ -291,7 +291,11 @@ class Appointment {
         $query = "SELECT es.*, 
                   m.buyer_id, m.supplier_id, 
                   b.company_name as buyer_name, 
-                  s.company_name as supplier_name 
+                  s.company_name as supplier_name,
+                  CASE 
+                    WHEN m.buyer_id = :company_id_ref THEN s.company_name
+                    ELSE b.company_name
+                  END as partner_company
                   FROM {$this->table} es
                   JOIN matches m ON es.match_id = m.match_id 
                   JOIN company b ON m.buyer_id = b.company_id 
@@ -299,7 +303,11 @@ class Appointment {
                   WHERE (m.buyer_id = :company_id1 OR m.supplier_id = :company_id2)";
         
         // Usar los nombres correctos de parámetros
-        $params = ['company_id1' => $companyId, 'company_id2' => $companyId];
+        $params = [
+            'company_id1' => $companyId, 
+            'company_id2' => $companyId,
+            'company_id_ref' => $companyId
+        ];
         
         if ($eventId) {
             $query .= " AND es.event_id = :event_id";
@@ -1228,5 +1236,54 @@ public function calculateEventAttendanceRate($eventId) {
             'company_id2' => $companyId
         ];
         return $this->db->resultSet($query, $params);
+    }
+    
+    /**
+     * Contar citas por evento
+     * 
+     * @param int $eventId ID del evento
+     * @return int Número de citas
+     */
+    public function countByEvent($eventId) {
+        $query = "SELECT COUNT(*) as count FROM {$this->table} WHERE event_id = :event_id";
+        $result = $this->db->single($query, ['event_id' => $eventId]);
+        return $result ? (int)$result['count'] : 0;
+    }
+    
+    /**
+     * Contar citas por evento y estado
+     * 
+     * @param int $eventId ID del evento
+     * @param string $status Estado de la cita
+     * @return int Número de citas
+     */
+    public function countByEventAndStatus($eventId, $status) {
+        $query = "SELECT COUNT(*) as count FROM {$this->table} WHERE event_id = :event_id AND status = :status";
+        $result = $this->db->single($query, ['event_id' => $eventId, 'status' => $status]);
+        return $result ? (int)$result['count'] : 0;
+    }
+    
+    
+    /**
+     * Obtener próximas citas por evento
+     * 
+     * @param int $eventId ID del evento
+     * @param int $limit Límite de resultados
+     * @return array Lista de próximas citas
+     */
+    public function getUpcomingByEvent($eventId, $limit = 10) {
+        $query = "SELECT a.*, 
+                         bc.company_name as buyer_name,
+                         sc.company_name as supplier_name
+                  FROM {$this->table} a
+                  INNER JOIN matches m ON a.match_id = m.match_id
+                  INNER JOIN company bc ON m.buyer_id = bc.company_id
+                  INNER JOIN company sc ON m.supplier_id = sc.company_id
+                  WHERE a.event_id = :event_id 
+                  AND a.start_datetime > NOW()
+                  ORDER BY a.start_datetime ASC
+                  LIMIT :limit";
+        
+        return $this->db->resultSet($query, ['event_id' => $eventId, 'limit' => $limit]);
     }
 }

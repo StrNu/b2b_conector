@@ -426,9 +426,40 @@ public function count($filters = []) {
     public function getSuppliers($eventId = null) {
         return $this->getParticipants($eventId, 'supplier');
     }
-    
 
-    
+    /**
+     * Contar empresas registradas en un evento por un rol específico.
+     *
+     * @param int $eventId ID del evento.
+     * @param string $role Rol a contar ('buyer' o 'supplier').
+     * @return int El número de empresas únicas para ese rol.
+     */
+    public function countCompaniesByRole($eventId, $role)
+    {
+        if (!$eventId || empty($role)) {
+            return 0;
+        }
+
+        $query = "SELECT COUNT(DISTINCT company_id) as count 
+                  FROM event_users 
+                  WHERE event_id = :event_id 
+                  AND role = :role 
+                  AND company_id IS NOT NULL";
+
+        $params = [
+            ':event_id' => $eventId,
+            ':role' => $role
+        ];
+
+        try {
+            $result = $this->db->single($query, $params);
+            return $result ? (int)$result['count'] : 0;
+        } catch (Exception $e) {
+            Logger::error("Error al contar empresas por rol para el evento $eventId: " . $e->getMessage());
+            return 0;
+        }
+    }
+
     /**
      * Agregar día de asistencia para una empresa
      * 

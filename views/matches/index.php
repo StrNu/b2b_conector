@@ -1,4 +1,20 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
+<?php 
+// Configurar variables para el header
+$pageTitle = 'Matches Potenciales';
+$moduleCSS = 'matches';
+$moduleJS = 'matches';
+$breadcrumbs = [
+    ['title' => 'Dashboard', 'url' => isEventUserAuthenticated() ? BASE_URL . '/event-dashboard' : BASE_URL . '/dashboard'],
+    ['title' => 'Matches']
+];
+
+includeAppropriateHeader([
+    'pageTitle' => $pageTitle,
+    'moduleCSS' => $moduleCSS,
+    'moduleJS' => $moduleJS,
+    'breadcrumbs' => $breadcrumbs
+]); 
+?>
 <div class="content">
     <div class="content-header flex items-center justify-between mb-6">
         <h1 class="text-2xl font-bold text-gray-800 mb-1">Matches Potenciales</h1>
@@ -76,4 +92,4 @@
         </table>
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>
+<?php includeAppropriateFooter(); ?>

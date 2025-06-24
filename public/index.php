@@ -188,6 +188,8 @@ $controllerSlug = !empty($urlParts[0]) ? $urlParts[0] : 'auth'; // 'auth' como d
 // Establecer la acción predeterminada según el controlador
 if (!empty($urlParts[1])) {
     $action = $urlParts[1];
+    // Convert kebab-case to snake_case for method names
+    $action = str_replace('-', '_', $action);
 } else {
     // Si es el controlador de autenticación, la acción predeterminada es 'login'
     // Para todos los demás controladores, la acción predeterminada es 'index'
@@ -297,6 +299,7 @@ $controllerMap = [
     'users' => 'UserController',
     'agendas' => 'AgendaController', // <-- Añadido para rutas /agendas
     'category_import' => 'CategoryImportController', // <-- Añadido para importación de categorías
+    'event-dashboard' => 'EventDashboardController', // <-- Añadido para dashboard de eventos
     // Añade más según sea necesario
 ];
 
@@ -309,6 +312,8 @@ $publicRoutes = [ // Rutas que NO requieren autenticación
     'auth/forgot', 
     'auth/recover',
     'auth/authenticate',
+    'auth/event_login', // Permitir acceso al login de eventos
+    'auth/event_authenticate', // Permitir acceso al proceso de autenticación de eventos
     // Permitir acceso público a cualquier buyers_registration
     // Esto permite /buyers_registration/{event_id} y /buyers_registration/{event_id}/store
     'buyers_registration',
@@ -431,11 +436,28 @@ Logger::debug('Comprobando autenticación para ruta: ' . $currentRoute, [
     'estado_sesion' => isset($_SESSION['user_id']) ? 'autenticado' : 'no autenticado'
 ]);
 
-if (!in_array($currentRoute, $publicRoutes) && !$isPublicPath && !isAuthenticated()) {
-    Logger::warning('Authentication required, redirecting to login.', ['route' => $currentRoute]);
-    setFlashMessage('Debe iniciar sesión para acceder a esta sección.', 'danger');
-    header('Location: ' . BASE_URL . '/auth/login');
-    exit;
+// Verificar autenticación según el tipo de ruta
+$requiresAuth = !in_array($currentRoute, $publicRoutes) && !$isPublicPath;
+$isEventRoute = strpos($controllerSlug, 'event-dashboard') === 0 || strpos($currentRoute, 'event-dashboard') !== false;
+
+if ($requiresAuth) {
+    if ($isEventRoute) {
+        // Para rutas de event-dashboard, verificar autenticación de eventos
+        if (!isEventUserAuthenticated()) {
+            Logger::warning('Event authentication required, redirecting to event login.', ['route' => $currentRoute]);
+            setFlashMessage('Debe iniciar sesión como usuario de evento para acceder a esta sección.', 'danger');
+            header('Location: ' . BASE_URL . '/auth/event-login');
+            exit;
+        }
+    } else {
+        // Para otras rutas, verificar autenticación principal
+        if (!isAuthenticated()) {
+            Logger::warning('Authentication required, redirecting to login.', ['route' => $currentRoute]);
+            setFlashMessage('Debe iniciar sesión para acceder a esta sección.', 'danger');
+            header('Location: ' . BASE_URL . '/auth/login');
+            exit;
+        }
+    }
 }
 
 // --- 7. Despachar al Controlador ---
@@ -502,6 +524,12 @@ if ($controllerName === 'EventController') {
 } elseif ($controllerName === 'CategoryImportController') {
     require_once MODEL_DIR . '/Category.php';
     require_once MODEL_DIR . '/Event.php';
+} elseif ($controllerName === 'EventDashboardController') {
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Assistant.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Appointment.php';
 }
 
 

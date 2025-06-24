@@ -1,4 +1,21 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
+<?php 
+// Configurar variables para el header
+$pageTitle = 'Agenda de Citas - ' . (isset($event) ? $event->getEventName() : 'Evento');
+$moduleCSS = 'events';
+$moduleJS = 'agenda';
+$breadcrumbs = [
+    ['title' => 'Dashboard', 'url' => isEventUserAuthenticated() ? BASE_URL . '/event-dashboard' : BASE_URL . '/dashboard'],
+    ['title' => 'Evento', 'url' => BASE_URL . '/events/view/' . $eventId],
+    ['title' => 'Agenda']
+];
+
+includeAppropriateHeader([
+    'pageTitle' => $pageTitle,
+    'moduleCSS' => $moduleCSS,
+    'moduleJS' => $moduleJS,
+    'breadcrumbs' => $breadcrumbs
+]); 
+?>
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/forms.css">
 <style>
 .tabs-pure {
@@ -75,4 +92,4 @@
         <?php endif; ?>
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>
+<?php includeAppropriateFooter(); ?>

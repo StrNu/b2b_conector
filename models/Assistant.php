@@ -248,6 +248,22 @@ class Assistant {
         return $this->db->resultSet($query, $params);
     }
     
+    
+    /**
+     * Contar asistentes por evento
+     * 
+     * @param int $eventId ID del evento
+     * @return int Número de asistentes
+     */
+    public function countByEvent($eventId) {
+        $query = "SELECT COUNT(*) as count 
+                  FROM {$this->table} a
+                  INNER JOIN company c ON a.company_id = c.company_id
+                  WHERE c.event_id = :event_id";
+        $result = $this->db->single($query, ['event_id' => $eventId]);
+        return $result ? (int)$result['count'] : 0;
+    }
+    
     /**
      * Contar total de asistentes
      * 

@@ -1226,4 +1226,52 @@ ORDER BY match_strength DESC
             'supplier_offers' => $supplierOffers
         ];
     }
+    
+    /**
+     * Contar matches por evento
+     * 
+     * @param int $eventId ID del evento
+     * @return int Número de matches
+     */
+    public function countByEvent($eventId) {
+        $query = "SELECT COUNT(*) as count FROM {$this->table} WHERE event_id = :event_id";
+        $result = $this->db->single($query, ['event_id' => $eventId]);
+        return $result ? (int)$result['count'] : 0;
+    }
+    
+    /**
+     * Contar matches por evento y estado
+     * 
+     * @param int $eventId ID del evento
+     * @param string $status Estado del match
+     * @return int Número de matches
+     */
+    public function countByEventAndStatus($eventId, $status) {
+        $query = "SELECT COUNT(*) as count FROM {$this->table} WHERE event_id = :event_id AND status = :status";
+        $result = $this->db->single($query, ['event_id' => $eventId, 'status' => $status]);
+        return $result ? (int)$result['count'] : 0;
+    }
+    
+    /**
+     * Obtener matches por empresa
+     * 
+     * @param int $companyId ID de la empresa
+     * @return array Lista de matches
+     */
+    public function getByCompany($companyId) {
+        $query = "SELECT m.*, 
+                         bc.company_name as buyer_name,
+                         sc.company_name as supplier_name,
+                         CASE 
+                           WHEN m.buyer_id = :company_id THEN sc.company_name
+                           ELSE bc.company_name
+                         END as partner_company
+                  FROM {$this->table} m
+                  INNER JOIN company bc ON m.buyer_id = bc.company_id
+                  INNER JOIN company sc ON m.supplier_id = sc.company_id
+                  WHERE m.buyer_id = :company_id OR m.supplier_id = :company_id
+                  ORDER BY m.created_at DESC";
+        
+        return $this->db->resultSet($query, ['company_id' => $companyId]);
+    }
 }
