@@ -24,6 +24,9 @@ class EmailService {
             // Crear instancia de PHPMailer
             $mail = new PHPMailer(true);
             
+            // Nombre del remitente, es común para ambos casos
+            $fromName = defined('APP_EMAIL_NAME') ? APP_EMAIL_NAME : 'B2B Conector';
+
             // Configurar servidor SMTP si está configurado
             if (defined('SMTP_HOST') && !empty(SMTP_HOST)) {
                 $mail->isSMTP();
@@ -34,6 +37,10 @@ class EmailService {
                 $mail->SMTPSecure = SMTP_ENCRYPTION === 'ssl' ? PHPMailer::ENCRYPTION_SMTPS : PHPMailer::ENCRYPTION_STARTTLS;
                 $mail->Port = SMTP_PORT;
                 
+                // **IMPORTANTE**: Usar el mismo email de autenticación como remitente
+                $fromEmail = SMTP_USERNAME;
+                $mail->setFrom($fromEmail, $fromName);
+
                 // Debug (solo en desarrollo)
                 if (defined('SMTP_DEBUG')) {
                     $mail->SMTPDebug = SMTP_DEBUG;
@@ -45,12 +52,11 @@ class EmailService {
                 // Usar mail() nativo de PHP como fallback
                 $mail->isMail();
                 Logger::info("Usando mail() nativo como fallback (SMTP no configurado)");
+
+                // Configurar remitente para mail() nativo
+                $fromEmail = defined('APP_EMAIL') ? APP_EMAIL : 'noreply@' . $_SERVER['HTTP_HOST'];
+                $mail->setFrom($fromEmail, $fromName);
             }
-            
-            // Configurar remitente
-            $fromEmail = defined('APP_EMAIL') ? APP_EMAIL : 'noreply@' . $_SERVER['HTTP_HOST'];
-            $fromName = defined('APP_EMAIL_NAME') ? APP_EMAIL_NAME : 'B2B Conector';
-            $mail->setFrom($fromEmail, $fromName);
             
             // Configurar destinatario
             $mail->addAddress($to);

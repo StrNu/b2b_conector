@@ -8,7 +8,7 @@ B2B Conector is a PHP-based web application for managing business networking eve
 
 ## Architecture
 
-This follows a classic **MVC (Model-View-Controller)** pattern:
+This follows a **MVC (Model-View-Controller)** pattern with a modern layout system:
 
 - **Controllers** (`controllers/`): Handle HTTP requests and business logic
 - **Models** (`models/`): Manage data operations and database interactions
@@ -16,6 +16,15 @@ This follows a classic **MVC (Model-View-Controller)** pattern:
 - **Public** (`public/`): Entry point with assets (CSS, JS, images)
 - **Config** (`config/`): Application configuration and database settings
 - **Utils** (`utils/`): Utility classes (Logger, Security, Validator, SpreadsheetReader)
+
+### Layout System Architecture
+
+The application uses a **dynamic layout system** with specialized controllers:
+
+- **BaseController**: Core controller with dynamic layout rendering (`admin`, `event`, `auto`)
+- **AdminController**: System administrators using Material Design admin layout
+- **EventAdminController**: Event administrators with specialized event layout
+- **Layout Templates** (`views/layouts/`): Material Design 3 layouts with conditional rendering
 
 ### Key Components
 
@@ -47,18 +56,27 @@ php -S localhost:8000 -t public/
 ### Common Development Commands
 
 ```bash
+# Install PHP dependencies
+composer install
+
+# Update dependencies
+composer update
+
 # View application logs in real-time
 tail -f logs/$(date +%Y-%m-%d).log
 
 # View PHP error logs
 tail -f logs/php_errors.log
 
-# Set proper file permissions
+# Set proper file permissions (required for uploads and logs)
 chmod 755 uploads/ logs/
 chown www-data:www-data uploads/ logs/  # For Apache/Nginx
 
 # Test database connection
 php -r "require_once 'config/database.php'; echo 'DB connection OK';"
+
+# Check PHP syntax across the project
+find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors detected"
 ```
 
 ### Database Setup
@@ -66,6 +84,37 @@ php -r "require_once 'config/database.php'; echo 'DB connection OK';"
 1. Configure database connection in `config/database.php`
 2. Import database schema (check BD_b2b.md for structure)
 3. Ensure `uploads/` and `logs/` directories have write permissions
+
+### Testing and Debugging
+
+The codebase uses custom testing utilities rather than formal frameworks:
+
+```bash
+# Run authentication tests
+php test_auth.php
+
+# Test logger functionality
+php test_logger.php
+
+# Test email service
+php test_email.php
+
+# Debug system state
+php debug.php
+
+# View log files
+php ver_log.php
+```
+
+**Available Test Files:**
+- `test-components.html` - Visual UI component testing
+- `test-performance.html` - CSS performance metrics
+- `test-admin-layout.php` - Admin layout functionality
+- `test-routing.php` - URL routing system testing
+- `demo-material.php` - Material Design implementation demo
+- `demo-modern.php` - Modern UI implementation demo
+- `test-refactored.php` - Refactored code testing
+- `test-assets-updated.php` - Asset system testing
 
 ### File Structure Navigation
 
@@ -77,11 +126,22 @@ php -r "require_once 'config/database.php'; echo 'DB connection OK';"
 
 ### CSS/JS Organization
 
-CSS and JS are organized by modules:
-- `public/assets/css/modules/`: Feature-specific styles (events.css, matches.css, etc.)
-- `public/assets/css/components/`: Reusable UI components (buttons.css, tables.css, etc.)
-- `public/assets/js/modules/`: Feature-specific JavaScript
-- `public/assets/js/components/`: Reusable JS components
+**Modern Asset Architecture** with Material Design 3 integration:
+
+```
+public/assets/css/
+├── core.css, components.css, layouts.css    # Core system styles
+├── material-theme.css                       # Material Design 3 theme
+├── admin-layout.css, event-layout.css      # Layout-specific styles
+├── modules/                                 # Feature-specific styles
+└── components/                              # Reusable UI components
+```
+
+**Asset Loading Strategy:**
+- Critical CSS inlined for performance (`views/shared/assets.php`)
+- Conditional Material Design loading based on `MATERIAL_DESIGN_ENABLED`
+- CSS preloading with `onload` fallback for non-critical styles
+- Module-specific CSS loaded per page requirements
 
 ### Logging and Debugging
 
@@ -94,9 +154,11 @@ CSS and JS are organized by modules:
 
 1. **Controller Actions**: Follow REST-like conventions (index, create, store, edit, update, delete)
 2. **Model Methods**: Use consistent naming (find, findById, create, update, delete, getAll)
-3. **View Inclusion**: Controllers call `include VIEW_DIR . '/path/to/view.php'`
+3. **Layout Rendering**: Controllers extend BaseController and use `$this->render($view, $data, $layout)`
 4. **Flash Messages**: Use `setFlashMessage()` for user feedback
 5. **CSRF Protection**: Forms include `<?= generateCsrfToken() ?>`
+6. **Material Design**: Use helper functions `materialButton()`, `materialCard()` when `MATERIAL_DESIGN_ENABLED`
+7. **Type Safety**: Cast variables to appropriate types for mathematical operations (use `(int)` for numeric calculations)
 
 ### Security Considerations
 
@@ -127,6 +189,30 @@ Key database tables and their relationships:
 - **supplier_offers**: Supplier offerings by subcategory
 
 See `BD_b2b.md` for complete schema details.
+
+### Key System Architecture Notes
+
+**Bootstrap Process** (`public/index.php`):
+1. Loads configuration and initializes Logger early
+2. Sets up error handling and database connection
+3. Implements session management with CSRF protection
+4. Custom routing system with URL-based dispatching
+
+**Controller Hierarchy**:
+- `BaseController`: Foundation with layout rendering (`$this->render()`)
+- `AdminController`: System admin interface with Material Design
+- `EventAdminController`: Event-specific admin interface
+- `PublicBaseController`: Public registration forms (no authentication)
+
+**Dependencies**:
+- PHPMailer (composer managed) for email functionality
+- No frontend build tools - direct CSS/JS serving
+- Custom Logger, Security, and Validator utilities
+
+**Material Design Integration**:
+- Conditional loading via `MATERIAL_DESIGN_ENABLED` config
+- Helper functions: `materialButton()`, `materialCard()`
+- Separate theme files: `material-theme.css`, `admin-layout.css`
 
 # important-instruction-reminders
 Do what has been asked; nothing more, nothing less.

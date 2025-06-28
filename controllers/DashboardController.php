@@ -10,8 +10,9 @@
  * @version 1.0
  */
 
-class DashboardController {
-    private $db;
+require_once 'BaseController.php';
+
+class DashboardController extends BaseController {
     private $userModel;
     private $eventModel;
     private $companyModel;
@@ -25,7 +26,8 @@ class DashboardController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        Logger::info('Prueba de log info desde DashboardController');
+        parent::__construct();
+        
         Logger::info('Iniciando DashboardController');
         Logger::debug('Estado de sesión: ' . (session_status() === PHP_SESSION_ACTIVE ? 'activa' : 'inactiva'));
         Logger::debug('ID de sesión: ' . session_id());
@@ -37,8 +39,8 @@ class DashboardController {
         Logger::warning('No hay datos de sesión disponibles');
     }
         
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
         
         // Inicializar modelos
         $this->userModel = new User($this->db);
@@ -141,13 +143,20 @@ class DashboardController {
         // Generar acciones rápidas según el rol
         $quickActions = $this->generateQuickActions($userRole);
 
+        $data = [
+            'pageTitle' => 'Panel de Control',
+            'moduleCSS' => 'dashboard',
+            'moduleJS' => 'dashboard',
+            'userRole' => $userRole,
+            'stats' => $stats,
+            'recentEvents' => $recentEvents,
+            'quickActions' => $quickActions,
+            'totalCompanies' => $totalCompanies,
+            'totalEvents' => $totalEvents,
+            'totalMatches' => $totalMatches
+        ];
 
-            // Define variables para la vista
-            $pageTitle = 'Panel de Control';
-            $moduleCSS = 'dashboard';
-            $moduleJS = 'dashboard';
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/dashboard/index.php');
+        $this->render('dashboard/index', $data, 'admin');
     }
         
     /**
@@ -211,11 +220,14 @@ class DashboardController {
             exit;
         } else {
             // Para solicitud normal, mostrar página de estadísticas
-            // Define variables para la vista
-                $pageTitle = 'Panel de Control';
-                $moduleCSS = 'dashboard';
-                $moduleJS = 'dashboard';
-            include(VIEW_DIR . '/dashboard/stats.php');
+            $data = [
+                'pageTitle' => 'Estadísticas del Sistema',
+                'moduleCSS' => 'dashboard',
+                'moduleJS' => 'dashboard',
+                'stats' => $stats
+            ];
+            
+            $this->render('dashboard/stats', $data, 'admin');
         }
     }
     
@@ -288,11 +300,15 @@ class DashboardController {
             exit;
         } else {
             // Para solicitud normal, mostrar página de estadísticas del evento
-                    // Define variables para la vista
-                    $pageTitle = 'Panel de Control';
-                    $moduleCSS = 'dashboard';
-                    $moduleJS = 'dashboard';
-            include(VIEW_DIR . '/dashboard/event_stats.php');
+            $data = [
+                'pageTitle' => 'Estadísticas del Evento',
+                'moduleCSS' => 'dashboard',
+                'moduleJS' => 'dashboard',
+                'event' => $event,
+                'eventStats' => $eventStats
+            ];
+            
+            $this->render('dashboard/event_stats', $data, 'admin');
         }
     }
     
@@ -340,12 +356,14 @@ class DashboardController {
             }
         }
         
-        // Cargar vista con los datos
-        // Define variables para la vista
-    $pageTitle = 'Panel de Control';
-    $moduleCSS = 'dashboard';
-    $moduleJS = 'dashboard';
-        include(VIEW_DIR . '/dashboard/user_activity.php');
+        $data = [
+            'pageTitle' => 'Actividad de Usuario',
+            'moduleCSS' => 'dashboard',
+            'moduleJS' => 'dashboard',
+            'activity' => $activity
+        ];
+        
+        $this->render('dashboard/user_activity', $data, 'admin');
     }
     
     /**
@@ -399,12 +417,15 @@ class DashboardController {
             }
         }
         
-        // Cargar vista con los datos
-       // Define variables para la vista
-    $pageTitle = 'Panel de Control';
-    $moduleCSS = 'dashboard';
-    $moduleJS = 'dashboard';
-        include(VIEW_DIR . '/dashboard/upcoming_events.php');
+        $data = [
+            'pageTitle' => 'Eventos Próximos',
+            'moduleCSS' => 'dashboard',
+            'moduleJS' => 'dashboard',
+            'upcomingEvents' => $upcomingEvents,
+            'eventsWithSchedules' => $eventsWithSchedules
+        ];
+        
+        $this->render('dashboard/upcoming_events', $data, 'admin');
     }
     
     /**
@@ -430,11 +451,14 @@ class DashboardController {
             exit;
         } else {
             // Para solicitud normal, incluir la vista parcial
-           // Define variables para la vista
-    $pageTitle = 'Panel de Control';
-    $moduleCSS = 'dashboard';
-    $moduleJS = 'dashboard';
-            include(VIEW_DIR . '/dashboard/partials/quick_actions.php');
+            $data = [
+                'pageTitle' => 'Acciones Rápidas',
+                'moduleCSS' => 'dashboard',
+                'moduleJS' => 'dashboard',
+                'quickActions' => $quickActions
+            ];
+            
+            $this->render('dashboard/partials/quick_actions', $data, 'admin');
         }
     }
     

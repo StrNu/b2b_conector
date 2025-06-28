@@ -2,7 +2,6 @@
 // Vista: Alta de empresa desde el contexto de un evento
 // Variables esperadas: $eventModel
 ?>
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
 <div class="content">
     <div class="content-header" style="display:flex;align-items:center;justify-content:space-between;">
         <h1 class="form-title">Agregar Nueva Empresa</h1>
@@ -132,4 +131,3 @@
         </div>
     </form>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>

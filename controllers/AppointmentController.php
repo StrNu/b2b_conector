@@ -12,9 +12,10 @@
 
 require_once(MODEL_DIR . '/Company.php');
 
-class AppointmentController {
-    private $db;
-    private $appointmentModel;
+require_once 'BaseController.php';
+
+class AppointmentController extends BaseController {
+        private $appointmentModel;
     private $eventModel;
     private $companyModel;
     private $matchModel;
@@ -26,10 +27,13 @@ class AppointmentController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
         
-        // Inicializar modelos
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
+        
+// Inicializar conexión a la base de datos        // Inicializar modelos
         $this->appointmentModel = new Appointment($this->db);
         $this->eventModel = new Event($this->db);
         $this->companyModel = new Company($this->db);
@@ -128,7 +132,13 @@ class AppointmentController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/appointments/index.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/index', $data, 'admin');
     }
     
     /**
@@ -176,7 +186,13 @@ class AppointmentController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/appointments/view.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/view', $data, 'admin');
     }
     
     /**
@@ -232,7 +248,13 @@ class AppointmentController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/appointments/create.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/create', $data, 'admin');
     }
     
     /**
@@ -417,7 +439,13 @@ class AppointmentController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/appointments/edit.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/edit', $data, 'admin');
     }
     
     /**
@@ -897,7 +925,13 @@ public function conflicts($eventId) {
     $csrfToken = generateCSRFToken();
     
     // Cargar vista con los datos
-    include(VIEW_DIR . '/appointments/conflicts.php');
+            $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/conflicts', $data, 'admin');
 }
 
 /**
@@ -1070,7 +1104,13 @@ public function reschedule($id) {
     $csrfToken = generateCSRFToken();
     
     // Cargar vista
-    include(VIEW_DIR . '/appointments/reschedule.php');
+            $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/reschedule', $data, 'admin');
 }
 
 /**
@@ -1163,7 +1203,13 @@ public function viewByCompany($companyId, $eventId = null) {
     $csrfToken = generateCSRFToken();
     
     // Cargar vista
-    include(VIEW_DIR . '/appointments/company_schedule.php');
+            $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/company_schedule', $data, 'admin');
 }
 
 /**
@@ -1270,7 +1316,13 @@ public function viewByDate($date, $eventId = null) {
     $csrfToken = generateCSRFToken();
     
     // Cargar vista
-    include(VIEW_DIR . '/appointments/date_schedule.php');
+            $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'appointmentcontroller',
+            'moduleJS' => 'appointmentcontroller'
+        ];
+        
+        $this->render('appointments/date_schedule', $data, 'admin');
 }
 
 /**
@@ -1348,15 +1400,31 @@ public function viewByDate($date, $eventId = null) {
         $result = $this->appointmentModel->generateSchedules($eventId);
         if ($result['success']) {
             // Actualizar campo programed de todos los matches programados
-            $matches = $this->matchModel->getByEvent($eventId, 'accepted');
+            // Usar estado 'matched' para consistencia con getConfirmedMatchesAjax
+            $matches = $this->matchModel->getByEvent($eventId, 'matched');
+            $programedCount = 0;
+            
             foreach ($matches as $match) {
                 if ($this->appointmentModel->existsForMatch($match['match_id'])) {
                     $this->matchModel->findById($match['match_id']);
-                    $this->matchModel->update(['programed' => 1]);
+                    $updateResult = $this->matchModel->update(['programed' => 1]);
+                    
+                    if ($updateResult) {
+                        $programedCount++;
+                        Logger::info("Campo programed actualizado por scheduleAll", [
+                            'match_id' => $match['match_id'],
+                            'programed' => 1
+                        ]);
+                    } else {
+                        Logger::warning("Error actualizando campo programed por scheduleAll", [
+                            'match_id' => $match['match_id']
+                        ]);
+                    }
                 }
             }
+            
             if (isset($result['scheduled']) && (int)$result['scheduled'] > 0) {
-                setFlashMessage($result['scheduled'] . ' nuevas citas programadas.', 'success');
+                setFlashMessage($result['scheduled'] . ' nuevas citas programadas y ' . $programedCount . ' matches marcados como programados.', 'success');
             } else {
                 setFlashMessage('No hay citas que programar.', 'info');
             }

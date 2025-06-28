@@ -9,9 +9,10 @@
  * @version 1.0
  */
 
-class CategoryController {
-    private $db;
-    private $categoryModel;
+require_once 'BaseController.php';
+
+class CategoryController extends BaseController {
+        private $categoryModel;
     private $subcategoryModel;
     private $eventModel;
     private $validator;
@@ -22,10 +23,13 @@ class CategoryController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
         
-        // Inicializar modelos
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
+        
+// Inicializar conexión a la base de datos        // Inicializar modelos
         $this->categoryModel = new Category($this->db);
         $this->subcategoryModel = new Subcategory($this->db);
         $this->eventModel = new Event($this->db);
@@ -689,7 +693,7 @@ public function import($eventId) {
             'event_id' => $eventId,
             'name' => sanitize($_POST['category_name']),
             'description' => sanitize($_POST['description'] ?? ''),
-            'is_active' => isset($_POST['is_active']) ? 1 : 0
+            'is_active' => isset($_POST['is_active']) ? (int)$_POST['is_active'] : 1
         ];
         
         $query = "INSERT INTO event_categories (event_id, name, description, is_active) 
@@ -741,7 +745,7 @@ public function import($eventId) {
     private function createGlobalCategory() {
         $categoryData = [
             'category_name' => sanitize($_POST['category_name']),
-            'is_active' => isset($_POST['is_active']) ? 1 : 0
+            'is_active' => isset($_POST['is_active']) ? (int)$_POST['is_active'] : 1
         ];
         
         $categoryId = $this->categoryModel->create($categoryData);
@@ -847,8 +851,14 @@ public function import($eventId) {
      * @return void
      */
     private function renderView($view, $data = []) {
-        extract($data);
-        include(VIEW_DIR . '/' . $view . '.php');
+        // Agregar metadatos estándar
+        $data = array_merge([
+            'pageTitle' => 'Categorías',
+            'moduleCSS' => 'categories',
+            'moduleJS' => 'categories'
+        ], $data);
+        
+        $this->render($view, $data, 'admin');
     }
     
     /**
@@ -875,7 +885,7 @@ public function import($eventId) {
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = trim($_POST['name'] ?? '');
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 0;
             Logger::debug('[editEventCategory] POST name: ' . $name . ', is_active: ' . $is_active);
             if ($name === '') {
                 Logger::debug('[editEventCategory] Nombre vacío');
@@ -926,7 +936,7 @@ public function import($eventId) {
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = trim($_POST['name'] ?? '');
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 0;
             if ($name === '') {
                 setFlashMessage('El nombre es obligatorio', 'danger');
                 redirect(BASE_URL . "/events/categories/$eventId");
@@ -989,7 +999,7 @@ public function import($eventId) {
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = trim($_POST['name'] ?? '');
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 1;
             if ($name === '') {
                 setFlashMessage('El nombre es obligatorio', 'danger');
                 redirect(BASE_URL . "/events/categories/$eventId");
@@ -1038,7 +1048,7 @@ public function import($eventId) {
         }
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $name = trim($_POST['name'] ?? '');
-            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            $is_active = isset($_POST['is_active']) ? (int)$_POST['is_active'] : 1;
             Logger::debug('[addEventSubcategory] POST name: ' . $name . ', is_active: ' . $is_active);
             if ($name === '') {
                 Logger::debug('[addEventSubcategory] Nombre vacío');

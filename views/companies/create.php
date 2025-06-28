@@ -1,4 +1,3 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
 <link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/forms.css">
 <style>
     .company-form .form-row {
@@ -74,4 +73,3 @@
         <!-- Archivo eliminado: Este formulario legacy ya no debe usarse. -->
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>

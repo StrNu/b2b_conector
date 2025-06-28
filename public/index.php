@@ -14,9 +14,8 @@ if (!Logger::init(LOG_DIR)) {
     // Falla crítica: el logger no se pudo inicializar.
     // Registra en el error_log de PHP ya que nuestro logger falló.
     error_log("CRITICAL ERROR: Logger initialization failed for directory: " . LOG_DIR);
-    // Muestra un mensaje genérico al usuario o redirige a una página de error.
-    // Evita mostrar detalles sensibles como la ruta del servidor.
-    die("Error crítico del sistema. No se pudo inicializar el sistema de registro. Contacte al administrador.");
+    // En lugar de morir, continuar sin logging (modo de emergencia)
+    // Esto permite que la aplicación funcione aunque el logging no esté disponible
 }
 
 // Ahora que el Logger funciona, podemos usarlo
@@ -40,6 +39,44 @@ if (isset($_SESSION)) {
     Logger::debug('[DEBUG] session_id: ' . session_id() . ' | csrf_token: ' . (isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : '[NO CSRF TOKEN]'));
 } else {
     Logger::debug('[DEBUG] session_id: ' . session_id() . ' | $_SESSION no está definido');
+}
+
+// --- MIDDLEWARE: Verificar conflictos de sesión ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
+    // Manejar acciones de resolución de conflictos
+    switch ($_POST['action']) {
+        case 'logout_admin':
+            logoutAdminUser();
+            break;
+        case 'logout_event':
+            logoutEventUser();
+            break;
+        case 'logout_all':
+            logoutAllUsers();
+            break;
+    }
+    // Redirigir a la misma página sin POST
+    header('Location: ' . $_SERVER['REQUEST_URI']);
+    exit;
+}
+
+// Verificar conflictos de sesión (excepto en páginas de auth y logout)
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$excludePaths = ['/auth/', '/logout', '/api/', '/ajax/'];
+$shouldCheckConflict = true;
+
+foreach ($excludePaths as $exclude) {
+    if (strpos($currentPath, $exclude) !== false) {
+        $shouldCheckConflict = false;
+        break;
+    }
+}
+
+if ($shouldCheckConflict) {
+    $conflict = checkSessionConflict();
+    if ($conflict) {
+        showSessionConflictPage($conflict);
+    }
 }
 
 // --- 5. Routing ---
@@ -124,14 +161,14 @@ if (
     ) {
         Logger::debug('Dentro del if de buyers_registration', ['urlParts' => $urlParts]);
         require_once __DIR__ . '/../models/Category.php';
-        require_once CONTROLLER_DIR . '/PublicRegistrationController.php';
+        require_once CONTROLLER_DIR . '/RegistrationController.php';
         require_once MODEL_DIR . '/Event.php';
         require_once MODEL_DIR . '/Company.php';
         require_once MODEL_DIR . '/Requirement.php';
         require_once MODEL_DIR . '/AttendanceDay.php';
         require_once MODEL_DIR . '/Assistant.php';
         require_once MODEL_DIR . '/User.php';
-        $controller = new PublicRegistrationController();
+        $controller = new RegistrationController();
         $eventId = (int)$urlParts[1];
         if (isset($urlParts[2]) && $urlParts[2] === 'store') {
             Logger::debug('buyers_registration: ejecutando storeBuyersRegistration', ['eventId' => $eventId]);
@@ -202,12 +239,15 @@ if ($params === null) {
     $params = [];
 }
 
-Logger::debug("Routing request", [
-    'controller' => $controllerSlug, 
+Logger::info("=== ROUTING DEBUG START ===", [
+    'raw_url' => $rawUrl,
+    'sanitized_url' => $url,
+    'url_parts' => $urlParts,
+    'controller_slug' => $controllerSlug, 
     'action' => $action, 
     'params' => $params,
-    'original_url' => $url,
-    'method' => $_SERVER['REQUEST_METHOD']
+    'method' => $_SERVER['REQUEST_METHOD'],
+    'request_uri' => $_SERVER['REQUEST_URI']
 ]);
 
 // --- Routing manual para generación de matches desde la vista de matches ---
@@ -241,6 +281,33 @@ if (
     exit;
 }
 
+// --- Routing manual específico para events/matches/{event_id} ---
+if (
+    isset($urlParts[0], $urlParts[1], $urlParts[2]) &&
+    $urlParts[0] === 'events' &&
+    $urlParts[1] === 'matches' &&
+    is_numeric($urlParts[2])
+) {
+    require_once CONTROLLER_DIR . '/MatchController.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Event.php';
+    
+    $controller = new MatchController();
+    $eventId = (int)$urlParts[2];
+    
+    // Simular que viene como parámetro GET para el método index()
+    $_GET['event_id'] = $eventId;
+    
+    Logger::debug('Routing events/matches/{event_id}', [
+        'event_id' => $eventId,
+        'url_parts' => $urlParts
+    ]);
+    
+    $controller->index();
+    exit;
+}
+
 // --- Routing manual para edición de categorías/subcategorías de evento ---
 if (
     isset($urlParts[0], $urlParts[1], $urlParts[2], $urlParts[3]) &&
@@ -254,6 +321,26 @@ if (
     require_once MODEL_DIR . '/Event.php';
     $controller = new CategoryController();
     if ($urlParts[1] === 'editEventCategory') {
+        $controller->editEventCategory((int)$urlParts[2], (int)$urlParts[3]);
+    } else {
+        $controller->editEventSubcategory((int)$urlParts[2], (int)$urlParts[3]);
+    }
+    exit;
+}
+
+// --- Routing manual para actualización de categorías/subcategorías de evento ---
+if (
+    isset($urlParts[0], $urlParts[1], $urlParts[2], $urlParts[3]) &&
+    $urlParts[0] === 'events' &&
+    in_array($urlParts[1], ['updateEventCategory', 'updateEventSubcategory']) &&
+    is_numeric($urlParts[2]) && is_numeric($urlParts[3])
+) {
+    require_once CONTROLLER_DIR . '/CategoryController.php';
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Subcategory.php';
+    require_once MODEL_DIR . '/Event.php';
+    $controller = new CategoryController();
+    if ($urlParts[1] === 'updateEventCategory') {
         $controller->editEventCategory((int)$urlParts[2], (int)$urlParts[3]);
     } else {
         $controller->editEventSubcategory((int)$urlParts[2], (int)$urlParts[3]);
@@ -292,6 +379,7 @@ $controllerMap = [
     'auth' => 'AuthController',
     'dashboard' => 'DashboardController',
     'events' => 'EventController',
+    'event' => 'EventController', // <-- Añadido para compatibilidad con rutas /event/*
     'companies' => 'CompanyController',
     'categories' => 'CategoryController',
     'matches' => 'MatchController',
@@ -300,6 +388,7 @@ $controllerMap = [
     'agendas' => 'AgendaController', // <-- Añadido para rutas /agendas
     'category_import' => 'CategoryImportController', // <-- Añadido para importación de categorías
     'event-dashboard' => 'EventDashboardController', // <-- Añadido para dashboard de eventos
+    'event-admin' => 'EventAdminController', // <-- Nuevo sistema de layouts para event-admin
     // Añade más según sea necesario
 ];
 
@@ -438,15 +527,24 @@ Logger::debug('Comprobando autenticación para ruta: ' . $currentRoute, [
 
 // Verificar autenticación según el tipo de ruta
 $requiresAuth = !in_array($currentRoute, $publicRoutes) && !$isPublicPath;
-$isEventRoute = strpos($controllerSlug, 'event-dashboard') === 0 || strpos($currentRoute, 'event-dashboard') !== false;
+$isEventOnlyRoute = strpos($controllerSlug, 'event-dashboard') === 0 || strpos($currentRoute, 'event-dashboard') !== false;
+$isEventsRoute = $controllerSlug === 'events';
 
 if ($requiresAuth) {
-    if ($isEventRoute) {
-        // Para rutas de event-dashboard, verificar autenticación de eventos
+    if ($isEventOnlyRoute) {
+        // Para rutas de event-dashboard, solo verificar autenticación de eventos
         if (!isEventUserAuthenticated()) {
             Logger::warning('Event authentication required, redirecting to event login.', ['route' => $currentRoute]);
             setFlashMessage('Debe iniciar sesión como usuario de evento para acceder a esta sección.', 'danger');
             header('Location: ' . BASE_URL . '/auth/event-login');
+            exit;
+        }
+    } else if ($isEventsRoute) {
+        // Para rutas de events, verificar cualquier tipo de autenticación (admin o evento)
+        if (!isAuthenticated() && !isEventUserAuthenticated()) {
+            Logger::warning('Authentication required for events route, redirecting to login.', ['route' => $currentRoute]);
+            setFlashMessage('Debe iniciar sesión para acceder a esta sección.', 'danger');
+            header('Location: ' . BASE_URL . '/auth/login');
             exit;
         }
     } else {
@@ -464,11 +562,50 @@ if ($requiresAuth) {
 $controllerName = $controllerMap[$controllerSlug] ?? ucfirst($controllerSlug) . 'Controller';
 $controllerFile = CONTROLLER_DIR . '/' . $controllerName . '.php';
 
+Logger::info("=== CONTROLLER LOADING ===", [
+    'controller_slug' => $controllerSlug,
+    'controller_name' => $controllerName,
+    'controller_file' => $controllerFile,
+    'file_exists' => file_exists($controllerFile),
+    'controller_map' => $controllerMap
+]);
+
 // Permitir /agendas/{event_id} como alias de /agendas/index/{event_id}
 if ($controllerName === 'AgendaController' && isset($action) && is_numeric($action)) {
     array_unshift($params, $action); // Pone el event_id como primer parámetro
     $action = 'index';
 }
+
+// Manejo especial para rutas /event/companies sin event_id
+if ($controllerName === 'EventController' && $action === 'companies' && empty($params)) {
+    Logger::error("Ruta /event/companies accedida sin event_id", [
+        'controller' => $controllerName,
+        'action' => $action,
+        'params' => $params,
+        'url' => $url
+    ]);
+    header('HTTP/1.0 400 Bad Request');
+    echo '<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Error 400 - Parámetros Faltantes</title>
+    <style>body{font-family:Arial,sans-serif;margin:40px;background:#f8f9fa;}.error{background:#fff;padding:40px;border-radius:8px;box-shadow:0 2px 10px rgba(0,0,0,0.1);}.error h1{color:#dc3545;margin:0 0 20px 0;}.error p{color:#6c757d;line-height:1.6;}.btn{display:inline-block;padding:10px 20px;background:#007bff;color:white;text-decoration:none;border-radius:4px;margin-top:20px;}</style>
+</head>
+<body>
+    <div class="error">
+        <h1>Error 400 - Parámetros Faltantes</h1>
+        <p>La ruta <code>/event/companies</code> requiere un ID de evento.</p>
+        <p>Formato correcto: <code>/events/companies/{event_id}</code></p>
+        <a href="' . BASE_URL . '/events" class="btn">← Volver a Eventos</a>
+    </div>
+</body>
+</html>';
+    exit;
+}
+
+// Cargar BaseController SIEMPRE (necesario para todos los controladores)
+require_once CONTROLLER_DIR . '/BaseController.php';
 
 // Cargar modelos adicionales según el controlador
 if ($controllerName === 'EventController') {
@@ -530,14 +667,33 @@ if ($controllerName === 'EventController') {
     require_once MODEL_DIR . '/Assistant.php';
     require_once MODEL_DIR . '/Match.php';
     require_once MODEL_DIR . '/Appointment.php';
+} elseif ($controllerName === 'EventAdminController') {
+    require_once MODEL_DIR . '/Event.php';
+    require_once MODEL_DIR . '/Company.php';
+    require_once MODEL_DIR . '/Match.php';
+    require_once MODEL_DIR . '/Appointment.php';
+    require_once MODEL_DIR . '/Assistant.php';
+    require_once MODEL_DIR . '/Category.php';
+    require_once MODEL_DIR . '/Subcategory.php';
 }
 
 
 // Asegurarse que el archivo del controlador existe antes de incluirlo
 if (file_exists($controllerFile)) {
+    Logger::info("=== CONTROLLER FILE FOUND ===", [
+        'controller_file' => $controllerFile,
+        'including_file' => true
+    ]);
     require_once $controllerFile;
+    Logger::info("=== CONTROLLER FILE INCLUDED ===", [
+        'controller_name' => $controllerName
+    ]);
 } else {
-    Logger::error("Controlador no encontrado: " . $controllerFile);
+    Logger::error("=== CONTROLLER FILE NOT FOUND ===", [
+        'controller_file' => $controllerFile,
+        'controller_dir' => CONTROLLER_DIR,
+        'dir_contents' => is_dir(CONTROLLER_DIR) ? scandir(CONTROLLER_DIR) : 'Directory not found'
+    ]);
     header('HTTP/1.0 404 Not Found');
     echo 'Error 404: Controlador no encontrado.';
     exit;
@@ -545,21 +701,61 @@ if (file_exists($controllerFile)) {
 
 
 // Crear instancia del controlador
-$controllerInstance = new $controllerName();
+Logger::info("=== CREATING CONTROLLER INSTANCE ===", [
+    'controller_name' => $controllerName,
+    'class_exists' => class_exists($controllerName)
+]);
+
+try {
+    $controllerInstance = new $controllerName();
+    Logger::info("=== CONTROLLER INSTANCE CREATED ===", [
+        'controller_name' => $controllerName,
+        'available_methods' => get_class_methods($controllerInstance)
+    ]);
+} catch (Exception $e) {
+    Logger::error("=== ERROR CREATING CONTROLLER INSTANCE ===", [
+        'controller_name' => $controllerName,
+        'error_message' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+    header('HTTP/1.0 500 Internal Server Error');
+    echo 'Error 500: Error creando instancia del controlador.';
+    exit;
+}
 
 // Verificar si la acción existe en el controlador
 if (!method_exists($controllerInstance, $action)) {
-    Logger::error("Acción no encontrada: " . $action);
+    Logger::error("=== ACTION NOT FOUND ===", [
+        'action' => $action,
+        'controller_name' => $controllerName,
+        'available_methods' => get_class_methods($controllerInstance)
+    ]);
     header('HTTP/1.0 404 Not Found');
-    echo 'Error 404: Acción no encontrada.';
+    echo '[ERROR] Acción no encontrada: ' . $action;
     exit;
 }
 
 // Llamar a la acción del controlador con los parámetros
+Logger::info("=== CALLING CONTROLLER ACTION ===", [
+    'controller_name' => $controllerName,
+    'action' => $action,
+    'params' => $params,
+    'params_count' => count($params)
+]);
+
 try {
     call_user_func_array([$controllerInstance, $action], $params);
+    Logger::info("=== CONTROLLER ACTION COMPLETED ===", [
+        'controller_name' => $controllerName,
+        'action' => $action
+    ]);
 } catch (Exception $e) {
-    Logger::error("Error en la acción del controlador: " . $e->getMessage());
+    Logger::error("=== ERROR IN CONTROLLER ACTION ===", [
+        'controller_name' => $controllerName,
+        'action' => $action,
+        'error_message' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
     header('HTTP/1.0 500 Internal Server Error');
     echo 'Error 500: Error interno del servidor.';
     exit;

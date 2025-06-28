@@ -8,8 +8,9 @@ require_once(__DIR__ . '/../models/Event.php');
  * @version 1.0
  */
 
-class CompanyController {
-    private $db;
+require_once 'BaseController.php';
+
+class CompanyController extends BaseController {
     private $companyModel;
     private $eventModel;
     private $validator;
@@ -20,8 +21,10 @@ class CompanyController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
         
         // Inicializar modelos
         $this->companyModel = new Company($this->db);
@@ -85,8 +88,19 @@ class CompanyController {
         // Obtener eventos para el filtro de eventos
         $events = $this->eventModel->getActiveEvents();
         
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/companies/index.php');
+        $data = [
+            'pageTitle' => 'Gestión de Empresas',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'companies' => $companies,
+            'events' => $events,
+            'filters' => $filters,
+            'pagination' => $pagination,
+            'totalCompanies' => $totalCompanies,
+            'currentPage' => $page
+        ];
+        
+        $this->render('companies/index', $data, 'admin');
     }
     
     /**
@@ -104,67 +118,99 @@ class CompanyController {
         }
         
         // Buscar empresa por ID
-        if (!$this->companyModel->findById($id)) {
+        $companyFound = $this->companyModel->findById($id);
+        if (!$companyFound) {
             setFlashMessage('Empresa no encontrada', 'danger');
             redirect(BASE_URL . '/companies');
             exit;
         }
         
         // Obtener información adicional de la empresa
-        $eventId = $this->companyModel->getEventId();
-        $attendanceDays = $this->companyModel->getAttendanceDays($eventId, $id);
-        $assistants = $this->companyModel->getAssistants($id);
+        $company = $this->companyModel;
+        $eventId = $company->getEventId();
+        $assistants = [];
+        $attendanceDays = [];
+        
+        // Verificar que tenemos los datos necesarios
+        if ($eventId) {
+            try {
+                $attendanceDays = $company->getAttendanceDays($eventId, $id);
+                $assistants = $company->getAssistants($id);
+            } catch (Exception $e) {
+                // Log error but continue
+                if (class_exists('Logger')) {
+                    Logger::warning('Error obteniendo datos adicionales de empresa', [
+                        'company_id' => $id,
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+        }
 
         // Obtener evento relacionado
         $event = new Event($this->db);
-        $event->findById($eventId);
+        $eventModel = null;
+        if ($eventId && $event->findById($eventId)) {
+            $eventModel = $event;
+        }
 
-        // Definir $company y $eventModel para la vista
-        $company = $this->companyModel;
-        $eventModel = $event;
-
+        // Inicializar variables
+        $requirements = [];
+        $offers = [];
+        $categories = [];
+        
         // Obtener ofertas o requerimientos según el rol de la empresa
-        $role = $this->companyModel->getRole();
-        if ($role == 'buyer') {
-            $requirements = $this->companyModel->getRequirements($id);
-            $categories = [];
-            
-            // Agrupar requerimientos por categoría
-            foreach ($requirements as $req) {
-                if (!isset($categories[$req['category_id']])) {
-                    $categories[$req['category_id']] = [
-                        'category_name' => $req['category_name'],
-                        'subcategories' => []
+        $role = $this->companyModel->getRole() ?? 'unknown';
+        
+        try {
+            if ($role == 'buyer') {
+                $requirements = $this->companyModel->getRequirements($id) ?? [];
+                
+                // Agrupar requerimientos por categoría
+                foreach ($requirements as $req) {
+                    if (!isset($categories[$req['category_id']])) {
+                        $categories[$req['category_id']] = [
+                            'category_name' => $req['category_name'],
+                            'subcategories' => []
+                        ];
+                    }
+                    
+                    $categories[$req['category_id']]['subcategories'][] = [
+                        'id' => $req['subcategory_id'],
+                        'name' => $req['subcategory_name'],
+                        'requirement_id' => $req['requirement_id'],
+                        'budget_usd' => $req['budget_usd'],
+                        'quantity' => $req['quantity'],
+                        'unit_of_measurement' => $req['unit_of_measurement']
                     ];
                 }
+            } else {
+                $offers = $this->companyModel->getOffers($id) ?? [];
                 
-                $categories[$req['category_id']]['subcategories'][] = [
-                    'id' => $req['subcategory_id'],
-                    'name' => $req['subcategory_name'],
-                    'requirement_id' => $req['requirement_id'],
-                    'budget_usd' => $req['budget_usd'],
-                    'quantity' => $req['quantity'],
-                    'unit_of_measurement' => $req['unit_of_measurement']
-                ];
+                // Agrupar ofertas por categoría
+                foreach ($offers as $offer) {
+                    if (!isset($categories[$offer['category_id']])) {
+                        $categories[$offer['category_id']] = [
+                            'category_name' => $offer['category_name'],
+                            'subcategories' => []
+                        ];
+                    }
+                    
+                    $categories[$offer['category_id']]['subcategories'][] = [
+                        'id' => $offer['subcategory_id'],
+                        'name' => $offer['subcategory_name'],
+                        'offer_id' => $offer['offer_id']
+                    ];
+                }
             }
-        } else {
-            $offers = $this->companyModel->getOffers($id);
-            $categories = [];
-            
-            // Agrupar ofertas por categoría
-            foreach ($offers as $offer) {
-                if (!isset($categories[$offer['category_id']])) {
-                    $categories[$offer['category_id']] = [
-                        'category_name' => $offer['category_name'],
-                        'subcategories' => []
-                    ];
-                }
-                
-                $categories[$offer['category_id']]['subcategories'][] = [
-                    'id' => $offer['subcategory_id'],
-                    'name' => $offer['subcategory_name'],
-                    'offer_id' => $offer['offer_id']
-                ];
+        } catch (Exception $e) {
+            // Log error but continue with empty arrays
+            if (class_exists('Logger')) {
+                Logger::warning('Error obteniendo requerimientos/ofertas de empresa', [
+                    'company_id' => $id,
+                    'role' => $role,
+                    'error' => $e->getMessage()
+                ]);
             }
         }
         
@@ -182,8 +228,36 @@ class CompanyController {
         $appointmentModel = new Appointment($this->db);
         $schedules = $appointmentModel->getByCompany($id, $eventId);
         
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/companies/view.php');
+        // Verificación final antes del render
+        if (!$company || !is_object($company)) {
+            if (class_exists('Logger')) {
+                Logger::error('Company object is null or invalid in view method', [
+                    'company_id' => $id,
+                    'company_object' => $company,
+                    'company_found' => $companyFound
+                ]);
+            }
+            setFlashMessage('Error interno: Datos de empresa no disponibles', 'danger');
+            redirect(BASE_URL . '/companies');
+            exit;
+        }
+        
+        $data = [
+            'pageTitle' => 'Detalles de Empresa - ' . ($company ? $company->getCompanyName() : 'N/A'),
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'additionalCSS' => ['components/layouts.css'],
+            'company' => $company,
+            'eventModel' => $eventModel,
+            'requirements' => $requirements ?? [],
+            'offers' => $offers ?? [],
+            'matches' => $matches ?? [],
+            'schedules' => $schedules ?? [],
+            'eventId' => $eventId ?? null,
+            'role' => $role ?? 'unknown'
+        ];
+        
+        $this->render('companies/view', $data, 'admin');
     }
     
     /**
@@ -205,8 +279,16 @@ class CompanyController {
         // Token CSRF para el formulario
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista del formulario
-        include(VIEW_DIR . '/companies/create.php');
+        $data = [
+            'pageTitle' => 'Crear Nueva Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'additionalCSS' => ['forms.css'],
+            'events' => $events,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('companies/create', $data, 'admin');
     }
     
     /**
@@ -483,9 +565,24 @@ class CompanyController {
             }
             $csrfToken = generateCSRFToken();
             $company = $this->companyModel;
-            include(VIEW_DIR . '/companies/edit.php');
+            
+            $data = [
+                'pageTitle' => 'Editar Empresa',
+                'moduleCSS' => 'companies',
+                'moduleJS' => 'companies',
+                'additionalCSS' => ['forms.css'],
+                'company' => $company,
+                'events' => $events,
+                'eventId' => $eventId,
+                'attendanceDays' => $attendanceDays,
+                'formattedDays' => $formattedDays,
+                'csrfToken' => $csrfToken
+            ];
+            
+            $this->render('companies/edit', $data, 'admin');
         }
     }
+    
     
     /**
      * Eliminar una empresa
@@ -698,8 +795,17 @@ class CompanyController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista
-        include(VIEW_DIR . '/companies/assistants.php');
+        $data = [
+            'pageTitle' => 'Asistentes de Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'company' => $company,
+            'assistants' => $assistants,
+            'eventId' => $eventId,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('companies/assistants', $data, 'admin');
     }
     
     /**
@@ -827,8 +933,17 @@ class CompanyController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista
-        include(VIEW_DIR . '/companies/attendance.php');
+        $data = [
+            'pageTitle' => 'Días de Asistencia',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'company' => $company,
+            'attendanceDays' => $attendanceDays,
+            'eventModel' => $eventModel,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('companies/attendance', $data, 'admin');
     }
     
     /**
@@ -964,8 +1079,19 @@ class CompanyController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista
-        include(VIEW_DIR . '/companies/requirements.php');
+        $data = [
+            'pageTitle' => 'Requerimientos de Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'company' => $company,
+            'requirements' => $requirements,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'eventModel' => $eventModel,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('companies/requirements', $data, 'admin');
     }
     
     /**
@@ -1095,8 +1221,19 @@ class CompanyController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista
-        include(VIEW_DIR . '/companies/offers.php');
+        $data = [
+            'pageTitle' => 'Ofertas de Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'company' => $company,
+            'offers' => $offers,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'eventModel' => $eventModel,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('companies/offers', $data, 'admin');
     }
     
     /**
@@ -1145,8 +1282,16 @@ class CompanyController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista
-        include(VIEW_DIR . '/companies/schedules.php');
+        $data = [
+            'pageTitle' => 'Horarios de Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'company' => $company,
+            'schedules' => $schedules,
+            'eventModel' => $eventModel
+        ];
+        
+        $this->render('companies/schedules', $data, 'admin');
     }
     
     /**

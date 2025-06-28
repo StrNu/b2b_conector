@@ -10,8 +10,9 @@
  * @version 1.0
  */
 
-class EventController {
-    private $db;
+require_once 'BaseController.php';
+
+class EventController extends BaseController {
     private $eventModel;
     private $companyModel;
     private $matchModel;
@@ -30,8 +31,10 @@ class EventController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
         
         // Inicializar modelos
         $this->eventModel = new Event($this->db);
@@ -79,6 +82,17 @@ class EventController {
     }
 
     /**
+ * Página principal de eventos (index)
+ * Redirige a la lista de eventos
+ * 
+ * @return void
+ */
+public function index() {
+    Logger::info('EventController::index called, redirecting to list');
+    $this->list();
+}
+
+/**
  * Mostrar formulario para crear un nuevo evento
  * 
  * @return void
@@ -121,14 +135,22 @@ public function create() {
     // Obtener categorías disponibles para el evento
     $categories = $this->categoryModel->getAll();
 
-    $pageTitle = 'Eventos';
-    $moduleCSS = 'events';
-    $moduleJS = 'events';
-    $additionalCSS = 'components/datepicker.css';
-    $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
+    $data = [
+        'pageTitle' => 'Crear Nuevo Evento',
+        'moduleCSS' => 'events',
+        'moduleJS' => 'events',
+        'additionalCSS' => ['components/datepicker.css'],
+        'additionalJS' => ['lib/flatpickr.min.js', 'lib/choices.min.js'],
+        'breadcrumbs' => [
+            ['title' => 'Dashboard', 'url' => BASE_URL . '/dashboard'],
+            ['title' => 'Eventos', 'url' => BASE_URL . '/events'],
+            ['title' => 'Crear Nuevo']
+        ],
+        'formData' => $formData,
+        'categories' => $categories
+    ];
     
-    // Incluir la vista
-    include(VIEW_DIR . '/events/create.php');
+    $this->render('events/create', $data, 'admin');
 }
 
 /**
@@ -397,21 +419,44 @@ private function processLogo($fileData, $type = 'event') {
      * @return void
      */
     public function view($id) {
-        // Verificar permisos (incluir event_admin para acceso a su evento específico)
-        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER]) && !isEventAdmin()) {
-            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
-            redirect(BASE_URL);
+        Logger::debug("EventController::view iniciado con ID: {$id}");
+        Logger::debug("Estado autenticación - isAuthenticated: " . (isAuthenticated() ? 'true' : 'false'));
+        Logger::debug("Estado autenticación - isEventUserAuthenticated: " . (isEventUserAuthenticated() ? 'true' : 'false'));
+        
+        // Verificar permisos básicos
+        if (!isAuthenticated() && !isEventUserAuthenticated()) {
+            Logger::debug("Sin autenticación, redirigiendo al login");
+            setFlashMessage('Debe iniciar sesión para acceder', 'danger');
+            redirect(BASE_URL . '/auth/login');
             exit;
         }
         
-        // Si es event_admin, verificar que sea su evento
-        if (isEventAdmin()) {
+        // Para usuarios normales con roles administrativos, dar prioridad sobre usuarios de evento
+        if (isAuthenticated() && hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            $userRoles = $_SESSION['role'] ?? 'sin_rol';
+            Logger::debug("Usuario admin/organizador autenticado con roles: {$userRoles} - acceso total permitido");
+            // Los admins y organizadores pueden ver cualquier evento
+        }
+        // Para usuarios de evento, verificar que sea su evento (solo si no es admin)
+        else if (isEventUserAuthenticated()) {
             $userEventId = getEventId();
-            if ((int)$id !== $userEventId) {
+            Logger::debug("Usuario evento autenticado - su evento ID: {$userEventId}, evento solicitado: {$id}");
+            Logger::debug("Comparación: (int){$id} !== (int){$userEventId} = " . ((int)$id !== (int)$userEventId ? 'true' : 'false'));
+            if ((int)$id !== (int)$userEventId) {
+                Logger::debug("Usuario evento no tiene acceso al evento {$id}, redirigiendo a su evento {$userEventId}");
                 setFlashMessage('No tiene acceso a este evento', 'danger');
                 redirect(BASE_URL . '/events/view/' . $userEventId);
                 exit;
             }
+            Logger::debug("Usuario evento tiene acceso correcto al evento {$id}");
+        }
+        // Para usuarios normales sin permisos
+        else if (isAuthenticated()) {
+            $userRoles = $_SESSION['role'] ?? 'sin_rol';
+            Logger::debug("Usuario normal sin permisos con roles: {$userRoles}, redirigiendo al dashboard");
+            setFlashMessage('No tiene permisos para acceder a esta sección', 'danger');
+            redirect(BASE_URL . '/dashboard');
+            exit;
         }
         $eventId = filter_var($id, FILTER_VALIDATE_INT);
         if ($eventId === false || $eventId <= 0) {
@@ -477,7 +522,11 @@ private function processLogo($fileData, $type = 'event') {
         foreach ($viewData as $key => $value) {
             $$key = $value;
         }
-        include(VIEW_DIR . '/events/view.php');
+        // Determinar layout según tipo de usuario
+        $layout = isEventUserAuthenticated() ? 'event' : 'admin';
+        
+        // Usar render method de BaseController
+        $this->render('events/view', $viewData, $layout);
     }
         
      /**
@@ -551,7 +600,25 @@ private function processLogo($fileData, $type = 'event') {
             $matches[$m['match_id']] = $m;
         }
         $csrfToken = generateCSRFToken();
-        include(VIEW_DIR . '/events/schedules.php');
+        
+        $data = [
+            'pageTitle' => 'Programación de Citas - ' . $event->getEventName(),
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'url' => BASE_URL . '/dashboard'],
+                ['title' => 'Eventos', 'url' => BASE_URL . '/events'],
+                ['title' => 'Citas']
+            ],
+            'event' => $event,
+            'appointments' => $appointments,
+            'days' => $days,
+            'schedulesByDay' => $schedulesByDay,
+            'matches' => $matches,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('events/schedules', $data, 'admin');
     }
     
     /**
@@ -645,14 +712,18 @@ private function processLogo($fileData, $type = 'event') {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
 
-        $pageTitle = 'Eventos';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/datepicker.css';
-        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
+        $data = [
+            'pageTitle' => 'Ver Match',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'additionalCSS' => ['components/datepicker.css'],
+            'additionalJS' => ['lib/flatpickr.min.js', 'lib/choices.min.js'],
+            'event' => $event,
+            'match' => $match,
+            'csrfToken' => $csrfToken
+        ];
         
-        // Cargar vista
-        include(VIEW_DIR . '/events/view_match.php');
+        $this->render('events/view_match', $data, 'admin');
     }
     
     /**
@@ -703,14 +774,19 @@ private function processLogo($fileData, $type = 'event') {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
 
-        $pageTitle = 'Eventos';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/datepicker.css';
-        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
+        $data = [
+            'pageTitle' => 'Crear Cita',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'additionalCSS' => ['components/datepicker.css'],
+            'additionalJS' => ['lib/flatpickr.min.js', 'lib/choices.min.js'],
+            'event' => $event,
+            'match' => $match,
+            'slots' => $slots,
+            'csrfToken' => $csrfToken
+        ];
         
-        // Cargar vista
-        include(VIEW_DIR . '/events/create_schedule.php');
+        $this->render('events/create_schedule', $data, 'admin');
     }
     
     /**
@@ -909,14 +985,19 @@ private function processLogo($fileData, $type = 'event') {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
 
-        $pageTitle = 'Eventos';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/datepicker.css';
-        $additionalJS = ['lib/flatpickr.min.js', 'lib/choices.min.js'];
+        $data = [
+            'pageTitle' => 'Asistentes de Empresa',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'additionalCSS' => ['components/datepicker.css'],
+            'additionalJS' => ['lib/flatpickr.min.js', 'lib/choices.min.js'],
+            'event' => $event,
+            'company' => $company,
+            'assistants' => $assistants,
+            'csrfToken' => $csrfToken
+        ];
         
-        // Cargar vista
-        include(VIEW_DIR . '/events/company_assistants.php');
+        $this->render('events/company_assistants', $data, 'admin');
     }  
     
     /**
@@ -939,8 +1020,21 @@ private function processLogo($fileData, $type = 'event') {
         }
         // Obtener eventos desde el modelo
         $events = $this->eventModel->getAll($filters);
-        // Pasar datos a la vista
-        include(VIEW_DIR . '/events/list.php');
+        
+        $data = [
+            'pageTitle' => 'Lista de Eventos',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'url' => BASE_URL . '/dashboard'],
+                ['title' => 'Eventos']
+            ],
+            'events' => $events,
+            'search' => $search,
+            'status' => $status
+        ];
+        
+        $this->render('events/list', $data, 'admin');
     }
     
     /**
@@ -973,15 +1067,22 @@ private function processLogo($fileData, $type = 'event') {
         // Generar token CSRF para formularios y AJAX
         $csrfToken = generateCSRFToken();
 
-        // Título y recursos de la página
-        $pageTitle = 'Matches del Evento';
-        $moduleCSS = 'events';
-        $moduleJS = 'events';
-        $additionalCSS = 'components/tabs.css';
-        $additionalJS = [];
+        $data = [
+            'pageTitle' => 'Matches del Evento',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'additionalCSS' => ['components/tabs.css'],
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'url' => BASE_URL . '/dashboard'],
+                ['title' => 'Eventos', 'url' => BASE_URL . '/events'],
+                ['title' => 'Matches']
+            ],
+            'eventId' => $eventId,
+            'csrfToken' => $csrfToken
+        ];
 
         // Cargar vista de matches (AJAX tabs)
-        include(VIEW_DIR . '/events/matches.php');
+        $this->render('events/matches', $data, 'admin');
     }
     
     /**
@@ -1014,8 +1115,20 @@ private function processLogo($fileData, $type = 'event') {
         }
         // Obtener empresas del evento
         $companies = $this->companyModel->getAll($filters);
-        // Pasar datos a la vista
-        include(VIEW_DIR . '/events/event_list.php');
+        // Obtener información del evento
+        $event = $this->eventModel->findById($eventId);
+        
+        $data = [
+            'pageTitle' => 'Lista de Empresas del Evento',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'event' => $event,
+            'companies' => $companies,
+            'eventId' => $eventId,
+            'filters' => $filters
+        ];
+        
+        $this->render('events/event_list', $data, 'admin');
     }
     
     /**
@@ -1056,8 +1169,45 @@ private function processLogo($fileData, $type = 'event') {
         }
         $event = $this->eventModel;
         $company = $this->companyModel;
-        // Cargar vista de registro completo
-        include(VIEW_DIR . '/events/view_full_registration.php');
+        
+        // Obtener datos adicionales necesarios para la vista
+        $assistants = $this->assistantModel->findByCompany($companyId);
+        $attendanceDays = $this->attendanceDayModel->getByCompanyAndEvent($companyId, $eventId);
+        $categories = $this->categoryModel->getEventCategories($eventId);
+        $subcategories = [];
+        foreach ($categories as $cat) {
+            $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
+        }
+        
+        // Cargar datos específicos según el rol de la empresa
+        $requirements = [];
+        $offers = [];
+        $companyRole = $company->getRole();
+        
+        if ($companyRole === 'buyer') {
+            $requirements = $this->requirementModel->findByBuyer($companyId);
+        } elseif ($companyRole === 'supplier') {
+            // Cargar ofertas del proveedor
+            $offers = $company->getOffers($companyId);
+        }
+        
+        $data = [
+            'pageTitle' => 'Registro Completo de Empresa',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'event' => $event,
+            'company' => $company,
+            'assistants' => $assistants,
+            'requirements' => $requirements,
+            'offers' => $offers,
+            'attendanceDays' => $attendanceDays,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'eventUserRole' => null, // Determinar si es necesario
+            'eventUserEmail' => null // Determinar si es necesario
+        ];
+        
+        $this->render('events/view_full_registration', $data, 'admin');
     }
     
     /**
@@ -1100,8 +1250,18 @@ private function processLogo($fileData, $type = 'event') {
         $company = $this->companyModel;
         $eventModel = $event; // Para compatibilidad con la vista
         $csrfToken = generateCSRFToken();
-        // Cargar vista de edición de empresa (ubicación correcta)
-        include(VIEW_DIR . '/companies/edit.php');
+        
+        $data = [
+            'pageTitle' => 'Editar Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'event' => $event,
+            'company' => $company,
+            'eventModel' => $eventModel,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('companies/edit', $data, 'admin');
     }
 
     /**
@@ -1118,7 +1278,24 @@ private function processLogo($fileData, $type = 'event') {
         $event = $this->eventModel;
         $companies = $this->companyModel->getAll(['event_id' => $eventId]);
         $csrfToken = generateCSRFToken();
-        include(VIEW_DIR . '/events/participants.php');
+        
+        $data = [
+            'pageTitle' => 'Participantes - ' . $event->getEventName(),
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'url' => BASE_URL . '/dashboard'],
+                ['title' => 'Eventos', 'url' => BASE_URL . '/events'],
+                ['title' => 'Participantes']
+            ],
+            'event' => $event,
+            'eventId' => $eventId,
+            'participants' => $participants,
+            'companies' => $companies,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('events/participants', $data, 'admin');
     }
     
     /**
@@ -1180,7 +1357,136 @@ public function editParticipant($eventId, $assistantId) {
     $companies = $this->companyModel->getAll(['event_id' => $eventId]);
     $event = $this->eventModel;
     $csrfToken = generateCSRFToken();
-    include(VIEW_DIR . '/events/edit_participant.php');
+    
+    $data = [
+        'pageTitle' => 'Editar Participante',
+        'moduleCSS' => 'events',
+        'moduleJS' => 'events',
+        'event' => $event,
+        'companies' => $companies,
+        'eventId' => $eventId,
+        'assistantId' => $assistantId,
+        'assistant' => $assistant ?? null,
+        'csrfToken' => $csrfToken
+    ];
+    
+    $this->render('events/edit_participant', $data, 'admin');
+}
+
+/**
+ * Eliminar un participante
+ * 
+ * @param int $eventId ID del evento
+ * @param int $assistantId ID del asistente a eliminar
+ * @return void
+ */
+public function deleteParticipant($eventId, $assistantId) {
+    $this->checkPermission([ROLE_ADMIN, ROLE_ORGANIZER]);
+    
+    // Verificar que el evento existe
+    if (!$this->eventModel->findById($eventId)) {
+        Logger::error('deleteParticipant: Evento no encontrado', ['eventId' => $eventId]);
+        setFlashMessage('Evento no encontrado', 'danger');
+        redirect(BASE_URL . '/events');
+        exit;
+    }
+    
+    // Verificar que el asistente existe
+    $assistantFound = $this->assistantModel->findById($assistantId);
+    if (!$assistantFound) {
+        Logger::error('deleteParticipant: Asistente no encontrado', ['assistantId' => $assistantId]);
+        setFlashMessage('Participante no encontrado', 'danger');
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
+    }
+    $assistant = $this->assistantModel;
+    
+    // Verificar que el asistente pertenece a una empresa del evento
+    $companyId = $assistant->getCompanyId();
+    if (!$this->companyModel->findById($companyId)) {
+        Logger::error('deleteParticipant: Empresa del asistente no encontrada', ['companyId' => $companyId]);
+        setFlashMessage('Empresa del participante no encontrada', 'danger');
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
+    }
+    
+    // Verificar que la empresa pertenece al evento
+    Logger::debug('deleteParticipant: Verificando empresa', [
+        'companyId' => $companyId,
+        'eventId' => $eventId
+    ]);
+    
+    $companyFound = $this->companyModel->findById($companyId);
+    if (!$companyFound) {
+        Logger::error('deleteParticipant: Empresa no encontrada en base de datos', [
+            'companyId' => $companyId,
+            'eventId' => $eventId
+        ]);
+        setFlashMessage('Empresa no encontrada', 'danger');
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
+    }
+    $company = $this->companyModel;
+    
+    Logger::debug('deleteParticipant: Empresa encontrada', [
+        'companyId' => $companyId,
+        'companyEventId' => $company->getEventId(),
+        'expectedEventId' => $eventId
+    ]);
+    
+    if ($company->getEventId() != $eventId) {
+        Logger::error('deleteParticipant: La empresa no pertenece al evento', [
+            'eventId' => $eventId, 
+            'companyId' => $companyId,
+            'companyEventId' => $company->getEventId()
+        ]);
+        setFlashMessage('El participante no pertenece a este evento', 'danger');
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
+    }
+    
+    // Solo procesar solicitudes POST
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        Logger::warning('deleteParticipant: Intento de acceso GET', ['eventId' => $eventId, 'assistantId' => $assistantId]);
+        setFlashMessage('Método no permitido', 'danger');
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
+    }
+    
+    // Verificar token CSRF
+    if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        Logger::warning('deleteParticipant: Token CSRF inválido', ['eventId' => $eventId, 'assistantId' => $assistantId]);
+        setFlashMessage('Token de seguridad inválido, intente nuevamente', 'danger');
+        redirect(BASE_URL . "/events/participants/$eventId");
+        exit;
+    }
+    
+    try {
+        // Intentar eliminar el asistente
+        $deleted = $this->assistantModel->delete($assistantId);
+        
+        if ($deleted) {
+            Logger::info('deleteParticipant: Asistente eliminado exitosamente', [
+                'eventId' => $eventId, 
+                'assistantId' => $assistantId,
+                'assistantName' => $assistant->getFirstName() . ' ' . $assistant->getLastName()
+            ]);
+            setFlashMessage('Participante eliminado exitosamente', 'success');
+        } else {
+            throw new Exception('Error al eliminar el participante de la base de datos');
+        }
+    } catch (Exception $e) {
+        Logger::error('deleteParticipant: Error al eliminar asistente', [
+            'eventId' => $eventId, 
+            'assistantId' => $assistantId,
+            'error' => $e->getMessage()
+        ]);
+        setFlashMessage('Error al eliminar el participante: ' . $e->getMessage(), 'danger');
+    }
+    
+    // Redirigir de vuelta a la lista de participantes
+    redirect(BASE_URL . "/events/participants/$eventId");
+    exit;
 }
 
 /**
@@ -1194,7 +1500,21 @@ public function editParticipant($eventId, $assistantId) {
         }
         $companies = $this->companyModel->getAll(['event_id' => $eventId]);
         $event = $this->eventModel;
-        include(VIEW_DIR . '/events/companies.php');
+        
+        $data = [
+            'pageTitle' => 'Empresas - ' . $event->getEventName(),
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'breadcrumbs' => [
+                ['title' => 'Dashboard', 'url' => BASE_URL . '/dashboard'],
+                ['title' => 'Eventos', 'url' => BASE_URL . '/events'],
+                ['title' => 'Empresas']
+            ],
+            'event' => $event,
+            'companies' => $companies
+        ];
+        
+        $this->render('events/companies', $data, 'admin');
     }
 
     /**
@@ -1227,8 +1547,18 @@ public function editParticipant($eventId, $assistantId) {
         }
         $eventModel = $this->eventModel;
 
-        // Pasar datos a la vista
-        include(VIEW_DIR . '/companies/view.php');
+        $data = [
+            'pageTitle' => 'Ver Empresa',
+            'moduleCSS' => 'companies',
+            'moduleJS' => 'companies',
+            'additionalCSS' => ['components/layouts.css'],
+            'company' => $company,
+            'assistants' => $assistants,
+            'eventModel' => $eventModel,
+            'eventId' => $eventId
+        ];
+
+        $this->render('companies/view', $data, 'admin');
     }
 
     /**
@@ -1355,18 +1685,33 @@ public function editParticipant($eventId, $assistantId) {
                          m.match_id,
                          c1.company_name as buyer_name, 
                          c2.company_name as supplier_name,
-                         c1.contact_name as buyer_contact,
-                         c2.contact_name as supplier_contact,
-                         m.buyer_requirements,
-                         m.supplier_offers
+                         CONCAT(c1.contact_first_name, ' ', c1.contact_last_name) as buyer_contact,
+                         CONCAT(c2.contact_first_name, ' ', c2.contact_last_name) as supplier_contact,
+                         m.buyer_subcategories,
+                         m.supplier_subcategories
                   FROM event_schedules es 
                   LEFT JOIN matches m ON es.match_id = m.match_id 
                   LEFT JOIN company c1 ON m.buyer_id = c1.company_id 
                   LEFT JOIN company c2 ON m.supplier_id = c2.company_id 
                   WHERE es.event_id = :event_id";
         $appointments = $this->db->resultSet($query, ['event_id' => $eventId]);
-        // Pasar variables a la vista
-        include(VIEW_DIR . '/events/time_slots.php');
+        
+        $data = [
+            'pageTitle' => 'Horarios del Evento',
+            'moduleCSS' => 'events',
+            'moduleJS' => 'events',
+            'additionalCSS' => ['components/cards.css'],
+            'eventModel' => $eventModel,
+            'eventId' => $eventId,
+            'availableTables' => $availableTables,
+            'eventDurationDays' => $eventDurationDays,
+            'slotsPerDay' => $slotsPerDay,
+            'slotsByDate' => $slotsByDate,
+            'breaks' => $breaks,
+            'appointments' => $appointments
+        ];
+        
+        $this->render('events/time_slots', $data, 'admin');
     }
 
     /**
@@ -1386,13 +1731,17 @@ public function editParticipant($eventId, $assistantId) {
         $categoriesWithSubcategories = $this->categoryModel->getEventCategoriesWithSubcategories($eventId);
         $csrfToken = generateCSRFToken();
         $eventModel = $this->eventModel;
-        $pageData = [
+        $data = [
             'pageTitle' => 'Categorías del Evento',
             'moduleCSS' => 'categories',
-            'moduleJS' => ['categories', 'components/import_modal']
+            'moduleJS' => ['categories', 'components/import_modal'],
+            'eventModel' => $eventModel,
+            'eventId' => $eventId,
+            'categoriesWithSubcategories' => $categoriesWithSubcategories,
+            'csrfToken' => $csrfToken
         ];
-        // Cargar vista (usa la misma que CategoryController)
-        include(VIEW_DIR . '/events/categories.php');
+        
+        $this->render('events/categories', $data, 'admin');
     }
     
     /**
@@ -1586,5 +1935,153 @@ public function editParticipant($eventId, $assistantId) {
         } catch (Exception $e) {
             Logger::getInstance()->error("Error updating slot statuses for event $eventId: " . $e->getMessage());
         }
+    }
+    
+    /**
+     * AJAX endpoint para obtener datos actualizados de slots de tiempo
+     * Utilizado por el auto-refresh del time_slots view
+     * 
+     * @return void
+     */
+    public function getTimeSlotDataAjax() {
+        // Verificar método HTTP
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            exit;
+        }
+        
+        // Verificar token CSRF
+        if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'Token de seguridad inválido']);
+            exit;
+        }
+        
+        // Verificar permisos
+        if (!hasRole([ROLE_ADMIN, ROLE_ORGANIZER])) {
+            http_response_code(403);
+            echo json_encode(['success' => false, 'message' => 'No tiene permisos para acceder a esta funcionalidad']);
+            exit;
+        }
+        
+        try {
+            // Obtener y validar parámetros
+            $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+            $day = isset($_POST['day']) ? sanitize($_POST['day']) : '';
+            
+            if ($eventId <= 0) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'ID de evento inválido']);
+                exit;
+            }
+            
+            if (empty($day) || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $day)) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'Día inválido']);
+                exit;
+            }
+            
+            // Verificar que el evento existe
+            if (!$this->eventModel->findById($eventId)) {
+                http_response_code(404);
+                echo json_encode(['success' => false, 'message' => 'Evento no encontrado']);
+                exit;
+            }
+            
+            // Actualizar status de slots antes de obtener datos
+            $this->updateSlotStatuses($eventId);
+            
+            // Obtener slots con información de appointments para el día específico
+            $query = "SELECT es.*, 
+                             m.match_id,
+                             c1.company_name as buyer_company, 
+                             c2.company_name as supplier_company,
+                             CONCAT(c1.contact_first_name, ' ', c1.contact_last_name) as buyer_contact,
+                             CONCAT(c2.contact_first_name, ' ', c2.contact_last_name) as supplier_contact,
+                             DATE(es.start_datetime) as date,
+                             TIME(es.start_datetime) as start_time,
+                             TIME(es.end_datetime) as end_time
+                      FROM event_schedules es 
+                      LEFT JOIN matches m ON es.match_id = m.match_id 
+                      LEFT JOIN company c1 ON m.buyer_id = c1.company_id 
+                      LEFT JOIN company c2 ON m.supplier_id = c2.company_id 
+                      WHERE es.event_id = :event_id 
+                      AND DATE(es.start_datetime) = :day
+                      ORDER BY es.start_datetime, es.table_number";
+            
+            $appointments = $this->db->resultSet($query, [
+                'event_id' => $eventId,
+                'day' => $day
+            ]);
+            
+            // Verificar que la consulta fue exitosa
+            if ($appointments === false) {
+                throw new Exception('Error al obtener los datos de slots de tiempo');
+            }
+            
+            // LOG: Debug de datos del AJAX
+            error_log("DEBUG AJAX: Query ejecutada para event_id=$eventId, day=$day");
+            error_log("DEBUG AJAX: Total appointments encontrados: " . count($appointments));
+            if (!empty($appointments)) {
+                error_log("DEBUG AJAX: Primer appointment: " . json_encode($appointments[0]));
+            }
+            
+            // Formatear datos para el frontend
+            $slots = [];
+            foreach ($appointments as $appointment) {
+                $slot = [
+                    'schedule_id' => $appointment['schedule_id'],
+                    'table_number' => $appointment['table_number'],
+                    'date' => $appointment['date'],
+                    'start_time' => $appointment['start_time'],
+                    'end_time' => $appointment['end_time'],
+                    'status' => $appointment['status']
+                ];
+                
+                // Si el slot está ocupado, agregar información del appointment
+                if ($appointment['status'] === 'occupied' && $appointment['match_id']) {
+                    $slot['appointment'] = [
+                        'match_id' => $appointment['match_id'],
+                        'buyer_company' => $appointment['buyer_company'],
+                        'supplier_company' => $appointment['supplier_company'],
+                        'buyer_contact' => $appointment['buyer_contact'],
+                        'supplier_contact' => $appointment['supplier_contact']
+                    ];
+                }
+                
+                $slots[] = $slot;
+            }
+            
+            // LOG: Debug de respuesta final
+            $occupiedSlots = array_filter($slots, function($slot) { return $slot['status'] === 'occupied'; });
+            error_log("DEBUG AJAX: Total slots en respuesta: " . count($slots));
+            error_log("DEBUG AJAX: Slots ocupados en respuesta: " . count($occupiedSlots));
+            
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'slots' => $slots,
+                'total_slots' => count($slots),
+                'day' => $day,
+                'event_id' => $eventId,
+                'timestamp' => time()
+            ]);
+            
+        } catch (Exception $e) {
+            Logger::error('Error en getTimeSlotDataAjax: ' . $e->getMessage(), [
+                'event_id' => $eventId ?? 'unknown',
+                'day' => $day ?? 'unknown',
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            http_response_code(500);
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error interno del servidor'
+            ]);
+        }
+        
+        exit;
     }
 } // End of EventController class

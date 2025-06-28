@@ -1,4 +1,3 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
 <div class="container" style="max-width: 480px; margin: 40px auto;">
     <div class="card" style="padding: 2em; text-align: center;">
         <h2>Confirmar eliminación</h2>
@@ -13,4 +12,3 @@
         </form>
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>

@@ -37,8 +37,9 @@ set_error_handler(function($errno, $errstr, $errfile, $errline) {
  * @version 1.0
  */
 
-class MatchController {
-    private $db;
+require_once 'BaseController.php';
+
+class MatchController extends BaseController {
     private $matchModel;
     private $companyModel;
     private $eventModel;
@@ -50,8 +51,10 @@ class MatchController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
         
         // Inicializar modelos
         $this->matchModel = new MatchModel($this->db);
@@ -136,10 +139,12 @@ class MatchController {
         
         // LOG: Filtros y evento seleccionado
         error_log('[MATCHES] Filtros: ' . print_r($filters, true));
+        // Obtener el event_id para usar en toda la función
+        $eventId = isset($filters['event_id']) ? $filters['event_id'] : null;
+        
         // Obtener compradores y proveedores sin matches para el evento seleccionado (optimizado con SQL)
         $unmatchedCompanies = [];
-        if (isset($filters['event_id'])) {
-            $eventId = $filters['event_id'];
+        if ($eventId) {
             error_log('[MATCHES] Consultando empresas sin matches para event_id=' . $eventId);
             // NUEVO: Usar la VIEW unmatched_companies
             $query = "SELECT * FROM unmatched_companies WHERE event_id = :event_id ORDER BY role";
@@ -165,8 +170,11 @@ class MatchController {
             'subcategories' => [],
             'description_words' => []
         ];
-        // Intentar leer estadísticas guardadas
-        $stats = $this->matchModel->getEventStatistics($eventId);
+        // Intentar leer estadísticas guardadas solo si hay eventId
+        $stats = null;
+        if ($eventId) {
+            $stats = $this->matchModel->getEventStatistics($eventId);
+        }
         if ($stats && (count($stats['keywords']) || count($stats['categories']) || count($stats['subcategories']) || count($stats['descriptions']))) {
             $unmatchedSuggestions['keywords'] = $stats['keywords'];
             $unmatchedSuggestions['categories'] = $stats['categories'];
@@ -225,13 +233,15 @@ class MatchController {
             $descWordCounts = array_count_values($allDescriptionWords);
             arsort($descWordCounts);
             $unmatchedSuggestions['description_words'] = array_slice(array_keys($descWordCounts), 0, $limit);
-            // Guardar en la tabla para futuras consultas
-            $this->matchModel->saveEventStatistics($eventId, [
-                'keywords' => $unmatchedSuggestions['keywords'],
-                'categories' => $unmatchedSuggestions['categories'],
-                'subcategories' => $unmatchedSuggestions['subcategories'],
-                'descriptions' => $unmatchedSuggestions['description_words'],
-            ]);
+            // Guardar en la tabla para futuras consultas solo si hay eventId
+            if ($eventId) {
+                $this->matchModel->saveEventStatistics($eventId, [
+                    'keywords' => $unmatchedSuggestions['keywords'],
+                    'categories' => $unmatchedSuggestions['categories'],
+                    'subcategories' => $unmatchedSuggestions['subcategories'],
+                    'descriptions' => $unmatchedSuggestions['description_words'],
+                ]);
+            }
         }
         
         // --- SUGERENCIAS POR ROL PARA EMPRESAS SIN MATCH ---
@@ -244,8 +254,19 @@ class MatchController {
         // LOG extra para depuración de sugerencias
         error_log('[MATCHES] unmatchedCompanies: ' . print_r($unmatchedCompanies, true));
         error_log('[MATCHES] unmatchedSuggestions: ' . print_r($unmatchedSuggestions, true));
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/events/matches.php');
+        $data = [
+            'pageTitle' => 'Matches del Evento',
+            'moduleCSS' => 'matches',
+            'moduleJS' => 'matches',
+            'eventModel' => $this->eventModel,
+            'matches' => $matches,
+            'eventId' => $eventId,
+            'unmatchedCompanies' => $unmatchedCompanies,
+            'unmatchedSuggestions' => $unmatchedSuggestions,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('events/matches', $data, 'admin');
     }
     
     /**
@@ -308,8 +329,20 @@ class MatchController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/matches/view.php');
+        $data = [
+            'pageTitle' => 'Detalles de Match',
+            'moduleCSS' => 'matches',
+            'moduleJS' => 'matches',
+            'match' => $match,
+            'buyer' => $buyer,
+            'supplier' => $supplier,
+            'buyerRequirements' => $buyerRequirements,
+            'supplierOffers' => $supplierOffers,
+            'schedules' => $schedules,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('matches/view', $data, 'admin');
     }
     
     /**
@@ -417,8 +450,17 @@ class MatchController {
         // Token CSRF para el formulario
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista del formulario
-        include(VIEW_DIR . '/matches/create.php');
+        $data = [
+            'pageTitle' => 'Crear Match Manual',
+            'moduleCSS' => 'matches',
+            'moduleJS' => 'matches',
+            'buyers' => $buyers,
+            'suppliers' => $suppliers,
+            'eventId' => $eventId,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('matches/create', $data, 'admin');
     }
     
     /**
@@ -768,8 +810,19 @@ class MatchController {
         // Token CSRF para los formularios
         $csrfToken = generateCSRFToken();
         
-        // Cargar vista con los datos
-        include(VIEW_DIR . '/matches/my_matches.php');
+        $data = [
+            'pageTitle' => 'Mis Matches',
+            'moduleCSS' => 'matches',
+            'moduleJS' => 'matches',
+            'pageData' => $pageData,
+            'breadcrumbs' => $breadcrumbs,
+            'matches' => $matches,
+            'companyRole' => $companyRole,
+            'companyId' => $companyId,
+            'csrfToken' => $csrfToken
+        ];
+        
+        $this->render('matches/my_matches', $data, 'admin');
     }
     
     /**
@@ -1921,6 +1974,180 @@ class MatchController {
         
         exit;
     }
+    
+    /**
+     * Crear un match confirmado desde matches potenciales
+     */
+    public function createConfirmedMatchAjax() {
+        header('Content-Type: application/json');
+        
+        try {
+            // Verificar método y CSRF
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+                echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+                exit;
+            }
+            
+            if (!verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+                echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
+                exit;
+            }
+            
+            // Obtener parámetros
+            $buyerId = isset($_POST['buyer_id']) ? (int)$_POST['buyer_id'] : 0;
+            $supplierId = isset($_POST['supplier_id']) ? (int)$_POST['supplier_id'] : 0;
+            $eventId = isset($_POST['event_id']) ? (int)$_POST['event_id'] : 0;
+            
+            if (!$buyerId || !$supplierId || !$eventId) {
+                echo json_encode(['success' => false, 'message' => 'Parámetros inválidos']);
+                exit;
+            }
+            
+            Logger::info('createConfirmedMatchAjax: Iniciando creación de match', [
+                'buyer_id' => $buyerId,
+                'supplier_id' => $supplierId,
+                'event_id' => $eventId
+            ]);
+            
+            // Verificar si ya existe un match
+            $existingMatch = $this->db->single(
+                'SELECT match_id FROM matches WHERE buyer_id = :buyer_id AND supplier_id = :supplier_id AND event_id = :event_id',
+                ['buyer_id' => $buyerId, 'supplier_id' => $supplierId, 'event_id' => $eventId]
+            );
+            
+            if ($existingMatch) {
+                echo json_encode(['success' => false, 'message' => 'Ya existe un match entre estas empresas']);
+                exit;
+            }
+            
+            // Obtener datos de las empresas
+            $buyer = $this->db->single('SELECT * FROM company WHERE company_id = :id', ['id' => $buyerId]);
+            $supplier = $this->db->single('SELECT * FROM company WHERE company_id = :id', ['id' => $supplierId]);
+            
+            if (!$buyer || !$supplier) {
+                echo json_encode(['success' => false, 'message' => 'Empresas no encontradas']);
+                exit;
+            }
+            
+            // Obtener requirements y offers para calcular match
+            $buyerRequirements = $this->db->resultSet(
+                'SELECT r.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
+                 FROM requirements r
+                 JOIN event_subcategories s ON r.event_subcategory_id = s.event_subcategory_id
+                 JOIN event_categories c ON s.event_category_id = c.event_category_id
+                 WHERE r.buyer_id = :buyer_id',
+                ['buyer_id' => $buyerId]
+            );
+            
+            $supplierOffers = $this->db->resultSet(
+                'SELECT so.*, s.name as subcategory_name, c.name as category_name, c.event_category_id as category_id 
+                 FROM supplier_offers so
+                 JOIN event_subcategories s ON so.event_subcategory_id = s.event_subcategory_id
+                 JOIN event_categories c ON s.event_category_id = c.event_category_id
+                 WHERE so.supplier_id = :supplier_id',
+                ['supplier_id' => $supplierId]
+            );
+            
+            // Calcular categorías coincidentes
+            $matchedCategories = [];
+            foreach ($buyerRequirements as $requirement) {
+                foreach ($supplierOffers as $offer) {
+                    if ($requirement['event_subcategory_id'] == $offer['event_subcategory_id']) {
+                        $matchedCategories[] = [
+                            'category_id' => $requirement['category_id'],
+                            'category_name' => $requirement['category_name'],
+                            'subcategory_id' => $requirement['event_subcategory_id'],
+                            'subcategory_name' => $requirement['subcategory_name']
+                        ];
+                        break;
+                    }
+                }
+            }
+            
+            // Obtener fechas de asistencia
+            $buyerDates = $this->db->resultSet(
+                'SELECT DISTINCT attendance_date FROM attendance_days 
+                 WHERE company_id = :company_id AND event_id = :event_id',
+                ['company_id' => $buyerId, 'event_id' => $eventId]
+            );
+            
+            $supplierDates = $this->db->resultSet(
+                'SELECT DISTINCT attendance_date FROM attendance_days 
+                 WHERE company_id = :company_id AND event_id = :event_id',
+                ['company_id' => $supplierId, 'event_id' => $eventId]
+            );
+            
+            $buyerDatesArray = array_column($buyerDates, 'attendance_date');
+            $supplierDatesArray = array_column($supplierDates, 'attendance_date');
+            $coincidenceDates = array_intersect($buyerDatesArray, $supplierDatesArray);
+            
+            // Calcular match strength
+            $totalBuyerSubcats = count($buyerRequirements);
+            $matchStrength = $totalBuyerSubcats > 0 ? round((count($matchedCategories) / $totalBuyerSubcats) * 100) : 0;
+            
+            // Crear datos del match
+            $matchData = [
+                'buyer_id' => $buyerId,
+                'supplier_id' => $supplierId,
+                'event_id' => $eventId,
+                'match_strength' => $matchStrength,
+                'status' => 'matched',
+                'created_at' => date('Y-m-d H:i:s'),
+                'matched_categories' => json_encode($matchedCategories),
+                'buyer_subcategories' => json_encode(array_column($buyerRequirements, 'event_subcategory_id')),
+                'supplier_subcategories' => json_encode(array_column($supplierOffers, 'event_subcategory_id')),
+                'buyer_dates' => implode(',', $buyerDatesArray),
+                'supplier_dates' => implode(',', $supplierDatesArray),
+                'buyer_keywords' => $buyer['keywords'] ?? null,
+                'supplier_keywords' => $supplier['keywords'] ?? null,
+                'buyer_description' => $buyer['description'] ?? null,
+                'supplier_description' => $supplier['description'] ?? null,
+                'reason' => 'manual_creation_from_potential',
+                'keywords_match' => null,
+                'coincidence_of_dates' => implode(',', $coincidenceDates),
+                'date_match' => count($coincidenceDates),
+                'programed' => 0
+            ];
+            
+            // Insertar el match
+            $fields = array_keys($matchData);
+            $placeholders = array_map(function($field) { return ":$field"; }, $fields);
+            
+            $query = "INSERT INTO matches (" . implode(', ', $fields) . ") 
+                      VALUES (" . implode(', ', $placeholders) . ")";
+            
+            if ($this->db->query($query, $matchData)) {
+                $matchId = $this->db->lastInsertId();
+                
+                Logger::info('createConfirmedMatchAjax: Match creado exitosamente', [
+                    'match_id' => $matchId,
+                    'buyer_id' => $buyerId,
+                    'supplier_id' => $supplierId,
+                    'event_id' => $eventId,
+                    'match_strength' => $matchStrength
+                ]);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'Match creado exitosamente',
+                    'match_id' => $matchId
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al crear el match en la base de datos']);
+            }
+            
+        } catch (Exception $e) {
+            Logger::error('createConfirmedMatchAjax: Error', [
+                'error' => $e->getMessage(),
+                'buyer_id' => $buyerId ?? null,
+                'supplier_id' => $supplierId ?? null,
+                'event_id' => $eventId ?? null
+            ]);
+            echo json_encode(['success' => false, 'message' => 'Error interno: ' . $e->getMessage()]);
+        }
+        
+        exit;
+    }
 }
 
 // Registrar endpoint AJAX si la URL lo requiere (solo si el router es simple)
@@ -1968,6 +2195,13 @@ if (isset($_GET['action']) && $_GET['action'] === 'savePotentialMatchAjax') {
 if (isset($_GET['action']) && $_GET['action'] === 'updatePotentialMatchAjax') {
     $controller = new MatchController();
     $controller->updatePotentialMatchAjax();
+    exit;
+}
+
+// Registrar endpoint AJAX para createConfirmedMatchAjax
+if (isset($_GET['action']) && $_GET['action'] === 'createConfirmedMatchAjax') {
+    $controller = new MatchController();
+    $controller->createConfirmedMatchAjax();
     exit;
 }
 // Registrar endpoint AJAX para getCompanyFullDetailsAjax

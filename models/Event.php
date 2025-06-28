@@ -1656,5 +1656,13 @@ public function getContactName() {
 public function getContactEmail() {
     return $this->contact_email ?? null;
 }
+
+/**
+ * Obtener el logo del evento
+ * @return string|null
+ */
+public function getEventLogo() {
+    return $this->event_logo ?? null;
+}
 }
 

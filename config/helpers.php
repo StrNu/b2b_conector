@@ -1,6 +1,11 @@
 <?php
 // config/helpers.php
 
+// Include Material Design helpers
+if (file_exists(ROOT_DIR . '/config/material-config.php')) {
+    require_once ROOT_DIR . '/config/material-config.php';
+}
+
 /**
  * Verificar si el usuario está autenticado
  * 
@@ -211,10 +216,35 @@ function displayFlashMessages() {
         
         foreach ($_SESSION['flash_messages'] as $type => $messages) {
             foreach ($messages as $message) {
-                echo '<div class="alert alert-' . $type . ' alert-dismissible fade show">';
-                echo $message;
-                echo '<button type="button" class="close" data-dismiss="alert" aria-label="Close">';
-                echo '<span aria-hidden="true">&times;</span>';
+                // Normalize type names
+                $normalizedType = ($type === 'danger') ? 'error' : $type;
+                $cssClass = 'flash-message flash-message--' . $normalizedType;
+                
+                switch ($normalizedType) {
+                    case 'success':
+                        $iconClass = 'fas fa-check-circle';
+                        break;
+                    case 'error':
+                        $iconClass = 'fas fa-exclamation-circle';
+                        break;
+                    case 'warning':
+                        $iconClass = 'fas fa-exclamation-triangle';
+                        break;
+                    case 'info':
+                        $iconClass = 'fas fa-info-circle';
+                        break;
+                    default:
+                        $iconClass = 'fas fa-bell';
+                        break;
+                }
+                
+                echo '<div class="' . $cssClass . '">';
+                echo '<div class="flash-message__icon">';
+                echo '<i class="' . $iconClass . '"></i>';
+                echo '</div>';
+                echo '<div class="flash-message__content">' . htmlspecialchars($message) . '</div>';
+                echo '<button class="flash-message__close" aria-label="Close notification">';
+                echo '<i class="fas fa-times"></i>';
                 echo '</button>';
                 echo '</div>';
             }
@@ -348,10 +378,18 @@ function dateToDatabase($date) {
  * @return bool True si está autenticado, false en caso contrario
  */
 function isEventUserAuthenticated() {
-    return isset($_SESSION['event_user_id']) && 
-           isset($_SESSION['event_user_email']) && 
-           isset($_SESSION['event_user_type']) &&
-           isset($_SESSION['event_id']);
+    $isAuth = isset($_SESSION['event_user_id']) && 
+              isset($_SESSION['event_user_email']) && 
+              isset($_SESSION['event_user_type']) &&
+              isset($_SESSION['event_id']);
+    
+    Logger::debug('Verificando autenticación de evento: ' . ($isAuth ? 'usuario evento en sesión' : 'no hay usuario evento'), [
+        'event_user_id' => $_SESSION['event_user_id'] ?? 'no_set',
+        'event_id' => $_SESSION['event_id'] ?? 'no_set',
+        'event_user_type' => $_SESSION['event_user_type'] ?? 'no_set'
+    ]);
+    
+    return $isAuth;
 }
 
 /**
@@ -387,7 +425,131 @@ function getEventUserType() {
  * @return int|null ID del evento o null si no está autenticado
  */
 function getEventId() {
-    return isEventUserAuthenticated() ? $_SESSION['event_id'] : null;
+    $eventId = isEventUserAuthenticated() ? $_SESSION['event_id'] : null;
+    Logger::debug("getEventId() retornando: " . ($eventId ?? 'null'));
+    return $eventId;
+}
+
+/**
+ * Cerrar sesión de usuario admin únicamente
+ */
+function logoutAdminUser() {
+    // Solo limpiar variables de admin, mantener las de evento
+    unset($_SESSION['user_id']);
+    unset($_SESSION['username']);
+    unset($_SESSION['role']);
+    unset($_SESSION['user_email']);
+    Logger::info('Logout de usuario admin realizado');
+}
+
+/**
+ * Cerrar todas las sesiones
+ */
+function logoutAllUsers() {
+    session_destroy();
+    session_start();
+    Logger::info('Logout completo realizado');
+}
+
+/**
+ * Verificar si hay conflicto de sesiones (usuario admin y evento a la vez)
+ * 
+ * @return array|null Array con información del conflicto o null si no hay conflicto
+ */
+function checkSessionConflict() {
+    $isAdmin = isAuthenticated();
+    $isEventUser = isEventUserAuthenticated();
+    
+    if ($isAdmin && $isEventUser) {
+        return [
+            'conflict' => true,
+            'admin_user' => $_SESSION['username'] ?? 'Admin desconocido',
+            'event_user' => $_SESSION['event_user_email'] ?? 'Usuario evento desconocido',
+            'event_id' => $_SESSION['event_id'] ?? 'ID desconocido'
+        ];
+    }
+    
+    return null;
+}
+
+/**
+ * Mostrar página de conflicto de sesiones
+ * 
+ * @param array $conflict Información del conflicto
+ */
+function showSessionConflictPage($conflict) {
+    ?>
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Conflicto de Sesiones - B2B Conector</title>
+        <style>
+            body { font-family: Arial, sans-serif; background: #f8f9fa; margin: 0; padding: 40px; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+            .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; padding: 20px; border-radius: 8px; margin-bottom: 30px; }
+            .warning h2 { margin: 0 0 15px 0; color: #e17055; }
+            .session-info { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0; }
+            .btn-material { display: inline-flex; align-items: center; justify-content: center; padding: 12px 25px; margin: 10px 5px; text-decoration: none; border-radius: var(--md-shape-corner-medium, 8px); font-weight: 600; cursor: pointer; border: none; font-family: 'Poppins', sans-serif; transition: all 0.2s ease; gap: 0.5rem; }
+            .btn-material--filled { background: var(--md-primary-40, #6750a4); color: var(--md-on-primary, white); }
+            .btn-material--tonal { background: var(--md-secondary-container, #e8def8); color: var(--md-on-secondary-container, #1d192b); }
+            .btn-material--outlined { background: transparent; color: var(--md-primary-40, #6750a4); border: 2px solid var(--md-outline, #79747e); }
+            .btn-material--danger { background: var(--md-error-40, #ba1a1a); color: var(--md-on-error, white); }
+            .btn-material:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+            .icon { font-size: 50px; text-align: center; margin-bottom: 20px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="icon">⚠️</div>
+            <div class="warning">
+                <h2>Conflicto de Sesiones Detectado</h2>
+                <p>Tienes múltiples sesiones activas simultáneamente. Por seguridad y para evitar confusiones, solo puedes tener una sesión activa a la vez.</p>
+            </div>
+            
+            <div class="session-info">
+                <h3>📊 Sesiones Activas:</h3>
+                <ul>
+                    <li><strong>👤 Usuario Admin:</strong> <?= htmlspecialchars($conflict['admin_user']) ?></li>
+                    <li><strong>🎯 Usuario Evento:</strong> <?= htmlspecialchars($conflict['event_user']) ?> (Evento ID: <?= htmlspecialchars($conflict['event_id']) ?>)</li>
+                </ul>
+            </div>
+            
+            <h3>🔧 Selecciona qué sesión mantener:</h3>
+            
+            <form method="POST" style="text-align: center;">
+                <input type="hidden" name="action" value="logout_event">
+                <button type="submit" class="btn-material btn-material--filled">
+                    👤 Mantener sesión ADMIN<br>
+                    <small>(Cerrar sesión de evento)</small>
+                </button>
+            </form>
+            
+            <form method="POST" style="text-align: center;">
+                <input type="hidden" name="action" value="logout_admin">
+                <button type="submit" class="btn-material btn-material--tonal">
+                    🎯 Mantener sesión EVENTO<br>
+                    <small>(Cerrar sesión admin)</small>
+                </button>
+            </form>
+            
+            <form method="POST" style="text-align: center;">
+                <input type="hidden" name="action" value="logout_all">
+                <button type="submit" class="btn-material btn-material--danger">
+                    🚪 Cerrar TODAS las sesiones<br>
+                    <small>(Empezar desde cero)</small>
+                </button>
+            </form>
+            
+            <div style="text-align: center; margin-top: 30px; color: #6c757d;">
+                <small>Para evitar este problema en el futuro, cierra sesión antes de cambiar de tipo de usuario.</small>
+            </div>
+        </div>
+    </body>
+    </html>
+    <?php
+    exit;
 }
 
 /**

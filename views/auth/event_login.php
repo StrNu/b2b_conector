@@ -1,4 +1,5 @@
 <!-- views/auth/event_login.php -->
+<?php Logger::debug("Vista event_login.php cargando..."); ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>

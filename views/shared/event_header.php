@@ -1,311 +1,70 @@
-<?php
-// views/shared/event_header.php
-// Header específico para vistas de eventos
+<header class="modern-header" style="background-color: #2563eb;">
+  <div class="header-container">
+    <!-- Logo y marca -->
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <a href="<?= BASE_URL ?>/event-dashboard" class="header-logo">
+        <svg class="nav__logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="16" cy="16" r="14" fill="currentColor" opacity="0.1"/>
+          <path d="M8 12h6v8H8z" fill="currentColor"/>
+          <path d="M18 12h6v8h-6z" fill="currentColor"/>
+          <path d="M14 14h4v4h-4z" fill="currentColor" opacity="0.8"/>
+          <circle cx="10" cy="8" r="2" fill="currentColor"/>
+          <circle cx="22" cy="8" r="2" fill="currentColor"/>
+          <path d="M10 10v2M22 10v2" stroke="currentColor" stroke-width="1"/>
+        </svg>
+        <span>Panel de Eventos</span>
+      </a>
+      
+      <?php if (isset($event)): ?>
+      <div style="display: flex; align-items: center; gap: 0.5rem; padding-left: 1rem; border-left: 1px solid rgba(255,255,255,0.3);">
+        <i class="fas fa-calendar-alt" style="color: #bfdbfe;"></i>
+        <span style="font-size: 0.875rem; font-weight: 500; color: #dbeafe;"><?= htmlspecialchars($event->getEventName()) ?></span>
+      </div>
+      <?php endif; ?>
+    </div>
 
-// Verificar que el usuario esté autenticado como usuario de evento
-if (!isEventUserAuthenticated()) {
-    redirect(BASE_URL . '/auth/event-login');
-    exit;
-}
-?>
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($pageTitle ?? 'Dashboard de Evento') ?> - B2B Conector</title>
-    
-    <!-- CSS Principal -->
-    <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/main.css">
-    <?php if (isset($moduleCSS)): ?>
-        <link rel="stylesheet" href="<?= BASE_PUBLIC_URL ?>/assets/css/modules/<?= $moduleCSS ?>.css">
-    <?php endif; ?>
-    
-    <!-- Font Awesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <!-- Estilos específicos para layout de eventos -->
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f8f9fa;
-        }
-        
-        .event-layout {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        
-        .event-header {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
-            padding: 15px 0;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-        }
-        
-        .event-header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        
-        .event-logo-section {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-        
-        .app-logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            color: white;
-        }
-        
-        .app-logo img {
-            height: 40px;
-            width: auto;
-        }
-        
-        .app-logo-text {
-            font-size: 18px;
-            font-weight: 600;
-        }
-        
-        .event-divider {
-            height: 30px;
-            width: 1px;
-            background: rgba(255,255,255,0.3);
-        }
-        
-        .event-info {
-            flex: 1;
-            margin-left: 20px;
-        }
-        
-        .event-name {
-            font-size: 20px;
-            font-weight: 600;
-            margin: 0 0 5px 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .event-details {
-            font-size: 14px;
-            opacity: 0.9;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .event-detail-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .user-section {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .user-info {
-            text-align: right;
-        }
-        
-        .user-email {
-            font-size: 14px;
-            margin: 0;
-            opacity: 0.9;
-        }
-        
-        .user-role {
-            font-size: 12px;
-            background: rgba(255,255,255,0.2);
-            padding: 4px 8px;
-            border-radius: 12px;
-            margin-top: 2px;
-            display: inline-block;
-        }
-        
-        .logout-btn {
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            text-decoration: none;
-            font-size: 14px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .logout-btn:hover {
-            background: rgba(255,255,255,0.2);
-            color: white;
-            transform: translateY(-1px);
-        }
-        
-        .event-content {
-            flex: 1;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            width: 100%;
-        }
-        
-        /* Breadcrumb */
-        .breadcrumb {
-            background: white;
-            padding: 15px 20px;
-            margin-bottom: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        
-        .breadcrumb-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .breadcrumb-item {
-            color: #666;
-            font-size: 14px;
-        }
-        
-        .breadcrumb-item:not(:last-child)::after {
-            content: '/';
-            margin-left: 8px;
-            color: #ccc;
-        }
-        
-        .breadcrumb-item.active {
-            color: #007bff;
-            font-weight: 500;
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .event-header-content {
-                flex-direction: column;
-                gap: 15px;
-                text-align: center;
-            }
-            
-            .event-logo-section {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .event-divider {
-                display: none;
-            }
-            
-            .event-info {
-                margin-left: 0;
-            }
-            
-            .event-details {
-                justify-content: center;
-            }
-            
-            .user-section {
-                flex-direction: column;
-                gap: 10px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="event-layout">
-        <header class="event-header">
-            <div class="event-header-content">
-                <div class="event-logo-section">
-                    <a href="<?= BASE_URL ?>/dashboard" class="app-logo">
-                        <img src="<?= BASE_PUBLIC_URL ?>/assets/images/logo.png" alt="B2B Conector" onerror="this.style.display='none'">
-                        <span class="app-logo-text">B2B Conector</span>
-                    </a>
-                    
-                    <div class="event-divider"></div>
-                </div>
-                
-                <div class="event-info">
-                    <h1 class="event-name">
-                        <i class="fas fa-calendar-alt"></i>
-                        <?= htmlspecialchars($event->getEventName()) ?>
-                    </h1>
-                    <div class="event-details">
-                        <div class="event-detail-item">
-                            <i class="fas fa-calendar"></i>
-                            <span><?= formatDate($event->getStartDate()) ?> - <?= formatDate($event->getEndDate()) ?></span>
-                        </div>
-                        <div class="event-detail-item">
-                            <i class="fas fa-map-marker-alt"></i>
-                            <span><?= htmlspecialchars($event->getVenue()) ?></span>
-                        </div>
-                        <?php if ($event->getContactEmail()): ?>
-                        <div class="event-detail-item">
-                            <i class="fas fa-envelope"></i>
-                            <span><?= htmlspecialchars($event->getContactEmail()) ?></span>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                
-                <div class="user-section">
-                    <div class="user-info">
-                        <p class="user-email"><?= htmlspecialchars(getEventUserEmail()) ?></p>
-                        <span class="user-role">
-                            <?php if (isEventAdmin()): ?>
-                                <i class="fas fa-user-cog"></i> Administrador
-                            <?php else: ?>
-                                <i class="fas fa-user"></i> Asistente
-                            <?php endif; ?>
-                        </span>
-                    </div>
-                    <a href="<?= BASE_URL ?>/event-dashboard/logout" class="logout-btn">
-                        <i class="fas fa-sign-out-alt"></i>
-                        <span>Salir</span>
-                    </a>
-                </div>
-            </div>
-        </header>
+    <!-- Menu desktop -->
+    <nav class="header-nav">
+      <a href="<?= BASE_URL ?>/event-dashboard" class="nav-link">
+        <i class="fas fa-tachometer-alt"></i>
+        <span>Dashboard</span>
+      </a>
 
-        <main class="event-content">
-            <!-- Breadcrumb opcional -->
-            <?php if (isset($breadcrumbs) && !empty($breadcrumbs)): ?>
-            <nav class="breadcrumb">
-                <ul class="breadcrumb-list">
-                    <?php foreach ($breadcrumbs as $index => $breadcrumb): ?>
-                        <li class="breadcrumb-item <?= $index === count($breadcrumbs) - 1 ? 'active' : '' ?>">
-                            <?php if (isset($breadcrumb['url']) && $index !== count($breadcrumbs) - 1): ?>
-                                <a href="<?= $breadcrumb['url'] ?>"><?= htmlspecialchars($breadcrumb['title']) ?></a>
-                            <?php else: ?>
-                                <?= htmlspecialchars($breadcrumb['title']) ?>
-                            <?php endif; ?>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            </nav>
-            <?php endif; ?>
-            
-            <!-- Aquí va el contenido de cada vista -->
+      <!-- Dropdown de usuario -->
+      <div class="dropdown">
+        <button class="dropdown-trigger">
+          <i class="fas fa-user-circle"></i>
+          <span style="display: none;"><?= htmlspecialchars(getEventUserEmail()) ?></span>
+          <span class="user-badge <?= isEventAdmin() ? 'user-badge-admin' : 'user-badge-assistant' ?>">
+            <?= isEventAdmin() ? 'Admin' : 'Asistente' ?>
+          </span>
+          <i class="fas fa-chevron-down"></i>
+        </button>
+        <div class="dropdown-menu">
+          <?php if (isEventAdmin() && isset($event)): ?>
+          <a href="<?= BASE_URL ?>/events/view/<?= $event->getId() ?>" class="dropdown-item">
+            <i class="fas fa-cog"></i>
+            Administrar Evento
+          </a>
+          <div class="dropdown-divider"></div>
+          <?php endif; ?>
+          <a href="<?= BASE_URL ?>/event-dashboard/help" class="dropdown-item">
+            <i class="fas fa-question-circle"></i>
+            Ayuda
+          </a>
+          <div class="dropdown-divider"></div>
+          <a href="<?= BASE_URL ?>/event-dashboard/logout" class="dropdown-item" style="color: #dc2626;">
+            <i class="fas fa-sign-out-alt"></i>
+            Cerrar Sesión
+          </a>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Botón mobile menu -->
+    <button class="mobile-menu-toggle" onclick="toggleMobileMenu()">
+      <i class="fas fa-bars"></i>
+      <span class="sr-only">Menú</span>
+    </button>
+  </div>
+</header>

@@ -10,9 +10,10 @@
  * @version 1.0
  */
 
-class BreakController {
-    private $db;
-    private $breakModel;
+require_once 'BaseController.php';
+
+class BreakController extends BaseController {
+        private $breakModel;
     private $eventModel;
     private $validator;
     
@@ -22,10 +23,13 @@ class BreakController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
         
-        // Inicializar modelos
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
+        
+// Inicializar conexión a la base de datos        // Inicializar modelos
         $this->breakModel = new BreakModel($this->db);
         $this->eventModel = new Event($this->db);
         
@@ -88,7 +92,13 @@ class BreakController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/breaks/index.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'breakcontroller',
+            'moduleJS' => 'breakcontroller'
+        ];
+        
+        $this->render('breaks/index', $data, 'admin');
     }
     
     /**
@@ -131,7 +141,13 @@ class BreakController {
         }
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/breaks/event_breaks.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'breakcontroller',
+            'moduleJS' => 'breakcontroller'
+        ];
+        
+        $this->render('breaks/event_breaks', $data, 'admin');
     }
     
     /**
@@ -166,7 +182,13 @@ class BreakController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/breaks/create.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'breakcontroller',
+            'moduleJS' => 'breakcontroller'
+        ];
+        
+        $this->render('breaks/create', $data, 'admin');
     }
     
     /**
@@ -271,7 +293,13 @@ class BreakController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/breaks/edit.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'breakcontroller',
+            'moduleJS' => 'breakcontroller'
+        ];
+        
+        $this->render('breaks/edit', $data, 'admin');
     }
     
     /**

@@ -1,0 +1,376 @@
+/**
+ * Layout Styles for B2B Conector
+ * Handles specific layout variations and page-specific styles
+ * 
+ * @version 2.0.0
+ * @author Refactored CSS Architecture
+ */
+
+/* ==========================================================================
+   Admin Layout
+   ========================================================================== */
+
+.admin-layout {
+  /* Extends base app-layout */
+}
+
+.admin-layout .app-header {
+  background-color: var(--color-gray-900);
+}
+
+.admin-layout .app-main {
+  padding: var(--space-8);
+}
+
+.admin-layout .content-wrapper {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+/* ==========================================================================
+   Event Layout
+   ========================================================================== */
+
+.event-layout {
+  /* Extends base app-layout */
+}
+
+.event-layout .app-header {
+  background-color: var(--color-primary-600);
+}
+
+.event-layout .app-main {
+  padding: var(--space-8);
+}
+
+.event-layout .content-wrapper {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+/* Event-specific nav styling */
+.event-layout .nav__brand,
+.event-layout .nav__link {
+  color: var(--color-white);
+}
+
+.event-layout .nav__link:hover {
+  background-color: var(--color-primary-700);
+}
+
+.event-layout .dropdown__trigger:hover {
+  background-color: var(--color-primary-700);
+}
+
+/* ==========================================================================
+   Auth Layout (Login, Register, etc.)
+   ========================================================================== */
+
+.auth-layout {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--color-gray-100) 0%, var(--color-gray-200) 100%);
+  padding: var(--space-4);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 28rem;
+  background-color: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.auth-card__header {
+  padding: var(--space-8) var(--space-8) var(--space-4);
+  text-align: center;
+}
+
+.auth-card__title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin-bottom: var(--space-2);
+}
+
+.auth-card__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-600);
+}
+
+.auth-card__body {
+  padding: 0 var(--space-8) var(--space-8);
+}
+
+.auth-card__footer {
+  padding: var(--space-4) var(--space-8) var(--space-8);
+  text-align: center;
+  border-top: 1px solid var(--color-gray-200);
+  background-color: var(--color-gray-50);
+}
+
+.auth-card__footer-link {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-600);
+  text-decoration: none;
+}
+
+.auth-card__footer-link:hover {
+  text-decoration: underline;
+}
+
+/* Password field with toggle */
+.password-field {
+  position: relative;
+}
+
+.password-field__toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-3);
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-sm);
+  transition: color var(--transition-base);
+}
+
+.password-field__toggle:hover {
+  color: var(--color-gray-600);
+}
+
+/* Remember me checkbox */
+.remember-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: var(--space-6) 0;
+}
+
+.remember-field__checkbox {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-gray-700);
+  cursor: pointer;
+}
+
+.remember-field__forgot {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary-600);
+  text-decoration: none;
+}
+
+.remember-field__forgot:hover {
+  text-decoration: underline;
+}
+
+/* ==========================================================================
+   Dashboard Layout
+   ========================================================================== */
+
+.dashboard-layout {
+  /* Extends base app-layout */
+}
+
+.dashboard-header {
+  padding: var(--space-6) 0;
+  border-bottom: 1px solid var(--color-gray-200);
+  margin-bottom: var(--space-8);
+}
+
+.dashboard-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.dashboard-subtitle {
+  font-size: var(--font-size-base);
+  color: var(--color-gray-600);
+  margin-top: var(--space-2);
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+}
+
+.dashboard-stat {
+  background-color: var(--color-white);
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  box-shadow: var(--shadow-sm);
+}
+
+.dashboard-stat__title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  margin-bottom: var(--space-2);
+}
+
+.dashboard-stat__value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-gray-900);
+  margin: 0;
+}
+
+.dashboard-stat__change {
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-2);
+}
+
+.dashboard-stat__change--positive {
+  color: var(--color-success-700);
+}
+
+.dashboard-stat__change--negative {
+  color: var(--color-error-700);
+}
+
+/* ==========================================================================
+   Full-width Override (for auth forms in admin layout)
+   ========================================================================== */
+
+.admin-layout .auth-override {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: var(--space-8) !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+  border-radius: 0 !important;
+}
+
+.admin-layout .auth-override .auth-card__header,
+.admin-layout .auth-override .auth-card__body,
+.admin-layout .auth-override .auth-card__footer {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* ==========================================================================
+   Notifications Container
+   ========================================================================== */
+
+.notifications-container {
+  margin-bottom: var(--space-6);
+}
+
+.notifications-container:empty {
+  display: none;
+  margin: 0;
+}
+
+/* ==========================================================================
+   Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .admin-layout .app-main,
+  .event-layout .app-main {
+    padding: var(--space-4);
+  }
+  
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  
+  .dashboard-header {
+    padding: var(--space-4) 0;
+    margin-bottom: var(--space-6);
+  }
+  
+  .dashboard-title {
+    font-size: var(--font-size-xl);
+  }
+  
+  .auth-layout {
+    padding: var(--space-2);
+  }
+  
+  .auth-card {
+    max-width: none;
+  }
+  
+  .auth-card__header {
+    padding: var(--space-6) var(--space-6) var(--space-3);
+  }
+  
+  .auth-card__body {
+    padding: 0 var(--space-6) var(--space-6);
+  }
+  
+  .auth-card__footer {
+    padding: var(--space-3) var(--space-6) var(--space-6);
+  }
+  
+  .remember-field {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+}
+
+@media (max-width: 576px) {
+  .admin-layout .app-main,
+  .event-layout .app-main {
+    padding: var(--space-2);
+  }
+  
+  .dashboard-stat {
+    padding: var(--space-4);
+  }
+  
+  .dashboard-stat__value {
+    font-size: var(--font-size-xl);
+  }
+}
+
+/* ==========================================================================
+   Print Styles
+   ========================================================================== */
+
+@media print {
+  .app-header,
+  .app-footer,
+  .btn,
+  .dropdown,
+  .flash-messages {
+    display: none !important;
+  }
+  
+  .app-layout {
+    grid-template-rows: 1fr;
+    grid-template-areas: "main";
+  }
+  
+  .app-main {
+    padding-top: 0;
+  }
+  
+  * {
+    box-shadow: none !important;
+  }
+  
+  .card,
+  .table {
+    border: 1px solid #000 !important;
+  }
+}

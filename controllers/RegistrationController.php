@@ -9,9 +9,10 @@ require_once(__DIR__ . '/../models/AttendanceDay.php');
 require_once(__DIR__ . '/../models/Assistant.php');
 require_once(__DIR__ . '/../models/User.php');
 
-class RegistrationController {
-    private $db;
-    private $eventModel;
+require_once 'BaseController.php';
+
+class RegistrationController extends BaseController {
+        private $eventModel;
     private $companyModel;
     private $categoryModel;
     private $requirementModel;
@@ -20,7 +21,10 @@ class RegistrationController {
     private $userModel;
 
     public function __construct() {
-        $this->db = Database::getInstance();
+        
+        parent::__construct();
+        
+        // $this->db ya está disponible
         $this->eventModel = new Event($this->db);
         $this->companyModel = new Company($this->db);
         $this->categoryModel = new Category($this->db);
@@ -32,76 +36,197 @@ class RegistrationController {
 
     // Formulario registro público de compradores
     public function buyersRegistration($eventId) {
+        // Debug: verificar que se está ejecutando este método
+        error_log("DEBUG: RegistrationController::buyersRegistration ejecutándose para eventId: $eventId");
+        
         if (!$this->eventModel->findById($eventId)) {
-            include(VIEW_DIR . '/errors/404.php');
+            $data = [
+                'pageTitle' => 'Evento no encontrado',
+                'moduleCSS' => 'public_registration',
+                'moduleJS' => 'registrationcontroller'
+            ];
+            
+            $this->render('errors/404', $data, 'admin');
             return;
         }
+        
         $event = $this->eventModel;
         $categories = $this->categoryModel->getEventCategories($eventId);
         $subcategories = [];
         foreach ($categories as $cat) {
             $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
         }
+        
+        // Obtener días del evento
+        $eventDays = [];
+        if ($event->getStartDate() && $event->getEndDate()) {
+            $startDate = new DateTime($event->getStartDate());
+            $endDate = new DateTime($event->getEndDate());
+            $interval = $startDate->diff($endDate);
+            $totalDays = $interval->days + 1;
+            $currentDate = clone $startDate;
+            for ($i = 0; $i < $totalDays; $i++) {
+                $eventDays[] = $currentDate->format('Y-m-d');
+                $currentDate->modify('+1 day');
+            }
+        }
+        
         $csrfToken = generateCSRFToken();
-        include(VIEW_DIR . '/events/buyers_registration.php');
+        
+        $data = [
+            'pageTitle' => 'Registro de Compradores',
+            'moduleCSS' => 'public_registration',
+            'moduleJS' => 'registrationcontroller',
+            'event' => $event,
+            'eventId' => $eventId,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'eventDays' => $eventDays,
+            'csrfToken' => $csrfToken
+        ];
+        
+        // Extraer variables para la vista
+        extract($data);
+        
+        // Incluir la vista directamente
+        include VIEW_DIR . '/events/buyers_registration.php';
     }
 
     // Procesar registro público de compradores
     public function storeBuyersRegistration($eventId) {
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST' || !verifyCSRFToken($_POST['csrf_token'] ?? '')) {
+        // Verificar método POST
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             setFlashMessage('Solicitud inválida', 'danger');
             header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
             exit;
         }
-        Logger::debug('storeBuyersRegistration: POST data', ['post' => $_POST]);
+        
         $db = $this->db;
         $db->beginTransaction();
+        
         try {
-            Logger::debug('storeBuyersRegistration: companyData', ['companyData' => [
+            // 1. Guardar empresa y contacto
+            $companyData = [
                 'company_name' => trim($_POST['company_name'] ?? ''),
-                'address' => trim($_POST['address'] ?? ''),
-                'city' => trim($_POST['city'] ?? ''),
-                'country' => trim($_POST['country'] ?? ''),
                 'website' => trim($_POST['website'] ?? ''),
+                'description' => trim($_POST['description'] ?? ''),
+                'keywords' => trim($_POST['keywords'] ?? ''),
                 'contact_first_name' => trim($_POST['contact_first_name'] ?? ''),
                 'contact_last_name' => trim($_POST['contact_last_name'] ?? ''),
                 'phone' => trim($_POST['phone'] ?? ''),
                 'email' => trim($_POST['email'] ?? ''),
+                'city' => trim($_POST['city'] ?? ''),
+                'country' => trim($_POST['country'] ?? ''),
                 'role' => 'buyer',
                 'event_id' => $eventId,
                 'is_active' => 1,
                 'created_at' => date('Y-m-d H:i:s'),
-            ]]);
-            $companyId = $this->companyModel->create($companyData);
-            Logger::debug('storeBuyersRegistration: companyId', ['companyId' => $companyId]);
+            ];
+
+            // Procesar keywords como JSON
+            $keywords = trim($_POST['keywords'] ?? '');
+            if ($keywords !== '') {
+                $keywordsArray = array_map('trim', explode(',', $keywords));
+                $companyData['keywords'] = json_encode($keywordsArray, JSON_UNESCAPED_UNICODE);
+            } else {
+                $companyData['keywords'] = json_encode([]);
+            }
+
+            // Procesar certificaciones como JSON
+            $certifications = $_POST['certifications'] ?? [];
+            $otros = trim($_POST['certifications_otros'] ?? '');
+            if ($otros !== '') {
+                $certifications[] = $otros;
+            }
+            $companyData['certifications'] = json_encode($certifications, JSON_UNESCAPED_UNICODE);
+
+            // Manejo de logo
+            $uploadedLogoName = null;
+            if (isset($_FILES['logo']) && $_FILES['logo']['error'] === UPLOAD_ERR_OK) {
+                $fileName = $_FILES['logo']['name'];
+                $fileSize = $_FILES['logo']['size'];
+                $fileTmpName = $_FILES['logo']['tmp_name'];
+                $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+                if (in_array($fileExtension, ['jpg', 'jpeg', 'png', 'gif']) && $fileSize <= 5000000) {
+                    if (!is_dir(UPLOAD_DIR . '/logos')) {
+                        mkdir(UPLOAD_DIR . '/logos', 0755, true);
+                    }
+                    
+                    $uniqueLogoName = uniqid('logo_', true) . '.' . $fileExtension;
+                    $destinationPath = UPLOAD_DIR . '/logos/' . $uniqueLogoName;
+
+                    if (move_uploaded_file($fileTmpName, $destinationPath)) {
+                        $uploadedLogoName = $uniqueLogoName;
+                    }
+                }
+            }
+
+            if ($uploadedLogoName) {
+                $companyData['company_logo'] = $uploadedLogoName;
+            }
+
+            $companyId = $this->companyModel->createForEvent($companyData);
             if (!$companyId) throw new Exception('No se pudo registrar la empresa.');
+
+            // 2. Crear usuario
             $username = trim($_POST['username'] ?? '');
             $password = trim($_POST['password'] ?? '');
             if ($username && $password) {
-                Logger::debug('storeBuyersRegistration: userData', ['username' => $username]);
+                $this->userModel->createEventUser([
+                    'company_id' => $companyId,
+                    'event_id' => $eventId,
+                    'role' => 'buyer',
+                    'is_active' => 1,
+                    'created_at' => date('Y-m-d H:i:s'),
+                    'email' => $username,
+                    'password' => $password,
+                ]);
             }
+
+            // 3. Guardar asistentes
             if (!empty($_POST['assistants']) && is_array($_POST['assistants'])) {
-                Logger::debug('storeBuyersRegistration: assistants', ['assistants' => $_POST['assistants']]);
-            }
-            if (!empty($_POST['requirements']) && is_array($_POST['requirements'])) {
-                Logger::debug('storeBuyersRegistration: requirements', ['requirements' => $_POST['requirements']]);
-                // Save requirements for the new buyer
-                $this->companyModel->findById($companyId); // Ensure model is loaded with correct company
-                foreach ($_POST['requirements'] as $eventSubcategoryId) {
-                    $requirementData = [
-                        'event_subcategory_id' => (int)$eventSubcategoryId
-                    ];
-                    $this->companyModel->addRequirement($requirementData, $companyId);
+                foreach ($_POST['assistants'] as $assistant) {
+                    if (!empty($assistant['first_name']) && !empty($assistant['last_name']) && !empty($assistant['email'])) {
+                        $assistantData = [
+                            'first_name' => trim($assistant['first_name']),
+                            'last_name' => trim($assistant['last_name']),
+                            'email' => trim($assistant['email']),
+                            'mobile_phone' => trim($assistant['phone'] ?? ''),
+                        ];
+                        $this->companyModel->addAssistant($assistantData, $companyId);
+                    }
                 }
             }
-            if (!empty($_POST['attendance_days']) && is_array($_POST['attendance_days'])) {
-                Logger::debug('storeBuyersRegistration: attendance_days', ['attendance_days' => $_POST['attendance_days']]);
+
+            // 4. Guardar requerimientos
+            if (!empty($_POST['requirements']) && is_array($_POST['requirements'])) {
+                $this->companyModel->findById($companyId); // Para setear el rol
+                foreach ($_POST['requirements'] as $eventSubcategoryId => $req) {
+                    if (isset($req['selected']) && $req['selected']) {
+                        $reqData = [
+                            'subcategory_id' => (int)$eventSubcategoryId,
+                            'budget_usd' => isset($req['budget']) && $req['budget'] !== '' ? (float)$req['budget'] : null,
+                            'quantity' => isset($req['quantity']) && $req['quantity'] !== '' ? (int)$req['quantity'] : null,
+                            'unit_of_measurement' => isset($req['unit']) ? trim($req['unit']) : null,
+                            'created_at' => date('Y-m-d H:i:s'),
+                        ];
+                        $this->companyModel->addRequirement($reqData, $companyId);
+                    }
+                }
             }
+
+            // 5. Guardar días de asistencia
+            if (!empty($_POST['attendance_days']) && is_array($_POST['attendance_days'])) {
+                foreach ($_POST['attendance_days'] as $date) {
+                    $this->companyModel->addAttendanceDay($eventId, trim($date), $companyId);
+                }
+            }
+
             // 6. Generar matches automáticos para este comprador
             require_once(__DIR__ . '/../models/Match.php');
             $matchModel = new MatchModel($this->db);
             $matchResult = $matchModel->generateMatches($eventId, ['buyerId' => $companyId]);
-            Logger::info('storeBuyersRegistration: matchResult', ['matchResult' => $matchResult]);
             if (class_exists('Logger')) {
                 Logger::info('Generación automática de matches tras registro comprador', [
                     'eventId' => $eventId,
@@ -109,52 +234,71 @@ class RegistrationController {
                     'matchResult' => $matchResult
                 ]);
             }
+
             $db->commit();
             setFlashMessage('Registro enviado correctamente. Pronto nos pondremos en contacto.', 'success');
-            header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
-            exit;
         } catch (Exception $e) {
             $db->rollback();
             setFlashMessage('Error al registrar: ' . $e->getMessage(), 'danger');
-            // Volver a mostrar el formulario con los datos ingresados
-            $event = $this->eventModel;
-            $categories = $this->categoryModel->getEventCategories($eventId);
-            $subcategories = [];
-            foreach ($categories as $cat) {
-                $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
-            }
-            $csrfToken = generateCSRFToken();
-            $form_data = $_POST;
-            include(VIEW_DIR . '/events/buyers_registration.php');
-            exit;
         }
+        
+        header('Location: ' . BASE_URL . "/buyers_registration/$eventId");
+        exit;
     }
 
     // Formulario registro público de proveedores
     public function suppliersRegistration($eventId) {
         if (!$this->eventModel->findById($eventId)) {
-            include(VIEW_DIR . '/errors/404.php');
+            $data = [
+                'pageTitle' => 'Evento no encontrado',
+                'moduleCSS' => 'public_registration',
+                'moduleJS' => 'registrationcontroller'
+            ];
+            
+            $this->render('errors/404', $data, 'admin');
             return;
         }
+        
         $event = $this->eventModel;
         $categories = $this->categoryModel->getEventCategories($eventId);
         $subcategories = [];
         foreach ($categories as $cat) {
             $subcategories[$cat['event_category_id']] = $this->categoryModel->getEventSubcategories($cat['event_category_id']);
         }
-        // Obtener días del evento igual que en buyersRegistration
-        $startDate = new DateTime($event->getStartDate());
-        $endDate = new DateTime($event->getEndDate());
-        $interval = $startDate->diff($endDate);
-        $totalDays = $interval->days + 1;
+        
+        // Obtener días del evento
         $eventDays = [];
-        $currentDate = clone $startDate;
-        for ($i = 0; $i < $totalDays; $i++) {
-            $eventDays[] = $currentDate->format('Y-m-d');
-            $currentDate->modify('+1 day');
+        if ($event->getStartDate() && $event->getEndDate()) {
+            $startDate = new DateTime($event->getStartDate());
+            $endDate = new DateTime($event->getEndDate());
+            $interval = $startDate->diff($endDate);
+            $totalDays = $interval->days + 1;
+            $currentDate = clone $startDate;
+            for ($i = 0; $i < $totalDays; $i++) {
+                $eventDays[] = $currentDate->format('Y-m-d');
+                $currentDate->modify('+1 day');
+            }
         }
+        
         $csrfToken = generateCSRFToken();
-        include(VIEW_DIR . '/events/suppliers_registration.php');
+        
+        $data = [
+            'pageTitle' => 'Registro de Proveedores',
+            'moduleCSS' => 'public_registration',
+            'moduleJS' => 'registrationcontroller',
+            'event' => $event,
+            'eventId' => $eventId,
+            'categories' => $categories,
+            'subcategories' => $subcategories,
+            'eventDays' => $eventDays,
+            'csrfToken' => $csrfToken
+        ];
+        
+        // Extraer variables para la vista
+        extract($data);
+        
+        // Incluir la vista directamente
+        include VIEW_DIR . '/events/suppliers_registration.php';
     }
 
     // Procesar registro público de proveedores

@@ -1,0 +1,425 @@
+/**
+ * Material Design 3 Theme for B2B Conector
+ * Inspired by Google's Material Design 3 guidelines
+ * 
+ * @version 2.0.0
+ */
+
+/* ==========================================================================
+   Material Design 3 Variables
+   ========================================================================== */
+
+:root {
+  /* Material 3 Surface Colors */
+  --md-surface-dim: #ddd8e1;
+  --md-surface-bright: #fef7ff;
+  --md-surface-container-lowest: #ffffff;
+  --md-surface-container-low: #f7f2fa;
+  --md-surface-container: #f1ecf4;
+  --md-surface-container-high: #ebe6ee;
+  --md-surface-container-highest: #e6e0e9;
+
+  /* Material 3 Primary Colors */
+  --md-primary-10: #21005d;
+  --md-primary-20: #381e72;
+  --md-primary-30: #4f378b;
+  --md-primary-40: #6750a4;
+  --md-primary-50: #7f5af0;
+  --md-primary-80: #d0bcff;
+  --md-primary-90: #eaddff;
+  --md-primary-95: #f6edff;
+  --md-primary-99: #fffbfe;
+
+  /* Material 3 Elevation */
+  --md-elevation-1: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
+  --md-elevation-2: 0px 1px 2px 0px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
+  --md-elevation-3: 0px 1px 3px 0px rgba(0, 0, 0, 0.3), 0px 4px 8px 3px rgba(0, 0, 0, 0.15);
+  --md-elevation-4: 0px 2px 3px 0px rgba(0, 0, 0, 0.3), 0px 6px 10px 4px rgba(0, 0, 0, 0.15);
+  --md-elevation-5: 0px 4px 4px 0px rgba(0, 0, 0, 0.3), 0px 8px 12px 6px rgba(0, 0, 0, 0.15);
+
+  /* Material 3 Shape */
+  --md-shape-corner-none: 0px;
+  --md-shape-corner-extra-small: 4px;
+  --md-shape-corner-small: 8px;
+  --md-shape-corner-medium: 12px;
+  --md-shape-corner-large: 16px;
+  --md-shape-corner-extra-large: 28px;
+}
+
+/* ==========================================================================
+   Material Design 3 Base Styles
+   ========================================================================== */
+
+.material-theme {
+  background: var(--md-surface-bright);
+  color: var(--color-gray-900);
+}
+
+/* ==========================================================================
+   Material Design 3 Buttons
+   ========================================================================== */
+
+.btn-material {
+  --btn-padding-x: 24px;
+  --btn-padding-y: 10px;
+  --btn-font-size: 14px;
+  --btn-font-weight: 500;
+  --btn-border-radius: var(--md-shape-corner-large);
+  --btn-transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: var(--btn-padding-y) var(--btn-padding-x);
+  font-size: var(--btn-font-size);
+  font-weight: var(--btn-font-weight);
+  line-height: 20px;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: none;
+  border-radius: var(--btn-border-radius);
+  transition: var(--btn-transition);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-material::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+}
+
+.btn-material:hover::before {
+  opacity: 0.08;
+}
+
+.btn-material:focus::before {
+  opacity: 0.12;
+}
+
+.btn-material:active::before {
+  opacity: 0.16;
+}
+
+/* Material Button Variants */
+.btn-material--filled {
+  background-color: var(--md-primary-40);
+  color: var(--md-surface-bright);
+  box-shadow: var(--md-elevation-1);
+}
+
+.btn-material--filled:hover {
+  box-shadow: var(--md-elevation-2);
+}
+
+.btn-material--outlined {
+  background-color: transparent;
+  color: var(--md-primary-40);
+  border: 1px solid var(--md-primary-40);
+}
+
+.btn-material--text {
+  background-color: transparent;
+  color: var(--md-primary-40);
+  padding: var(--btn-padding-y) 12px;
+}
+
+.btn-material--tonal {
+  background-color: var(--md-primary-90);
+  color: var(--md-primary-10);
+}
+
+/* ==========================================================================
+   Material Design 3 Cards
+   ========================================================================== */
+
+.card-material {
+  background-color: var(--md-surface-container-low);
+  border-radius: var(--md-shape-corner-medium);
+  box-shadow: var(--md-elevation-1);
+  overflow: hidden;
+  transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+}
+
+.card-material:hover {
+  box-shadow: var(--md-elevation-2);
+}
+
+.card-material--elevated {
+  background-color: var(--md-surface-container-low);
+  box-shadow: var(--md-elevation-1);
+}
+
+.card-material--filled {
+  background-color: var(--md-surface-container-highest);
+  box-shadow: none;
+}
+
+.card-material--outlined {
+  background-color: var(--md-surface-bright);
+  border: 1px solid var(--color-gray-300);
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Material Design 3 Form Controls
+   ========================================================================== */
+
+.textfield-material {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.textfield-material__input {
+  padding: 16px 16px 8px;
+  border: 1px solid var(--color-gray-400);
+  border-radius: var(--md-shape-corner-extra-small) var(--md-shape-corner-extra-small) 0 0;
+  background-color: var(--md-surface-container-highest);
+  font-size: 16px;
+  line-height: 24px;
+  transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+  border-bottom: 2px solid var(--color-gray-400);
+}
+
+.textfield-material__input:focus {
+  outline: none;
+  border-bottom-color: var(--md-primary-40);
+}
+
+.textfield-material__label {
+  position: absolute;
+  left: 16px;
+  top: 16px;
+  font-size: 16px;
+  color: var(--color-gray-600);
+  transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+  pointer-events: none;
+  transform-origin: left top;
+}
+
+.textfield-material__input:focus ~ .textfield-material__label,
+.textfield-material__input:not(:placeholder-shown) ~ .textfield-material__label {
+  transform: translateY(-8px) scale(0.75);
+  color: var(--md-primary-40);
+}
+
+.textfield-material__supporting-text {
+  padding: 4px 16px 0;
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-gray-600);
+}
+
+/* ==========================================================================
+   Material Design 3 Navigation
+   ========================================================================== */
+
+.nav-material {
+  background: var(--gradient-material);
+  box-shadow: var(--md-elevation-2);
+  backdrop-filter: blur(8px);
+}
+
+.nav-material .nav__brand {
+  color: var(--md-surface-bright);
+  font-weight: 600;
+  font-size: 20px;
+}
+
+.nav__logo {
+  display: flex;
+  color: currentColor;
+  transition: transform 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+}
+
+.nav__brand:hover .nav__logo {
+  transform: scale(1.05);
+}
+
+.nav-material .nav__link {
+  color: rgba(255, 255, 255, 0.87);
+  border-radius: var(--md-shape-corner-large);
+  transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-material .nav__link::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: currentColor;
+  opacity: 0;
+  transition: opacity 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+}
+
+.nav-material .nav__link:hover::before {
+  opacity: 0.08;
+}
+
+.nav-material .nav__link:hover {
+  color: var(--md-surface-bright);
+}
+
+/* ==========================================================================
+   Material Design 3 Hero Section
+   ========================================================================== */
+
+.hero-material {
+  background: var(--gradient-material);
+  padding: 80px 0;
+  border-radius: 0 0 var(--md-shape-corner-extra-large) var(--md-shape-corner-extra-large);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-material::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.1"><circle cx="20" cy="20" r="2"/></g></g></svg>') repeat;
+  opacity: 0.1;
+}
+
+.hero-material__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: var(--md-surface-bright);
+}
+
+.hero-material__title {
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 56px;
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+
+.hero-material__subtitle {
+  font-size: 20px;
+  line-height: 28px;
+  opacity: 0.87;
+  margin-bottom: 32px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* ==========================================================================
+   Material Design 3 Feature Cards
+   ========================================================================== */
+
+.feature-material {
+  background: var(--md-surface-container);
+  border-radius: var(--md-shape-corner-large);
+  padding: 24px;
+  box-shadow: var(--md-elevation-1);
+  transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-material:hover {
+  box-shadow: var(--md-elevation-3);
+  transform: translateY(-2px);
+}
+
+.feature-material__icon {
+  width: 56px;
+  height: 56px;
+  background: var(--gradient-secondary);
+  border-radius: var(--md-shape-corner-medium);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  font-size: 24px;
+  color: var(--md-surface-bright);
+}
+
+.feature-material__title {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--color-gray-900);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.feature-material__description {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--color-gray-600);
+}
+
+/* ==========================================================================
+   Material Design 3 FAB (Floating Action Button)
+   ========================================================================== */
+
+.fab-material {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  background: var(--md-primary-40);
+  color: var(--md-surface-bright);
+  border: none;
+  border-radius: var(--md-shape-corner-large);
+  box-shadow: var(--md-elevation-3);
+  cursor: pointer;
+  font-size: 24px;
+  transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+  z-index: 1000;
+}
+
+.fab-material:hover {
+  box-shadow: var(--md-elevation-4);
+  transform: scale(1.05);
+}
+
+/* ==========================================================================
+   Material Design 3 Responsive
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  .hero-material__title {
+    font-size: 32px;
+    line-height: 40px;
+  }
+  
+  .hero-material__subtitle {
+    font-size: 16px;
+    line-height: 24px;
+  }
+  
+  .hero-material {
+    padding: 60px 0;
+    border-radius: 0 0 var(--md-shape-corner-large) var(--md-shape-corner-large);
+  }
+  
+  .fab-material {
+    bottom: 16px;
+    right: 16px;
+  }
+}

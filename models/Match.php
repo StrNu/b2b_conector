@@ -499,9 +499,22 @@ class MatchModel {
                         $supplier_description = $supplier['description'] ?? null;
                         // Fechas coincidentes
                         $commonDates = array_intersect($buyerDates, $supplierDates);
-                        $coincidence_of_dates = !empty($commonDates) ? implode(',', $commonDates) : null;
-                        // Reason (puedes ajustar la lógica según tus reglas)
-                        $reason = !empty($commonDates) ? 'subcategoria_y_fecha' : 'subcategoria_sin_dias_comunes';
+                        
+                        // NUEVA CONDICIÓN: Solo crear matches si hay fechas Y subcategorías coincidentes
+                        if (empty($commonDates)) {
+                            Logger::debug("Match no creado por falta de fechas coincidentes", [
+                                'buyer_id' => $buyerId,
+                                'supplier_id' => $supplierId,
+                                'buyer_dates' => $buyerDates,
+                                'supplier_dates' => $supplierDates
+                            ]);
+                            continue; // Saltar este match, no crear
+                        }
+                        
+                        $coincidence_of_dates = implode(',', $commonDates);
+                        $matchDatesCount = count($commonDates);
+                        $reason = 'subcategoria_y_fecha_auto_generation';
+                        
                         // Keywords match (intersección de keywords si ambas existen y son JSON)
                         $keywords_match = null;
                         if ($buyer_keywords && $supplier_keywords) {
@@ -511,6 +524,7 @@ class MatchModel {
                                 $keywords_match = array_values(array_intersect($bk, $sk));
                             }
                         }
+                        
                         $matchData = [
                             'buyer_id' => $buyerId,
                             'supplier_id' => $supplierId,
@@ -529,10 +543,20 @@ class MatchModel {
                             'supplier_description' => $supplier_description,
                             'reason' => $reason,
                             'keywords_match' => $keywords_match ? json_encode($keywords_match) : null,
-                            'coincidence_of_dates' => $coincidence_of_dates
+                            'coincidence_of_dates' => $coincidence_of_dates, // NUNCA NULL
+                            'match_dates' => $matchDatesCount, // Nuevo campo
+                            'programed' => 0 // Inicialmente no programado
                         ];
+                        
                         if ($this->create($matchData)) {
                             $newMatches++;
+                            Logger::info("Match creado con fechas coincidentes", [
+                                'match_id' => $this->db->lastInsertId(),
+                                'buyer_id' => $buyerId,
+                                'supplier_id' => $supplierId,
+                                'coincidence_dates' => $coincidence_of_dates,
+                                'match_dates_count' => $matchDatesCount
+                            ]);
                         }
                     }
                 }
@@ -996,7 +1020,9 @@ public function countWithoutParticipants() {
   ),
 
   date_matches AS (
-    SELECT a1.company_id AS buyer_id, a2.company_id AS supplier_id, 1 AS date_match
+    SELECT a1.company_id AS buyer_id, a2.company_id AS supplier_id, 
+           COUNT(DISTINCT a1.attendance_date) AS date_match,
+           GROUP_CONCAT(DISTINCT a1.attendance_date ORDER BY a1.attendance_date) AS coincidence_of_dates
     FROM attendance_days a1
     JOIN attendance_days a2
       ON a1.attendance_date = a2.attendance_date
@@ -1045,6 +1071,7 @@ SELECT
    -- Componentes de score
   COALESCE(rom.matched_offers/br.total_reqs,0)*100 AS pct_req_match,
   COALESCE(dm.date_match,0)                   AS date_match,
+  COALESCE(dm.coincidence_of_dates,'')        AS coincidence_of_dates,
   COALESCE(ks.matched_bkw,0)                   AS keyword_matches,
   COALESCE(ds.desc_matches,0)                 AS description_matches,
 
@@ -1160,14 +1187,14 @@ ORDER BY match_strength DESC
             $requirementsQuery = "
                 SELECT r.*, 
                        es.name as event_subcategory_name,
-                       ec.name as event_category_name
+                       ec.name as event_category_name,
+                       es.is_active as subcategory_active,
+                       ec.is_active as category_active
                 FROM requirements r
                 JOIN event_subcategories es ON r.event_subcategory_id = es.event_subcategory_id
                 JOIN event_categories ec ON es.event_category_id = ec.event_category_id
                 WHERE r.buyer_id = :company_id 
                 AND ec.event_id = :event_id
-                AND es.is_active = 1
-                AND ec.is_active = 1
                 ORDER BY ec.name, es.name
             ";
             
@@ -1192,14 +1219,14 @@ ORDER BY match_strength DESC
             $offersQuery = "
                 SELECT so.*, 
                        es.name as event_subcategory_name,
-                       ec.name as event_category_name
+                       ec.name as event_category_name,
+                       es.is_active as subcategory_active,
+                       ec.is_active as category_active
                 FROM supplier_offers so
                 JOIN event_subcategories es ON so.event_subcategory_id = es.event_subcategory_id
                 JOIN event_categories ec ON es.event_category_id = ec.event_category_id
                 WHERE so.supplier_id = :company_id 
                 AND ec.event_id = :event_id
-                AND es.is_active = 1
-                AND ec.is_active = 1
                 ORDER BY ec.name, es.name
             ";
             

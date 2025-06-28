@@ -1,170 +1,186 @@
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
-<link rel="stylesheet" href="<?= BASE_URL ?>/assets/css/components/cards.css">
-<style>
-/* Compactar tabla de horarios */
-.compact-table th, .compact-table td {
-    font-size: 0.85rem;
-    padding: 0.25rem 0.4rem;
-}
-.compact-table th {
-    font-weight: 600;
-}
-/* Compactar tabla de descansos */
-.breaks-table th, .breaks-table td {
-    font-size: 0.8rem;
-    padding: 0.18rem 0.3rem;
-}
-/* Reducir margen inferior de la card de descansos */
-.card-breaks { margin-bottom: 1rem !important; }
-@media (min-width: 1024px) {
-  /* Dar más espacio a la tabla principal en desktop */
-  .main-flex {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1.5rem;
-  }
-  .card-breaks { flex: 0 0 320px; max-width: 340px; }
-  .card-slots { flex: 1 1 0%; min-width: 340px; max-width: 100%; }
+<?php 
+// Vista de time_slots con Material Design 3
+if (file_exists(CONFIG_DIR . '/material-config.php')) {
+    require_once CONFIG_DIR . '/material-config.php';
 }
 
-/* Estilos mejorados para tooltips de slots */
-.slot-tooltip {
-    position: relative;
-    display: inline-block;
+// Fallback functions if Material Design helpers are not available
+if (!function_exists('materialButton')) {
+    function materialButton($text, $variant = 'filled', $icon = '', $attributes = '', $size = '') {
+        $class = 'btn btn-primary';
+        if ($variant === 'outlined') $class = 'btn btn-secondary';
+        if ($variant === 'tonal') $class = 'btn btn-info';
+        if ($size === 'small') $class .= ' btn-sm';
+        return '<button class="' . $class . '" ' . $attributes . '>' . $text . '</button>';
+    }
 }
 
-.slot-tooltip .tooltip-content {
-    visibility: hidden;
-    opacity: 0;
-    position: absolute;
-    z-index: 1000;
-    bottom: 125%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #1f2937;
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    line-height: 1.3;
-    white-space: nowrap;
-    max-width: 300px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    transition: opacity 0.2s, visibility 0.2s;
+if (!function_exists('materialCard')) {
+    function materialCard($title, $content, $variant = 'elevated', $actions = '') {
+        return '<div class="card">
+                    <div class="card-header"><h5>' . $title . '</h5></div>
+                    <div class="card-body">' . $content . '</div>
+                    ' . ($actions ? '<div class="card-footer">' . $actions . '</div>' : '') . '
+                </div>';
+    }
 }
 
-.slot-tooltip .tooltip-content::after {
-    content: "";
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #1f2937 transparent transparent transparent;
+if (!function_exists('displayFlashMessages')) {
+    function displayFlashMessages() {
+        include(VIEW_DIR . '/shared/notifications.php');
+    }
 }
 
-.slot-tooltip:hover .tooltip-content {
-    visibility: visible;
-    opacity: 1;
+if (!function_exists('isEventUserAuthenticated')) {
+    function isEventUserAuthenticated() {
+        return false;
+    }
 }
 
-/* Estilos para diferentes estados de slots */
-.slot-occupied {
-    background: linear-gradient(135deg, #fecaca 0%, #f87171 100%);
-    border: 1px solid #dc2626;
-}
+$pageTitle = 'Horarios y Capacidad del Evento';
+$moduleCSS = 'events';
+$moduleJS = 'events';
+$breadcrumbs = [
+    ['title' => 'Dashboard', 'url' => isEventUserAuthenticated() ? BASE_URL . '/event-dashboard' : BASE_URL . '/dashboard'],
+    ['title' => 'Eventos', 'url' => BASE_URL . '/events'],
+    ['title' => 'Time Slots']
+];
+?>
 
-.slot-available {
-    background: linear-gradient(135deg, #bbf7d0 0%, #22c55e 100%);
-    border: 1px solid #16a34a;
-}
-
-.slot-unavailable {
-    background: linear-gradient(135deg, #f3f4f6 0%, #9ca3af 100%);
-    border: 1px solid #6b7280;
-}
-
-/* Animaciones para slots */
-.slot-occupied:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
-}
-
-.slot-available:hover {
-    transform: scale(1.05);
-    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.3);
-}
-
-.slot-status {
-    transition: all 0.2s ease;
-}
-</style>
-<div class="content">
-    <div class="flex items-center justify-between mb-6">
-        <h1 class="text-2xl font-bold text-gray-800 mb-1">Horarios y Capacidad del Evento</h1>
-        <a href="<?= BASE_URL ?>/events/view/<?= (int)$eventModel->getId() ?>" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Volver al Evento
-        </a>
+<div class="content-area">
+    <!-- Page Header -->
+    <div class="page-header">
+        <div class="page-header__content">
+            <h1 class="page-title">Horarios y Capacidad del Evento</h1>
+            <p class="page-subtitle">Visualiza la capacidad y distribución de horarios</p>
+        </div>
+        <div class="page-header__actions">
+            <?= materialButton(
+                '<i class="fas fa-sync-alt"></i> Actualizar Ahora',
+                'filled',
+                '',
+                'id="manual-refresh-btn" onclick="if(window.timeSlotRefresh) window.timeSlotRefresh.refreshScheduleData()"'
+            ) ?>
+            <?= materialButton(
+                '<i class="fas fa-arrow-left"></i> Volver al Evento',
+                'outlined',
+                '',
+                'onclick="window.location.href=\'' . BASE_URL . '/events/view/' . (int)$eventModel->getId() . '\'"'
+            ) ?>
+        </div>
     </div>
+    <!-- Flash Messages -->
     <?php displayFlashMessages(); ?>
-    <div class="main-flex">
-        <!-- Card Capacidad del Evento y Descansos -->
-        <div class="card-breaks">
-            <div class="card bg-white p-4 rounded shadow mb-2">
-                <div class="text-base font-semibold mb-2 text-blue-700">Capacidad del Evento</div>
-                <div class="flex flex-col gap-2 mb-2">
-                    <div>
-                        <div class="text-gray-500 text-xs mb-0.5">Duración del evento</div>
-                        <div class="text-base font-bold text-gray-800"><?= htmlspecialchars($eventDurationDays ?? '-') ?> días</div>
-                    </div>
-                    <div>
-                        <div class="text-gray-500 text-xs mb-0.5">No. de mesas</div>
-                        <div class="text-base font-bold text-gray-800"><?= htmlspecialchars($availableTables ?? '-') ?></div>
-                    </div>
-                    <div>
-                        <div class="text-gray-500 text-xs mb-0.5">Horarios por día</div>
-                        <div class="text-base font-bold text-gray-800"><?= htmlspecialchars($slotsPerDay ?? '-') ?></div>
-                    </div>
-                    <div>
-                        <div class="text-gray-500 text-xs mb-0.5">Reuniones por día</div>
-                        <div class="text-base font-bold text-gray-800">
-                            <?php $reunionesPorDia = ($slotsPerDay ?? 0) * ($availableTables ?? 0); echo $reunionesPorDia; ?>
+    
+    <div class="time-slots-container">
+        <!-- Event Capacity Card -->
+        <div class="capacity-section">
+            <?php
+            ob_start();
+            ?>
+                <div class="capacity-stats">
+                    <div class="stat-item">
+                        <div class="stat-item__icon">
+                            <i class="fas fa-calendar-day"></i>
+                        </div>
+                        <div class="stat-item__content">
+                            <div class="stat-item__value"><?= htmlspecialchars($eventDurationDays ?? 0) ?></div>
+                            <div class="stat-item__label">Días de evento</div>
                         </div>
                     </div>
-                    <div>
-                        <div class="text-gray-500 text-xs mb-0.5">Capacidad total</div>
-                        <div class="text-base font-bold text-blue-700">
-                            <?php $capacidadTotal = $reunionesPorDia * ($eventDurationDays ?? 0); echo $capacidadTotal; ?>
+                    
+                    <div class="stat-item">
+                        <div class="stat-item__icon">
+                            <i class="fas fa-table"></i>
+                        </div>
+                        <div class="stat-item__content">
+                            <div class="stat-item__value"><?= htmlspecialchars($availableTables ?? 0) ?></div>
+                            <div class="stat-item__label">Mesas disponibles</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-item__icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="stat-item__content">
+                            <div class="stat-item__value"><?= htmlspecialchars($slotsPerDay ?? 0) ?></div>
+                            <div class="stat-item__label">Horarios por día</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item">
+                        <div class="stat-item__icon">
+                            <i class="fas fa-handshake"></i>
+                        </div>
+                        <div class="stat-item__content">
+                            <div class="stat-item__value">
+                                <?php $reunionesPorDia = (int)($slotsPerDay ?? 0) * (int)($availableTables ?? 0); echo $reunionesPorDia; ?>
+                            </div>
+                            <div class="stat-item__label">Reuniones por día</div>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-item stat-item--highlight">
+                        <div class="stat-item__icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-item__content">
+                            <div class="stat-item__value">
+                                <?php $capacidadTotal = $reunionesPorDia * (int)($eventDurationDays ?? 0); echo $capacidadTotal; ?>
+                            </div>
+                            <div class="stat-item__label">Capacidad total</div>
                         </div>
                     </div>
                 </div>
-                <hr class="my-2">
-                <div class="mb-1 font-semibold text-gray-700" style="font-size:0.95em">Descansos Programados</div>
-                <div class="overflow-x-auto">
-                    <table class="table-auto w-full bg-white rounded border border-gray-200 mb-1 breaks-table">
-                        <thead class="bg-gray-50">
+            <?php
+            $capacityContent = ob_get_clean();
+            echo materialCard(
+                '<i class="fas fa-chart-bar"></i> Capacidad del Evento',
+                $capacityContent,
+                'elevated'
+            );
+            ?>
+        </div>
+        
+        <!-- Breaks Section -->
+        <div class="breaks-section-container">
+            <?php
+            ob_start();
+            ?>
+                <h4 class="breaks-title">
+                    <i class="fas fa-pause"></i>
+                    Descansos Programados
+                </h4>
+                
+                <div class="table-responsive">
+                    <table class="table-material table-material--compact">
+                        <thead class="table-material__header">
                             <tr>
-                                <th>Hora de inicio</th>
-                                <th>Hora de fin</th>
-                                <th>Duración</th>
+                                <th class="table-material__cell table-material__cell--header">Hora inicio</th>
+                                <th class="table-material__cell table-material__cell--header">Hora fin</th>
+                                <th class="table-material__cell table-material__cell--header">Duración</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if (!empty($breaks)): ?>
                                 <?php foreach ($breaks as $break): ?>
-                                    <tr>
-                                        <td class="text-center"><?= htmlspecialchars($break['start_time']) ?></td>
-                                        <td class="text-center"><?= htmlspecialchars($break['end_time']) ?></td>
-                                        <td class="text-center">
+                                    <tr class="table-material__row">
+                                        <td class="table-material__cell text-center"><?= htmlspecialchars($break['start_time']) ?></td>
+                                        <td class="table-material__cell text-center"><?= htmlspecialchars($break['end_time']) ?></td>
+                                        <td class="table-material__cell text-center">
                                             <?php
                                             if (is_array($break)) {
-                                                $start = strtotime($break['start_time']);
-                                                $end = strtotime($break['end_time']);
-                                                $duration = ($end && $start) ? floor(($end - $start) / 60) : 0;
-                                                echo $duration . ' minutos';
+                                                $start = isset($break['start_time']) && !empty($break['start_time']) ? strtotime($break['start_time']) : false;
+                                                $end = isset($break['end_time']) && !empty($break['end_time']) ? strtotime($break['end_time']) : false;
+                                                if ($start !== false && $end !== false && is_int($start) && is_int($end) && $end > $start) {
+                                                    $duration = floor(($end - $start) / 60);
+                                                    echo $duration . ' min';
+                                                } else {
+                                                    echo '-';
+                                                }
                                             } elseif (is_object($break) && method_exists($break, 'getDuration')) {
-                                                echo $break->getDuration() . ' minutos';
+                                                echo $break->getDuration() . ' min';
                                             } else {
                                                 echo '-';
                                             }
@@ -173,168 +189,828 @@
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
-                                <tr><td colspan="3" class="text-center text-gray-400">No hay descansos programados.</td></tr>
+                                <tr><td colspan="3" class="table-material__cell text-center text-muted">No hay descansos programados.</td></tr>
                             <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
-            </div>
+            <?php
+            $breaksContent = ob_get_clean();
+            echo materialCard(
+                '<i class="fas fa-pause"></i> Descansos Programados',
+                $breaksContent,
+                'outlined'
+            );
+            ?>
         </div>
-        <!-- Card Desglose de Horarios -->
-        <div class="card-slots">
-            <div class="card bg-white p-3 rounded shadow">
-                <h2 class="text-lg font-semibold mb-3 text-blue-700">Desglose de Horarios</h2>
-                <?php
-                $eventDurationDays = $eventDurationDays ?? ($eventDurationDays ?? 0);
-                $slotsPerDay = $slotsPerDay ?? ($slotsPerDay ?? 0);
-                $availableTables = $availableTables ?? ($availableTables ?? 0);
-                $breaks = $breaks ?? ($breaks ?? []);
-                $slotsByDate = $slotsByDate ?? ($slotsByDate ?? []);
-                $appointments = $appointments ?? ($appointments ?? []);
-                $ocupados = [];
-                foreach ($appointments as $appt) {
-                    $date = substr($appt['start_datetime'], 0, 10);
-                    $start = substr($appt['start_datetime'], 11, 5);
-                    $table = $appt['table_number'];
-                    $ocupados[$date][$start][$table] = $appt;
+        <!-- Schedule Breakdown Section -->
+        <div class="schedule-breakdown-section">
+            <?php
+            // --- Generar contenido HTML para el desglose de horarios ---
+            ob_start();
+            $eventDurationDays = $eventDurationDays ?? 0;
+            $slotsPerDay = $slotsPerDay ?? 0;
+            $availableTables = $availableTables ?? 0;
+            $breaks = is_array($breaks) ? $breaks : [];
+            $slotsByDate = is_array($slotsByDate) ? $slotsByDate : [];
+            $appointments = is_array($appointments) ? $appointments : [];
+            $ocupados = [];
+            foreach ($appointments as $appt) {
+                $date = substr($appt['start_datetime'], 0, 10);
+                $start = substr($appt['start_datetime'], 11, 5);
+                $table = $appt['table_number'];
+                $ocupados[$date][$start][$table] = $appt;
+            }
+            
+            // LOG: Debug de appointments del servidor
+            error_log("DEBUG SLOTS: Total appointments cargados desde servidor: " . count($appointments));
+            error_log("DEBUG SLOTS: Active day: " . ($activeDay ?? 'null'));
+            if (!empty($appointments)) {
+                error_log("DEBUG SLOTS: Primer appointment: " . json_encode($appointments[0]));
+            }
+            error_log("DEBUG SLOTS: Ocupados structure: " . json_encode(array_keys($ocupados)));
+            $days = array_keys($slotsByDate);
+            $activeDay = $_GET['day'] ?? ($days[0] ?? null);
+            $mesas = range(1, (int)$availableTables);
+            $horas = [];
+            if (!empty($slotsByDate[$activeDay])) {
+                foreach ($slotsByDate[$activeDay] as $slot) {
+                    $start = substr($slot['start_datetime'], 11, 5);
+                    $end = substr($slot['end_datetime'], 11, 5);
+                    $horas[$start.'-'.$end] = true;
                 }
-                $days = array_keys($slotsByDate);
-                $activeDay = $_GET['day'] ?? ($days[0] ?? null);
-                // --- Obtener lista de mesas (usando el número de mesas del evento, no solo los slots generados) ---
-                $mesas = range(1, (int)$availableTables);
-                // --- Agrupar slots por hora ---
-                $horas = [];
-                if (!empty($slotsByDate[$activeDay])) {
-                    foreach ($slotsByDate[$activeDay] as $slot) {
-                        $start = substr($slot['start_datetime'], 11, 5);
-                        $end = substr($slot['end_datetime'], 11, 5);
-                        $horas[$start.'-'.$end] = true;
-                    }
-                    $horas = array_keys($horas);
-                    sort($horas);
-                }
-                ?>
-                <?php if (!empty($days)): ?>
-                    <div class="tabs mb-3">
-                        <ul class="flex border-b">
-                            <?php foreach ($days as $day): ?>
-                                <li class="mr-2">
-                                    <a href="?day=<?= $day ?>" class="inline-block px-3 py-1 <?= $activeDay === $day ? 'border-b-2 border-blue-600 font-bold text-blue-700' : 'text-gray-600' ?>" style="font-size:0.95em">
-                                        <?= date('d/m/Y', strtotime($day)) ?>
-                                    </a>
-                                </li>
-                            <?php endforeach; ?>
-                        </ul>
+                $horas = array_keys($horas);
+                sort($horas);
+            }
+            ?>
+            
+            <?php if (!empty($days)): ?>
+                <!-- Tabs para días -->
+                <div class="tabs-material">
+                    <div class="tabs-material__list">
+                        <?php foreach ($days as $day): ?>
+                            <a href="?day=<?= urlencode($day) ?>" 
+                               class="tabs-material__tab <?= ($day === $activeDay) ? 'tabs-material__tab--active' : '' ?>">
+                                <div class="tabs-material__label">
+                                    <?= date('D j/n', strtotime($day)) ?>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="table-auto w-full bg-white rounded shadow border border-gray-200 compact-table" style="min-width:600px">
-                            <thead class="bg-gray-100">
+                </div>
+
+                <?php if ($activeDay && !empty($horas)): ?>
+                    <!-- Tabla de horarios -->
+                    <div class="table-responsive">
+                        <table class="table-material table-material--schedule">
+                            <thead class="table-material__header">
                                 <tr>
-                                    <th>Hora</th>
-                                    <?php foreach ($mesas as $mesa): ?>
-                                        <th>Mesa <?= htmlspecialchars($mesa) ?></th>
-                                    <?php endforeach; ?>
+                                    <th class="table-material__cell table-material__cell--header table-material__cell--time">
+                                        Horario
+                                    </th>
+                                    <?php for ($mesa = 1; $mesa <= $availableTables; $mesa++): ?>
+                                        <th class="table-material__cell table-material__cell--header">
+                                            Mesa <?= $mesa ?>
+                                        </th>
+                                    <?php endfor; ?>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($horas as $hora): ?>
-                                    <tr>
-                                        <td class="text-center font-semibold" style="white-space:nowrap;"> <?= htmlspecialchars($hora) ?> </td>
-                                        <?php foreach ($mesas as $mesa): ?>
-                                            <?php
-                                            // Buscar slot para esta hora y mesa
-                                            $start = explode('-', $hora)[0];
-                                            $slot = null;
-                                            $appointment = null;
-                                            
-                                            // Buscar en los slots generados
-                                            foreach ($slotsByDate[$activeDay] as $s) {
-                                                if (substr($s['start_datetime'], 11, 5) === $start && $s['table_number'] == $mesa) {
-                                                    $slot = $s;
-                                                    break;
-                                                }
-                                            }
-                                            
-                                            // Buscar appointment correspondiente
-                                            if ($slot) {
-                                                foreach ($appointments as $appt) {
-                                                    if ($appt['schedule_id'] == $slot['schedule_id']) {
-                                                        $appointment = $appt;
-                                                        break;
+                                    <tr class="table-material__row">
+                                        <td class="table-material__cell table-material__cell--time">
+                                            <?= htmlspecialchars($hora) ?>
+                                        </td>
+                                        <?php for ($mesa = 1; $mesa <= $availableTables; $mesa++): ?>
+                                            <td class="table-material__cell table-material__cell--slot">
+                                                <?php
+                                                $horaStart = explode('-', $hora)[0];
+                                                $isOcupado = isset($ocupados[$activeDay][$horaStart][$mesa]);
+                                                
+                                                // LOG: Debug de cada slot individual
+                                                if ($mesa == 1 && $hora == array_slice($horas, 0, 1)[0]) { // Solo log para el primer slot de la primera hora
+                                                    error_log("DEBUG SLOT INDIVIDUAL: activeDay=$activeDay, hora=$hora, horaStart=$horaStart, mesa=$mesa");
+                                                    error_log("DEBUG SLOT INDIVIDUAL: isOcupado=" . ($isOcupado ? 'true' : 'false'));
+                                                    error_log("DEBUG SLOT INDIVIDUAL: ocupados[$activeDay] exists: " . (isset($ocupados[$activeDay]) ? 'true' : 'false'));
+                                                    if (isset($ocupados[$activeDay])) {
+                                                        error_log("DEBUG SLOT INDIVIDUAL: ocupados[$activeDay] keys: " . json_encode(array_keys($ocupados[$activeDay])));
                                                     }
                                                 }
-                                            }
-                                            
-                                            // Determinar el estado del slot
-                                            $isOccupied = $appointment && !empty($appointment['match_id']);
-                                            ?>
-                                            <td class="text-center" style="min-width:100px;">
-                                                <?php if ($isOccupied): ?>
-                                                    <?php 
-                                                    $buyerName = htmlspecialchars($appointment['buyer_name'] ?? 'N/A');
-                                                    $supplierName = htmlspecialchars($appointment['supplier_name'] ?? 'N/A');
-                                                    $buyerContact = htmlspecialchars($appointment['buyer_contact'] ?? '');
-                                                    $supplierContact = htmlspecialchars($appointment['supplier_contact'] ?? '');
-                                                    $requirements = htmlspecialchars(substr($appointment['buyer_requirements'] ?? '', 0, 150));
-                                                    ?>
-                                                    <div class="slot-tooltip">
-                                                        <span class="slot-status slot-occupied inline-block rounded px-2 py-1 text-xs font-semibold text-white cursor-help" 
-                                                              style="font-size:0.75em; max-width:95px;">
-                                                            <i class="fas fa-handshake" style="font-size:0.7em;"></i> Ocupado
-                                                            <div class="text-xs mt-0.5" style="font-size:0.6em; line-height:1;">
-                                                                <?= substr($buyerName, 0, 12) ?><?= strlen($buyerName) > 12 ? '...' : '' ?>
-                                                            </div>
-                                                        </span>
-                                                        <div class="tooltip-content">
-                                                            <strong>🤝 Match Confirmado</strong><br>
-                                                            <strong>Comprador:</strong> <?= $buyerName ?><br>
-                                                            <?php if ($buyerContact): ?><em>Contacto:</em> <?= $buyerContact ?><br><?php endif; ?>
-                                                            <strong>Proveedor:</strong> <?= $supplierName ?><br>
-                                                            <?php if ($supplierContact): ?><em>Contacto:</em> <?= $supplierContact ?><br><?php endif; ?>
-                                                            <?php if ($requirements): ?><em>Requerimientos:</em> <?= $requirements ?>...<?php endif; ?>
-                                                        </div>
+                                                ?>
+                                                <div class="slot-material <?= $isOcupado ? 'slot-material--tooltip' : '' ?>">
+                                                    <div class="slot-material__status slot-material__status--<?= $isOcupado ? 'occupied' : 'available' ?>">
+                                                        <?php if ($isOcupado): ?>
+                                                            <span class="slot-material__text">Ocupado</span>
+                                                            <?php $appt = $ocupados[$activeDay][$horaStart][$mesa]; ?>
+                                                            <span class="slot-material__company">
+                                                                <?= htmlspecialchars(substr($appt['buyer_company'] ?? 'N/A', 0, 12)) ?>
+                                                            </span>
+                                                            <span class="slot-material__company">
+                                                                <?= htmlspecialchars(substr($appt['supplier_company'] ?? 'N/A', 0, 12)) ?>
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span class="slot-material__text">Disponible</span>
+                                                        <?php endif; ?>
                                                     </div>
-                                                <?php elseif ($slot): ?>
-                                                    <div class="slot-tooltip">
-                                                        <span class="slot-status slot-available inline-block rounded px-2 py-1 text-xs font-semibold text-white" 
-                                                              style="font-size:0.75em;">
-                                                            <i class="fas fa-check-circle" style="font-size:0.7em;"></i> Disponible
-                                                        </span>
+                                                    
+                                                    <?php if ($isOcupado): ?>
                                                         <div class="tooltip-content">
-                                                            <strong>✅ Slot Disponible</strong><br>
-                                                            Mesa: <?= $mesa ?><br>
-                                                            Horario: <?= htmlspecialchars($hora) ?><br>
-                                                            <em>Disponible para asignar match</em>
+                                                            <strong>Cita programada</strong><br>
+                                                            <strong>Comprador:</strong> <?= htmlspecialchars($appt['buyer_company'] ?? 'N/A') ?><br>
+                                                            <strong>Proveedor:</strong> <?= htmlspecialchars($appt['supplier_company'] ?? 'N/A') ?><br>
+                                                            <strong>Horario:</strong> <?= htmlspecialchars($hora) ?><br>
+                                                            <strong>Mesa:</strong> <?= $mesa ?>
                                                         </div>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <div class="slot-tooltip">
-                                                        <span class="slot-status slot-unavailable inline-block rounded px-2 py-1 text-xs font-semibold text-gray-500" 
-                                                              style="font-size:0.75em;">
-                                                            <i class="fas fa-minus" style="font-size:0.7em;"></i> -
-                                                        </span>
-                                                        <div class="tooltip-content">
-                                                            <strong>⏸️ Sin Slot</strong><br>
-                                                            Horario no programado<br>
-                                                            <em>Posible período de break</em>
-                                                        </div>
-                                                    </div>
-                                                <?php endif; ?>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
-                                        <?php endforeach; ?>
+                                        <?php endfor; ?>
                                     </tr>
                                 <?php endforeach; ?>
-                                <?php if (empty($horas)): ?>
-                                    <tr><td colspan="<?= count($mesas)+1 ?>" class="text-center text-gray-400">No hay slots para este día.</td></tr>
-                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
                 <?php else: ?>
-                    <div class="text-center text-gray-500 py-8">No hay slots de tiempo generados para este evento.</div>
+                    <div class="empty-state">
+                        <div class="empty-state__icon">
+                            <i class="fas fa-calendar-times"></i>
+                        </div>
+                        <div class="empty-state__text">
+                            No hay horarios disponibles para el día seleccionado.
+                        </div>
+                    </div>
                 <?php endif; ?>
-            </div>
+            <?php else: ?>
+                <div class="empty-state">
+                    <div class="empty-state__icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="empty-state__text">
+                        No hay días programados para este evento.
+                    </div>
+                </div>
+            <?php endif; ?>
+            
+            <?php $scheduleBreakdownContent = ob_get_clean(); ?>
+            <?= materialCard(
+                '<i class="fas fa-calendar-alt"></i> Desglose de Horarios',
+                $scheduleBreakdownContent . 
+                '<div class="last-updated" id="last-updated-indicator">
+                    <span class="auto-refresh-indicator">
+                        <i class="fas fa-sync-alt"></i>
+                        Actualización automática activa
+                    </span>
+                    <span id="last-updated-time">Última actualización: ' . date('H:i:s') . '</span>
+                </div>'
+            ) ?>
         </div>
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>
+
+<script>
+// Auto-refresh para time slots
+class TimeSlotAutoRefresh {
+    constructor() {
+        this.eventId = <?= json_encode($eventId) ?>;
+        this.activeDay = <?= json_encode($activeDay) ?>;
+        this.refreshInterval = 30000; // 30 segundos
+        this.intervalId = null;
+        this.isUpdating = false;
+        this.init();
+    }
+    
+    init() {
+        console.log('TimeSlot Auto-refresh iniciado para evento:', this.eventId, 'día activo:', this.activeDay);
+        
+        // Hacer una actualización inmediata al cargar
+        this.refreshScheduleData();
+        
+        // Luego iniciar el auto-refresh
+        this.startAutoRefresh();
+        
+        // Detener auto-refresh cuando la página no está visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                this.stopAutoRefresh();
+            } else {
+                this.startAutoRefresh();
+            }
+        });
+    }
+    
+    startAutoRefresh() {
+        if (this.intervalId) return; // Ya está ejecutándose
+        
+        this.intervalId = setInterval(() => {
+            this.refreshScheduleData();
+        }, this.refreshInterval);
+        
+        console.log('Auto-refresh iniciado con intervalo de', this.refreshInterval / 1000, 'segundos');
+    }
+    
+    stopAutoRefresh() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+            console.log('Auto-refresh detenido');
+        }
+    }
+    
+    async refreshScheduleData() {
+        if (this.isUpdating) return;
+        
+        this.isUpdating = true;
+        const scheduleTable = document.querySelector('.table-material--schedule');
+        
+        if (scheduleTable) {
+            scheduleTable.classList.add('schedule-updating');
+        }
+        
+        try {
+            console.log('Enviando petición AJAX para event_id:', this.eventId, 'day:', this.activeDay);
+            const response = await fetch(`<?= BASE_URL ?>/events/getTimeSlotDataAjax`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `event_id=${this.eventId}&day=${encodeURIComponent(this.activeDay)}&csrf_token=<?= htmlspecialchars($_SESSION['csrf_token'] ?? '') ?>`
+            });
+            
+            console.log('Respuesta recibida:', response.status, response.statusText);
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Error en respuesta:', errorText);
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('Datos recibidos:', data);
+            
+            if (data.success) {
+                this.updateScheduleDisplay(data.slots);
+                this.updateLastUpdatedTime();
+                console.log('Schedule actualizado:', data.slots.length, 'slots procesados');
+            } else {
+                console.warn('Error en respuesta del servidor:', data.message);
+            }
+            
+        } catch (error) {
+            console.error('Error actualizando schedule:', error);
+        } finally {
+            if (scheduleTable) {
+                scheduleTable.classList.remove('schedule-updating');
+            }
+            this.isUpdating = false;
+        }
+    }
+    
+    updateScheduleDisplay(slots) {
+        console.log('=== DEBUG UPDATESCHEDULEDISPLAY ===');
+        console.log('Total slots recibidos:', slots.length);
+        console.log('Primer slot:', slots[0]);
+        
+        // Contar slots por estado
+        const byStatus = {};
+        slots.forEach(slot => {
+            byStatus[slot.status] = (byStatus[slot.status] || 0) + 1;
+        });
+        console.log('Slots por estado:', byStatus);
+        
+        // Crear mapa de slots ocupados
+        const ocupados = {};
+        let ocupadosCount = 0;
+        slots.forEach(slot => {
+            if (slot.status === 'occupied' && slot.appointment) {
+                const date = slot.date;
+                // Normalizar formato de tiempo: convertir "09:00:00" a "09:00"
+                const time = slot.start_time.substring(0, 5); // Tomar solo HH:MM
+                const table = slot.table_number;
+                
+                if (!ocupados[date]) ocupados[date] = {};
+                if (!ocupados[date][time]) ocupados[date][time] = {};
+                ocupados[date][time][table] = slot.appointment;
+                ocupadosCount++;
+            }
+        });
+        
+        console.log('Slots marcados como ocupados:', ocupadosCount);
+        console.log('Estructura ocupados:', ocupados);
+        console.log('Claves de tiempo en ocupados:', ocupados[this.activeDay] ? Object.keys(ocupados[this.activeDay]) : 'N/A');
+        console.log('Active day:', this.activeDay);
+        
+        // Actualizar cada celda de la tabla
+        const cells = document.querySelectorAll('.table-material__cell--slot');
+        console.log('Total celdas encontradas en DOM:', cells.length);
+        
+        let celdasProcesadas = 0;
+        let celdasActualizadas = 0;
+        
+        cells.forEach(cell => {
+            const row = cell.parentElement;
+            const timeCell = row.querySelector('.table-material__cell--time');
+            const mesa = Array.from(row.children).indexOf(cell);
+            
+            if (timeCell && mesa > 0) {
+                celdasProcesadas++;
+                const horaCompleta = timeCell.textContent.trim();
+                const horaStart = horaCompleta.split('-')[0];
+                
+                // LOG DETALLADO: Debug de cada comparación
+                if (celdasProcesadas <= 5) { // Solo los primeros 5 para no saturar
+                    console.log(`DEBUG CELDA ${celdasProcesadas}:`, {
+                        horaCompleta: horaCompleta,
+                        horaStart: horaStart,
+                        mesa: mesa,
+                        activeDay: this.activeDay,
+                        'ocupados[activeDay] exists': !!ocupados[this.activeDay],
+                        'ocupados[activeDay][horaStart] exists': !!(ocupados[this.activeDay] && ocupados[this.activeDay][horaStart]),
+                        'ocupados[activeDay][horaStart][mesa] exists': !!(ocupados[this.activeDay] && ocupados[this.activeDay][horaStart] && ocupados[this.activeDay][horaStart][mesa]),
+                        'horas disponibles en ocupados': ocupados[this.activeDay] ? Object.keys(ocupados[this.activeDay]) : 'N/A'
+                    });
+                }
+                
+                const isOcupado = ocupados[this.activeDay] && 
+                                 ocupados[this.activeDay][horaStart] && 
+                                 ocupados[this.activeDay][horaStart][mesa];
+                
+                if (isOcupado) {
+                    celdasActualizadas++;
+                    console.log(`Actualizando celda OCUPADA: hora=${horaStart}, mesa=${mesa}`, ocupados[this.activeDay][horaStart][mesa]);
+                }
+                
+                this.updateSlotCell(cell, isOcupado, ocupados[this.activeDay]?.[horaStart]?.[mesa], horaCompleta, mesa);
+            }
+        });
+        
+        console.log(`Celdas procesadas: ${celdasProcesadas}, Celdas marcadas como ocupadas: ${celdasActualizadas}`);
+    }
+    
+    updateSlotCell(cell, isOcupado, appointmentData, hora, mesa) {
+        const slotDiv = cell.querySelector('.slot-material');
+        if (!slotDiv) return;
+        
+        const statusDiv = slotDiv.querySelector('.slot-material__status');
+        const existingTooltip = slotDiv.querySelector('.tooltip-content');
+        
+        // Actualizar clases y contenido
+        if (isOcupado) {
+            slotDiv.classList.add('slot-material--tooltip');
+            statusDiv.className = 'slot-material__status slot-material__status--occupied';
+            statusDiv.innerHTML = `
+                <span class="slot-material__text">Ocupado</span>
+                <span class="slot-material__company">${appointmentData.buyer_company ? appointmentData.buyer_company.substring(0, 12) : 'N/A'}</span>
+                <span class="slot-material__company">${appointmentData.supplier_company ? appointmentData.supplier_company.substring(0, 12) : 'N/A'}</span>
+            `;
+            
+            // Actualizar o crear tooltip
+            if (existingTooltip) {
+                existingTooltip.innerHTML = this.generateTooltipContent(appointmentData, hora, mesa);
+            } else {
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip-content';
+                tooltip.innerHTML = this.generateTooltipContent(appointmentData, hora, mesa);
+                slotDiv.appendChild(tooltip);
+            }
+        } else {
+            slotDiv.classList.remove('slot-material--tooltip');
+            statusDiv.className = 'slot-material__status slot-material__status--available';
+            statusDiv.innerHTML = '<span class="slot-material__text">Disponible</span>';
+            
+            // Remover tooltip si existe
+            if (existingTooltip) {
+                existingTooltip.remove();
+            }
+        }
+    }
+    
+    generateTooltipContent(appointment, hora, mesa) {
+        return `
+            <strong>Cita programada</strong><br>
+            <strong>Comprador:</strong> ${appointment.buyer_company || 'N/A'}<br>
+            <strong>Proveedor:</strong> ${appointment.supplier_company || 'N/A'}<br>
+            <strong>Horario:</strong> ${hora}<br>
+            <strong>Mesa:</strong> ${mesa}
+        `;
+    }
+    
+    updateLastUpdatedTime() {
+        const timeElement = document.getElementById('last-updated-time');
+        if (timeElement) {
+            timeElement.textContent = `Última actualización: ${new Date().toLocaleTimeString()}`;
+        }
+    }
+}
+
+// Inicializar auto-refresh cuando el DOM esté listo
+document.addEventListener('DOMContentLoaded', function() {
+    window.timeSlotRefresh = new TimeSlotAutoRefresh();
+});
+
+// Limpiar interval al salir de la página
+window.addEventListener('beforeunload', function() {
+    if (window.timeSlotRefresh) {
+        window.timeSlotRefresh.stopAutoRefresh();
+    }
+});
+</script>
+
+<style>
+/* Time Slots Material Design 3 Styles */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    gap: 2rem;
+}
+
+.page-header__content {
+    flex: 1;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    margin: 0 0 0.5rem 0;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.page-subtitle {
+    color: var(--md-on-surface-variant);
+    margin: 0;
+    font-size: 1rem;
+}
+
+.page-header__actions {
+    display: flex;
+    gap: 1rem;
+    flex-shrink: 0;
+}
+
+.time-slots-container {
+    display: grid;
+    gap: 2rem;
+}
+
+.capacity-section,
+.schedule-breakdown-section {
+    margin-bottom: 2rem;
+}
+
+/* Capacity Stats */
+.capacity-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--md-surface-container-lowest);
+    border-radius: var(--md-shape-corner-medium);
+    border: 1px solid var(--md-outline-variant);
+}
+
+.stat-item__icon {
+    width: 3rem;
+    height: 3rem;
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+    border-radius: var(--md-shape-corner-medium);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.stat-item__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.stat-item__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--md-on-surface);
+    line-height: 1.2;
+}
+
+.stat-item__label {
+    font-size: 0.875rem;
+    color: var(--md-on-surface-variant);
+    margin-top: 0.25rem;
+}
+
+/* Breaks Table */
+.breaks-section {
+    margin-top: 2rem;
+}
+
+.breaks-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    margin-bottom: 1rem;
+}
+
+/* Material Design 3 Tabs for Days */
+.tabs-material {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.tabs-material__list {
+    display: flex;
+    border-bottom: 1px solid var(--md-outline-variant);
+    overflow-x: auto;
+    gap: 0;
+}
+
+.tabs-material__tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    text-decoration: none;
+    color: var(--md-on-surface-variant);
+    position: relative;
+    min-width: 120px;
+    transition: all 200ms cubic-bezier(0.2, 0.0, 0, 1.0);
+    border-bottom: 2px solid transparent;
+}
+
+.tabs-material__tab:hover {
+    background: var(--md-surface-container-lowest);
+    color: var(--md-on-surface);
+}
+
+.tabs-material__tab--active {
+    color: var(--md-primary-40);
+    border-bottom-color: var(--md-primary-40);
+    background: var(--md-primary-container);
+}
+
+.tabs-material__label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-align: center;
+}
+
+/* Schedule Table */
+.table-material--schedule {
+    min-width: 800px;
+}
+
+.table-material__cell--time {
+    font-weight: 600;
+    color: var(--md-on-surface);
+    text-align: center;
+    white-space: nowrap;
+    background: var(--md-surface-container-lowest);
+}
+
+.table-material__cell--slot {
+    text-align: center;
+    min-width: 100px;
+    padding: 0.5rem;
+}
+
+.table-material__cell--empty {
+    text-align: center;
+    color: var(--md-on-surface-variant);
+    font-style: italic;
+    padding: 2rem;
+}
+
+/* Material Design 3 Slots */
+.slot-material {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    overflow: visible;
+}
+
+.table-material__cell--slot {
+    position: relative;
+    overflow: visible;
+}
+
+.slot-material--tooltip:hover .tooltip-content {
+    display: block !important;
+}
+
+.slot-material__status {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.15rem;
+    padding: 0.4rem;
+    border-radius: var(--md-shape-corner-small);
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: help;
+    transition: all 200ms ease;
+    min-height: 3.5rem;
+    justify-content: center;
+}
+
+.slot-material__status--occupied {
+    background: var(--md-tertiary-container);
+    color: var(--md-on-tertiary-container);
+}
+
+.slot-material__status--available {
+    background: var(--md-primary-container);
+    color: var(--md-on-primary-container);
+}
+
+.slot-material__status--unavailable {
+    background: var(--md-surface-container);
+    color: var(--md-on-surface-variant);
+}
+
+.slot-material__text {
+    font-size: 0.75rem;
+    line-height: 1;
+}
+
+.slot-material__company {
+    font-size: 0.6rem;
+    line-height: 1.1;
+    opacity: 0.9;
+    text-align: center;
+    font-weight: 500;
+}
+
+/* Tooltip */
+.tooltip-content {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9999;
+    background: #2d3748;
+    color: #ffffff;
+    padding: 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-size: 0.75rem;
+    line-height: 1.4;
+    white-space: nowrap;
+    min-width: 200px;
+    margin-top: 0.5rem;
+    border: 1px solid #4a5568;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease, visibility 0.2s ease;
+}
+
+.slot-material--tooltip:hover .tooltip-content {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Indicadores de actualización */
+.schedule-updating {
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.last-updated {
+    font-size: 0.75rem;
+    color: var(--md-on-surface-variant);
+    text-align: right;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: var(--md-surface-container-lowest);
+    border-radius: var(--md-shape-corner-small);
+}
+
+.auto-refresh-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.625rem;
+    color: var(--md-primary);
+}
+
+.auto-refresh-indicator .fa-sync-alt {
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.tooltip-content::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-bottom: 6px solid #2d3748;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+}
+
+.empty-state__icon {
+    font-size: 4rem;
+    color: var(--md-outline);
+    margin-bottom: 1rem;
+}
+
+.empty-state__text {
+    color: var(--md-on-surface-variant);
+    font-size: 1rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .capacity-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .stat-item {
+        padding: 0.75rem;
+    }
+    
+    .stat-item__icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        font-size: 1rem;
+    }
+    
+    .stat-item__value {
+        font-size: 1.25rem;
+    }
+    
+    .tabs-material__tab {
+        min-width: 100px;
+        padding: 0.75rem 1rem;
+    }
+    
+    .table-material__cell--slot {
+        min-width: 80px;
+        padding: 0.25rem;
+    }
+    
+    .slot-material__status {
+        min-height: 2.5rem;
+        padding: 0.25rem;
+    }
+    
+    .tooltip-content {
+        min-width: 150px;
+        font-size: 0.6875rem;
+        padding: 0.5rem;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Asegurar que los tooltips funcionen correctamente
+    const tooltipElements = document.querySelectorAll('.slot-material--tooltip');
+    
+    tooltipElements.forEach(element => {
+        const tooltip = element.querySelector('.tooltip-content');
+        
+        if (tooltip) {
+            element.addEventListener('mouseenter', function() {
+                tooltip.style.display = 'block';
+                tooltip.style.opacity = '1';
+                tooltip.style.visibility = 'visible';
+            });
+            
+            element.addEventListener('mouseleave', function() {
+                tooltip.style.display = 'none';
+                tooltip.style.opacity = '0';
+                tooltip.style.visibility = 'hidden';
+            });
+        }
+    });
+});
+</script>

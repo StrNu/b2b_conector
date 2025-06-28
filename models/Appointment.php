@@ -557,7 +557,7 @@ class Appointment {
         
         try {
             // Obtener matches para el evento
-            $matchQuery = "SELECT m.* FROM matches m WHERE m.event_id = :event_id AND m.status = 'accepted'";
+            $matchQuery = "SELECT m.* FROM matches m WHERE m.event_id = :event_id AND m.status = 'matched'";
             $matchParams = ['event_id' => $eventId];
             
             if (!empty($matchIds)) {

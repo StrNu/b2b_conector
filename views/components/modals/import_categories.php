@@ -8,9 +8,9 @@
             </button>
         </div>
         <div class="p-4">
-            <form action="<?= BASE_URL ?>/categories/import/<?= $eventModel->getId() ?>" method="POST" enctype="multipart/form-data">
-                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                <input type="hidden" name="event_id" value="<?= $eventModel->getId() ?>">
+            <form action="<?= BASE_URL ?>/categories/import/<?= isset($eventModel) ? $eventModel->getId() : (isset($event) ? $event->getId() : '') ?>" method="POST" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="<?= isset($csrfToken) ? $csrfToken : '' ?>">
+                <input type="hidden" name="event_id" value="<?= isset($eventModel) ? $eventModel->getId() : (isset($event) ? $event->getId() : '') ?>">
                 
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="category_file">

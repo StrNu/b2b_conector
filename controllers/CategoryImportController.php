@@ -3,26 +3,42 @@
 require_once(__DIR__ . '/../models/Category.php');
 require_once(__DIR__ . '/../models/Event.php');
 
-class CategoryImportController {
-    private $db;
-    private $categoryModel;
+require_once 'BaseController.php';
+
+class CategoryImportController extends BaseController {
+        private $categoryModel;
     private $eventModel;
 
     public function __construct() {
-        $this->db = Database::getInstance();
-        $this->categoryModel = new Category($this->db);
+        
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible        $this->categoryModel = new Category($this->db);
         $this->eventModel = new Event($this->db);
     }
 
     // Vista de carga
     public function upload($eventId) {
         if (!$this->eventModel->findById($eventId)) {
-            include(VIEW_DIR . '/errors/404.php');
+                    $data = [
+            'pageTitle' => 'Upload',
+            'moduleCSS' => 'categoryimportcontroller',
+            'moduleJS' => 'categoryimportcontroller'
+        ];
+        
+        $this->render('errors/404', $data, 'admin');
             return;
         }
         $event = $this->eventModel;
         $csrfToken = generateCSRFToken();
-        include(VIEW_DIR . '/events/import_categories.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'categoryimportcontroller',
+            'moduleJS' => 'categoryimportcontroller'
+        ];
+        
+        $this->render('events/import_categories', $data, 'admin');
     }
 
     // Procesar importación

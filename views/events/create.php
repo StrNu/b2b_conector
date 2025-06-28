@@ -1,5 +1,4 @@
 <!-- views/events/create.php -->
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
 <div class="content event-create-content">
     <div class="content-header flex items-center justify-between mb-6">
         <h1 class="event-create-title">Crear Nuevo Evento</h1>
@@ -205,7 +204,6 @@
         </form>
     </div>
 </div>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>
 <!-- Flatpickr CSS & JS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>

@@ -9,9 +9,10 @@
  * @version 1.0
  */
 
-class UserController {
-    private $db;
-    private $userModel;
+require_once 'BaseController.php';
+
+class UserController extends BaseController {
+        private $userModel;
     private $validator;
     
     /**
@@ -20,10 +21,13 @@ class UserController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
         
-        // Inicializar modelos
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
+        
+// Inicializar conexión a la base de datos        // Inicializar modelos
         $this->userModel = new User($this->db);
         
         // Inicializar validador
@@ -85,7 +89,13 @@ class UserController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/users/index.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'usercontroller',
+            'moduleJS' => 'usercontroller'
+        ];
+        
+        $this->render('users/index', $data, 'admin');
     }
     
     /**
@@ -113,7 +123,13 @@ class UserController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista con los datos
-        include(VIEW_DIR . '/users/view.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'usercontroller',
+            'moduleJS' => 'usercontroller'
+        ];
+        
+        $this->render('users/view', $data, 'admin');
     }
     
     /**
@@ -133,7 +149,13 @@ class UserController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/users/create.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'usercontroller',
+            'moduleJS' => 'usercontroller'
+        ];
+        
+        $this->render('users/create', $data, 'admin');
     }
     
     /**
@@ -262,7 +284,13 @@ class UserController {
         $isSelf = ($_SESSION['user_id'] == $id);
         
         // Cargar vista del formulario
-        include(VIEW_DIR . '/users/edit.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'usercontroller',
+            'moduleJS' => 'usercontroller'
+        ];
+        
+        $this->render('users/edit', $data, 'admin');
     }
     
     /**
@@ -573,7 +601,13 @@ class UserController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del perfil
-        include(VIEW_DIR . '/users/profile.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'usercontroller',
+            'moduleJS' => 'usercontroller'
+        ];
+        
+        $this->render('users/profile', $data, 'admin');
     }
     
     /**

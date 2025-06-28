@@ -1,0 +1,459 @@
+/**
+ * Core CSS Framework for B2B Conector
+ * Modern, maintainable CSS architecture using CSS Custom Properties
+ * and modern layout techniques
+ * 
+ * @version 2.0.0
+ * @author Refactored CSS Architecture
+ */
+
+/* ==========================================================================
+   CSS Custom Properties (Design Tokens)
+   ========================================================================== */
+
+:root {
+  /* Typography Scale */
+  --font-family-primary: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-secondary: 'Montserrat', 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-size-xs: 0.75rem;     /* 12px */
+  --font-size-sm: 0.875rem;    /* 14px */
+  --font-size-base: 1rem;      /* 16px */
+  --font-size-lg: 1.125rem;    /* 18px */
+  --font-size-xl: 1.25rem;     /* 20px */
+  --font-size-2xl: 1.5rem;     /* 24px */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.75;
+
+  /* Color Palette */
+  --color-white: #ffffff;
+  --color-black: #1a1a1a;
+  
+  /* Gray Scale - Modern & Clean */
+  --color-gray-50: #fafafa;
+  --color-gray-100: #f5f5f5;
+  --color-gray-200: #eeeeee;
+  --color-gray-300: #e0e0e0;
+  --color-gray-400: #bdbdbd;
+  --color-gray-500: #9e9e9e;
+  --color-gray-600: #757575;
+  --color-gray-700: #616161;
+  --color-gray-800: #424242;
+  --color-gray-900: #212121;
+
+  /* Material Design 3 - Purple/Violet Palette */
+  --color-primary-50: #f3e5f5;
+  --color-primary-100: #e1bee7;
+  --color-primary-200: #ce93d8;
+  --color-primary-300: #ba68c8;
+  --color-primary-400: #ab47bc;
+  --color-primary-500: #9c27b0;
+  --color-primary-600: #8e24aa;
+  --color-primary-700: #7b1fa2;
+  --color-primary-800: #6a1b9a;
+  --color-primary-900: #4a148c;
+
+  /* Material Violet Secondary */
+  --color-secondary-50: #ede7f6;
+  --color-secondary-100: #d1c4e9;
+  --color-secondary-200: #b39ddb;
+  --color-secondary-300: #9575cd;
+  --color-secondary-400: #7e57c2;
+  --color-secondary-500: #673ab7;
+  --color-secondary-600: #5e35b1;
+  --color-secondary-700: #512da8;
+  --color-secondary-800: #4527a0;
+  --color-secondary-900: #311b92;
+
+  /* Semantic Colors */
+  --color-success-50: #f0fdf4;
+  --color-success-500: #22c55e;
+  --color-success-700: #166534;
+  --color-error-50: #fef2f2;
+  --color-error-500: #ef4444;
+  --color-error-700: #991b1b;
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-700: #92400e;
+  --color-info-50: #eff6ff;
+  --color-info-500: #3b82f6;
+  --color-info-700: #1e40af;
+
+  /* Spacing Scale (8px base) */
+  --space-0: 0;
+  --space-1: 0.25rem;  /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* Border Radius */
+  --radius-none: 0;
+  --radius-sm: 0.25rem;  /* 4px */
+  --radius-base: 0.375rem; /* 6px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-full: 9999px;
+
+  /* Modern Shadows - Soft & Clean */
+  --shadow-sm: 0 2px 4px 0 rgb(0 0 0 / 0.03);
+  --shadow-base: 0 4px 8px 0 rgb(0 0 0 / 0.04), 0 2px 4px 0 rgb(0 0 0 / 0.02);
+  --shadow-md: 0 8px 16px 0 rgb(0 0 0 / 0.06), 0 4px 8px 0 rgb(0 0 0 / 0.03);
+  --shadow-lg: 0 16px 32px 0 rgb(0 0 0 / 0.08), 0 8px 16px 0 rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 24px 48px 0 rgb(0 0 0 / 0.12), 0 12px 24px 0 rgb(0 0 0 / 0.06);
+
+  /* Material Design 3 Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--color-primary-400) 0%, var(--color-primary-600) 100%);
+  --gradient-secondary: linear-gradient(135deg, var(--color-secondary-400) 0%, var(--color-secondary-600) 100%);
+  --gradient-material: linear-gradient(135deg, #9c27b0 0%, #673ab7 50%, #7e57c2 100%);
+  --gradient-violet: linear-gradient(135deg, #e1bee7 0%, #b39ddb 50%, #9575cd 100%);
+  --gradient-surface: linear-gradient(135deg, #f3e5f5 0%, #ede7f6 100%);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 200ms ease;
+  --transition-slow: 300ms ease;
+
+  /* Layout Dimensions */
+  --header-height: var(--space-16);
+  --sidebar-width: 240px;
+  --sidebar-width-collapsed: 70px;
+  --content-max-width: 1200px;
+
+  /* Z-Index Scale */
+  --z-dropdown: 1000;
+  --z-modal: 1100;
+  --z-toast: 1200;
+}
+
+/* ==========================================================================
+   Modern CSS Reset
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  line-height: var(--line-height-normal);
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-normal);
+  line-height: var(--line-height-normal);
+  color: var(--color-gray-800);
+  background: var(--gradient-surface);
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+
+/* Improve media defaults */
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Improve form defaults */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Remove default button styles */
+button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Remove default list styles */
+ul,
+ol {
+  list-style: none;
+}
+
+/* Remove default link styles */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Improve table defaults */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* ==========================================================================
+   Layout System (CSS Grid & Flexbox)
+   ========================================================================== */
+
+/**
+ * Main Application Grid Layout
+ * Uses CSS Grid for consistent, predictable layout structure
+ */
+.app-layout {
+  display: grid;
+  grid-template-rows: var(--header-height) 1fr auto;
+  grid-template-areas: 
+    "header"
+    "main"
+    "footer";
+  min-height: 100vh;
+  width: 100vw;
+}
+
+.app-header {
+  grid-area: header;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  height: var(--header-height);
+  background-color: var(--color-gray-900);
+  color: var(--color-white);
+  z-index: var(--z-dropdown);
+  box-shadow: var(--shadow-base);
+  backdrop-filter: blur(8px);
+}
+
+.app-main {
+  grid-area: main;
+  width: 100%;
+  min-height: calc(100vh - var(--header-height));
+  padding-top: var(--header-height);
+  background-color: var(--color-white);
+}
+
+.app-footer {
+  grid-area: footer;
+  width: 100%;
+  background-color: var(--color-gray-900);
+  color: var(--color-white);
+  padding: var(--space-8) 0;
+  margin-top: auto;
+}
+
+/**
+ * Container System
+ * Responsive containers with consistent max-widths
+ */
+.container {
+  width: 100%;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.container-fluid {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding-left: var(--space-4);
+  padding-right: var(--space-4);
+}
+
+.container-full {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+
+/**
+ * Content Areas
+ */
+.content-area {
+  width: 100%;
+  max-width: none;
+  padding: var(--space-8);
+}
+
+/* ==========================================================================
+   Utility Classes (Atomic Design)
+   ========================================================================== */
+
+/* Display Utilities */
+.block { display: block; }
+.inline-block { display: inline-block; }
+.inline { display: inline; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+.hidden { display: none; }
+
+/* Flexbox Utilities */
+.flex-row { flex-direction: row; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+.items-start { align-items: flex-start; }
+.items-center { align-items: center; }
+.items-end { align-items: flex-end; }
+.items-stretch { align-items: stretch; }
+.justify-start { justify-content: flex-start; }
+.justify-center { justify-content: center; }
+.justify-end { justify-content: flex-end; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+.flex-1 { flex: 1 1 0%; }
+.flex-auto { flex: 1 1 auto; }
+.flex-none { flex: none; }
+.flex-shrink-0 { flex-shrink: 0; }
+
+/* Spacing Utilities */
+.m-0 { margin: var(--space-0); }
+.m-1 { margin: var(--space-1); }
+.m-2 { margin: var(--space-2); }
+.m-3 { margin: var(--space-3); }
+.m-4 { margin: var(--space-4); }
+.m-6 { margin: var(--space-6); }
+.m-8 { margin: var(--space-8); }
+
+.p-0 { padding: var(--space-0); }
+.p-1 { padding: var(--space-1); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.p-6 { padding: var(--space-6); }
+.p-8 { padding: var(--space-8); }
+
+/* Gap Utilities */
+.gap-1 { gap: var(--space-1); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
+.gap-6 { gap: var(--space-6); }
+.gap-8 { gap: var(--space-8); }
+
+/* Typography Utilities */
+.text-xs { font-size: var(--font-size-xs); }
+.text-sm { font-size: var(--font-size-sm); }
+.text-base { font-size: var(--font-size-base); }
+.text-lg { font-size: var(--font-size-lg); }
+.text-xl { font-size: var(--font-size-xl); }
+.text-2xl { font-size: var(--font-size-2xl); }
+
+.font-normal { font-weight: var(--font-weight-normal); }
+.font-medium { font-weight: var(--font-weight-medium); }
+.font-semibold { font-weight: var(--font-weight-semibold); }
+.font-bold { font-weight: var(--font-weight-bold); }
+
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+
+/* Border Radius Utilities */
+.rounded-none { border-radius: var(--radius-none); }
+.rounded-sm { border-radius: var(--radius-sm); }
+.rounded { border-radius: var(--radius-base); }
+.rounded-md { border-radius: var(--radius-md); }
+.rounded-lg { border-radius: var(--radius-lg); }
+.rounded-full { border-radius: var(--radius-full); }
+
+/* Shadow Utilities */
+.shadow-none { box-shadow: none; }
+.shadow-sm { box-shadow: var(--shadow-sm); }
+.shadow { box-shadow: var(--shadow-base); }
+.shadow-md { box-shadow: var(--shadow-md); }
+.shadow-lg { box-shadow: var(--shadow-lg); }
+
+/* ==========================================================================
+   Responsive Design (Mobile-First)
+   ========================================================================== */
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+}
+
+@media (min-width: 768px) {
+  .container {
+    padding-left: var(--space-8);
+    padding-right: var(--space-8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: var(--space-12);
+    padding-right: var(--space-12);
+  }
+}
+
+/* ==========================================================================
+   Accessibility & Performance
+   ========================================================================== */
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Focus management */
+:focus {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* High contrast support */
+@media (prefers-contrast: high) {
+  :root {
+    --shadow-base: 0 2px 4px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 6px 12px 0 rgb(0 0 0 / 0.3);
+  }
+}

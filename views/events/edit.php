@@ -1,6 +1,4 @@
 <!-- views/events/edit.php -->
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
-
 <div class="content">
     <div class="content-header">
         <h1>Editar Evento</h1>
@@ -305,4 +303,3 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>

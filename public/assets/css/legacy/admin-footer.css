@@ -1,0 +1,110 @@
+/* CSS específico para footer de administración */
+
+.admin-footer {
+    width: 100%;
+    background-color: #1f2937;
+    color: #d1d5db;
+    padding: 1.5rem 0;
+    margin-top: auto;
+}
+
+.admin-footer-container {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 0 2rem;
+}
+
+.admin-footer-main {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.admin-footer-copyright {
+    margin-bottom: 1rem;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.admin-footer-links {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.admin-footer-link {
+    color: #9ca3af;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.admin-footer-link:hover {
+    color: #ffffff;
+}
+
+.admin-footer-divider {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #374151;
+    width: 100%;
+}
+
+.admin-footer-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: #6b7280;
+    width: 100%;
+    text-align: center;
+}
+
+.admin-footer-info-left,
+.admin-footer-info-right {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+/* Responsive design */
+@media (min-width: 768px) {
+    .admin-footer-main {
+        flex-direction: row;
+    }
+    
+    .admin-footer-copyright {
+        margin-bottom: 0;
+        text-align: left;
+    }
+    
+    .admin-footer-links {
+        justify-content: flex-end;
+    }
+    
+    .admin-footer-info {
+        flex-direction: row;
+        text-align: left;
+    }
+    
+    .admin-footer-info-left,
+    .admin-footer-info-right {
+        margin-bottom: 0;
+        justify-content: flex-start;
+    }
+    
+    .admin-footer-info-right {
+        justify-content: flex-end;
+    }
+}

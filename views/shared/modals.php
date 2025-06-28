@@ -1,23 +1,23 @@
 <!-- Modal de confirmación para eliminación (global) -->
-<div id="deleteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-lg max-w-md w-full">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h3 class="text-xl font-semibold text-gray-800">Confirmar Eliminación</h3>
-            <button type="button" class="text-gray-500 hover:text-gray-700" data-action="close">
+<div id="deleteModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Confirmar Eliminación</h3>
+            <button type="button" class="modal-close" data-action="close">
                 <i class="fas fa-times"></i>
             </button>
         </div>
-        <div class="p-4">
+        <div class="modal-body">
             <p id="deleteMessage" class="mb-2">¿Está seguro de que desea eliminar esta entidad?</p>
-            <p class="text-red-600 text-sm">Esta acción no se puede deshacer y eliminará todos los datos asociados.</p>
+            <p class="text-danger text-sm">Esta acción no se puede deshacer y eliminará todos los datos asociados.</p>
         </div>
-        <div class="p-4 border-t bg-gray-50 flex justify-end space-x-3">
-            <button type="button" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded text-gray-700" data-action="close">
+        <div class="modal-footer">
+            <button type="button" class="btn-material btn-material--outlined" data-action="close">
                 Cancelar
             </button>
-            <form id="deleteForm" action="" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                <button type="submit" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded">
+            <form id="deleteForm" action="" method="POST" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?? '' ?>">
+                <button type="submit" class="btn-material btn-material--filled btn-danger">
                     Eliminar
                 </button>
             </form>
@@ -26,93 +26,126 @@
 </div>
 
 <!-- Modal de edición de nombre (global) -->
-<div id="editNameModal" class="hidden fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
-    <div class="bg-white rounded-lg shadow-lg p-6 w-96">
-        <h2 class="text-lg font-bold mb-4">Editar Nombre</h2>
-        <form id="editNameForm" method="POST">
-            <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-            <div class="mb-4">
-                <label for="editNameInput" class="block text-sm font-medium text-gray-700">Nuevo Nombre</label>
-                <input type="text" id="editNameInput" name="name" class="form-control" required>
-            </div>
-            <div class="flex justify-end gap-2">
-                <button type="button" id="cancelEditName" class="btn btn-secondary">Cancelar</button>
-                <button type="submit" class="btn btn-primary">Guardar</button>
-            </div>
-        </form>
+<div id="editNameModal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Editar Nombre</h3>
+            <button type="button" class="modal-close" data-action="close">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form id="editNameForm" method="POST">
+                <input type="hidden" name="csrf_token" value="<?= $csrfToken ?? '' ?>">
+                <div class="textfield-material">
+                    <input type="text" id="editNameInput" name="name" class="textfield-material__input" required placeholder=" ">
+                    <label for="editNameInput" class="textfield-material__label">Nuevo Nombre</label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-material btn-material--outlined modal-close">Cancelar</button>
+            <button type="submit" form="editNameForm" class="btn-material btn-material--filled">Guardar</button>
+        </div>
     </div>
 </div>
 
 <!-- Modal edición match potencial (matches) -->
-<div id="potentialMatchModal" class="modal hidden fixed inset-0 z-[9999] bg-black bg-opacity-40 flex items-center justify-center" style="z-index:9999; display: none;">
-  <div class="modal-content bg-white rounded-lg shadow-lg p-6" style="min-width:340px;max-width:700px;">
-    <div class="modal-header flex justify-between items-center">
-      <span class="font-bold text-lg">Editar match potencial</span>
-      <button type="button" class="close-modal-btn text-gray-400 hover:text-gray-700 text-xl font-bold" aria-label="Cerrar">&times;</button>
+<div id="potentialMatchModal" class="modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 999999999;">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Editar Match Potencial</h3>
+      <button type="button" class="close-modal-btn" aria-label="Cerrar">&times;</button>
     </div>
+    
     <form id="potentialMatchForm" autocomplete="off">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="modal-body">
         <!-- Columna izquierda: Comprador (solo lectura) -->
-        <div>
-          <div class="mb-2 font-semibold text-blue-700">Comprador</div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Company</label>
-            <div id="pm-buyer-company" class="pm-readonly"></div>
+        <div class="buyer-column">
+          <div class="column-header">
+            <i class="fas fa-shopping-cart"></i>
+            <span>Empresa Compradora</span>
           </div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Requirements</label>
-            <div id="pm-buyer-requirements" class="pm-readonly"></div>
+          
+          <div class="field-group">
+            <label class="field-label">Empresa</label>
+            <div id="pm-buyer-company" class="field-value readonly"></div>
           </div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Description</label>
-            <div id="pm-buyer-description" class="pm-readonly"></div>
+          
+          <div class="field-group">
+            <label class="field-label">Requerimientos</label>
+            <div id="pm-buyer-requirements" class="field-value readonly"></div>
           </div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Keywords</label>
-            <div id="pm-buyer-keywords" class="pm-readonly"></div>
+          
+          <div class="field-group">
+            <label class="field-label">Descripción</label>
+            <div id="pm-buyer-description" class="field-value readonly"></div>
           </div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Attendance Days</label>
-            <div id="pm-buyer-attendance" class="pm-readonly"></div>
+          
+          <div class="field-group">
+            <label class="field-label">Palabras Clave</label>
+            <div id="pm-buyer-keywords" class="field-value readonly"></div>
+          </div>
+          
+          <div class="field-group">
+            <label class="field-label">Días de Asistencia</label>
+            <div id="pm-buyer-attendance" class="field-value readonly"></div>
           </div>
         </div>
+        
         <!-- Columna derecha: Proveedor (editable) -->
-        <div>
-          <div class="mb-2 font-semibold text-green-700">Proveedor</div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Company</label>
-            <div id="pm-supplier-company" class="pm-readonly"></div>
+        <div class="supplier-column">
+          <div class="column-header">
+            <i class="fas fa-industry"></i>
+            <span>Empresa Proveedora</span>
           </div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Supplier Offers</label>
-            <div id="pm-supplier-offers" class="pm-readonly"></div>
+          
+          <div class="field-group">
+            <label class="field-label">Empresa</label>
+            <div id="pm-supplier-company" class="field-value readonly"></div>
           </div>
-          <div class="mb-3">
-            <label for="pm-supplier-description" class="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-            <textarea id="pm-supplier-description" name="supplier_description" class="pm-editable" rows="2" required></textarea>
+          
+          <div class="field-group">
+            <label class="field-label">Ofertas</label>
+            <div id="pm-supplier-offers" class="field-value readonly"></div>
           </div>
-          <div class="mb-3">
-            <label for="pm-supplier-keywords" class="block text-xs font-semibold text-gray-700 mb-1">Keywords</label>
-            <input type="text" id="pm-supplier-keywords" name="supplier_keywords" class="pm-editable" placeholder="Palabras clave, separadas por coma">
+          
+          <div class="field-group">
+            <label class="field-label">Fechas Coincidentes</label>
+            <div id="pm-coincident-dates" class="field-value readonly" style="color: #059669; font-weight: 500;"></div>
           </div>
-          <div class="mb-3">
-            <label class="block text-xs font-semibold text-gray-700 mb-1">Attendance Days</label>
-            <div id="pm-supplier-attendance-list"></div>
-            <button type="button" id="add-supplier-attendance-date" class="mt-2 px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs">Agregar fecha</button>
+          
+          <div class="field-group">
+            <label for="pm-supplier-description" class="field-label">Descripción</label>
+            <textarea id="pm-supplier-description" name="supplier_description" class="field-value editable" rows="3" required></textarea>
+          </div>
+          
+          <div class="field-group">
+            <label for="pm-supplier-keywords" class="field-label">Palabras Clave</label>
+            <input type="text" id="pm-supplier-keywords" name="supplier_keywords" class="field-value editable" placeholder="Separadas por coma">
+          </div>
+          
+          <div class="field-group">
+            <label class="field-label">Días de Asistencia</label>
+            <div id="pm-supplier-attendance-list" style="margin-bottom: 8px;"></div>
+            <button type="button" id="add-supplier-attendance-date" class="btn-modal btn-cancel" style="font-size: 12px; padding: 6px 12px;">
+              <i class="fas fa-plus"></i> Agregar fecha
+            </button>
           </div>
         </div>
       </div>
-      <div class="modal-footer flex justify-end gap-2 mt-6">
-        <button type="button" class="btn btn-secondary close-modal-btn">Cancelar</button>
-        <button type="submit" class="btn btn-primary">Guardar</button>
+      
+      <div class="modal-footer">
+        <button type="button" class="btn-modal btn-cancel close-modal-btn">Cancelar</button>
+        <button type="submit" class="btn-modal btn-save">Guardar Cambios</button>
       </div>
     </form>
   </div>
 </div>
 
 <!-- Modal para optimizar empresa -->
-<div id="optimizeCompanyModal" class="modal hidden fixed inset-0 z-[9999] bg-black bg-opacity-40 flex items-center justify-center" style="z-index:9999; display: none;">
-    <div class="modal-content bg-white rounded-lg shadow-lg p-6" style="min-width:400px;max-width:800px;">
+<div id="optimizeCompanyModal" class="modal hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center" style="z-index:9999; display: none;">
+    <div class="modal-content bg-white rounded-lg shadow-xl p-6" style="min-width:400px;max-width:800px; max-height:90vh; overflow-y:auto;">
         <div class="modal-header flex justify-between items-center mb-4">
             <h3 class="modal-title text-lg font-semibold">
                 <i class="fas fa-rocket text-blue-600"></i>
@@ -149,7 +182,7 @@
                         id="optimize-description" 
                         name="description" 
                         rows="4" 
-                        class="form-control w-full border border-gray-300 rounded-md px-3 py-2" 
+                        class="textfield-material__input form-control w-full border border-gray-300 rounded-md px-3 py-2" 
                         placeholder="Describe los servicios y capacidades de la empresa..."
                     ></textarea>
                     <p class="text-xs text-gray-500 mt-1">Mejora la descripción para aumentar las posibilidades de match</p>
@@ -165,7 +198,7 @@
                         type="text" 
                         id="optimize-keywords" 
                         name="keywords" 
-                        class="form-control w-full border border-gray-300 rounded-md px-3 py-2" 
+                        class="textfield-material__input form-control w-full border border-gray-300 rounded-md px-3 py-2" 
                         placeholder="Ej: manufactura, soldadura, CNC, maquinado..."
                     >
                     <p class="text-xs text-gray-500 mt-1">Separa las palabras clave con comas. Usa términos que otros puedan buscar.</p>
@@ -196,7 +229,7 @@
             <button 
                 type="button" 
                 id="edit-requirements-offers-btn" 
-                class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
+                class="btn-material btn-material--filled bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition flex items-center gap-2"
             >
                 <i class="fas fa-edit"></i>
                 <span id="edit-btn-text">Editar requerimientos</span>
@@ -204,11 +237,11 @@
             
             <!-- Botones de acción (lado derecho) -->
             <div class="flex items-center gap-3">
-                <button type="button" class="btn btn-secondary close-modal-btn">
+                <button type="button" class="btn-material btn-material--outlined close-modal-btn">
                     <i class="fas fa-times"></i>
                     Cancelar
                 </button>
-                <button type="submit" form="optimizeCompanyForm" class="btn btn-primary">
+                <button type="submit" form="optimizeCompanyForm" class="btn-material btn-material--filled">
                     <i class="fas fa-save"></i>
                     Guardar optimización
                 </button>
@@ -216,3 +249,201 @@
         </div>
     </div>
 </div>
+
+<style>
+/* Modal styles for Material Design 3 */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.modal-overlay.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--md-surface-container-high, #ffffff);
+    border-radius: var(--md-shape-corner-large, 16px);
+    box-shadow: var(--md-elevation-3, 0 4px 8px rgba(0,0,0,0.12));
+    max-width: 400px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--md-outline-variant, #e0e0e0);
+}
+
+.modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--md-on-surface);
+    margin: 0;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    color: var(--md-on-surface-variant);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--md-shape-corner-full);
+    transition: all 0.2s ease;
+}
+
+.modal-close:hover {
+    background: var(--md-surface-container-highest);
+    color: var(--md-on-surface);
+}
+
+.modal-body {
+    padding: 1.5rem;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    padding: 1rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--md-outline-variant, #e0e0e0);
+}
+
+.text-danger {
+    color: var(--md-error-40, #dc3545);
+}
+
+.btn-danger {
+    background: var(--md-error-40, #dc3545) !important;
+    color: var(--md-on-error, white) !important;
+}
+
+.btn-danger:hover {
+    background: var(--md-error-30, #c82333) !important;
+}
+</style>
+
+<script>
+// Global modal functions
+window.openEditModal = function(type, id, name) {
+    const modal = document.getElementById('editNameModal');
+    const form = document.getElementById('editNameForm');
+    const input = document.getElementById('editNameInput');
+    const title = modal.querySelector('.modal-title');
+    
+    if (!modal || !form || !input || !title) {
+        console.error('Modal elements not found');
+        return;
+    }
+    
+    // Set modal title based on type
+    if (type === 'category') {
+        title.textContent = 'Editar Categoría';
+        form.action = `${window.BASE_URL || ''}/events/updateEventCategory/${window.eventModelId || ''}/${id}`;
+    } else if (type === 'subcategory') {
+        title.textContent = 'Editar Subcategoría';
+        form.action = `${window.BASE_URL || ''}/events/updateEventSubcategory/${window.eventModelId || ''}/${id}`;
+    }
+    
+    // Set current name
+    input.value = name;
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    
+    // Focus on input
+    setTimeout(() => {
+        input.focus();
+        input.select();
+    }, 100);
+};
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.classList.add('hidden');
+    }
+};
+
+// Initialize modal event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+    // Close modal handlers
+    document.querySelectorAll('.modal-close, [data-action="close"]').forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modal = this.closest('.modal-overlay');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+        });
+    });
+    
+    // Close modal when clicking outside
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.add('hidden');
+            }
+        });
+    });
+    
+    // Escape key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal-overlay:not(.hidden)').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+    });
+    
+    // Form validation for edit name modal
+    const editNameForm = document.getElementById('editNameForm');
+    if (editNameForm) {
+        editNameForm.addEventListener('submit', function(e) {
+            const nameInput = document.getElementById('editNameInput');
+            if (nameInput) {
+                const value = nameInput.value.trim();
+                if (value.length < 2) {
+                    e.preventDefault();
+                    alert('El nombre debe tener al menos 2 caracteres.');
+                    nameInput.focus();
+                    return false;
+                }
+                if (value.length > 100) {
+                    e.preventDefault();
+                    alert('El nombre no puede exceder 100 caracteres.');
+                    nameInput.focus();
+                    return false;
+                }
+            }
+        });
+    }
+});
+</script>

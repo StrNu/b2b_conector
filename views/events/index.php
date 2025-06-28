@@ -1,6 +1,4 @@
 <!-- views/events/index.php -->
-<?php include(VIEW_DIR . '/shared/header.php'); ?>
-
 <div class="content">
     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
         <div>
@@ -108,5 +106,3 @@
         </div>
     </div>
 </div>
-
-<?php include(VIEW_DIR . '/shared/footer.php'); ?>

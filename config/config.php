@@ -19,6 +19,9 @@ define('ROOT_DIR', dirname(__DIR__));  // Directorio raíz del proyecto
 define('APP_NAME', 'B2B Conector');
 define('APP_VERSION', '1.0.0');
 
+// --- Material Design 3 Configuration ---
+require_once ROOT_DIR . '/config/material-config.php';
+
 // --- Configuración Regional y de Errores ---
 date_default_timezone_set('America/Mexico_City'); // Establece la zona horaria
 // Configuración de errores (recomendado: 0 en producción)
@@ -83,8 +86,8 @@ define('APP_EMAIL_NAME', APP_NAME); // Nombre que aparece en el remitente
 // Configuración SMTP (definir según su proveedor de email)
 define('SMTP_HOST', 'mail.adndelamanufactura.com'); // Ejemplo: smtp.gmail.com
 define('SMTP_PORT', 465); // Puerto SMTP (587 para TLS, 465 para SSL)
-define('SMTP_USERNAME', 'b2b_conector@adndelamanufactura.com'); // Usuario SMTP
-define('SMTP_PASSWORD', '%.lRn%4Sra&-9ZJN'); // Contraseña SMTP
+define('SMTP_USERNAME', 'contacto_b2b@adndelamanufactura.com'); // Usuario SMTP
+define('SMTP_PASSWORD', '%.lRn%4Sra&-9ZJN'); // Contraseña SMTP
 define('SMTP_ENCRYPTION', 'ssl'); // tls o ssl
 define('SMTP_DEBUG', 0); // 0 = sin debug, 1 = errores, 2 = mensajes, 3 = verbose
 

@@ -1,7 +1,14 @@
 <?php
 // Controlador básico para buyers_registration
-class Buyers_registrationController {
-    public function index() {
+require_once 'BaseController.php';
+
+class Buyers_registrationController extends BaseController {
+    
+    public function __construct() {
+        parent::__construct();
+    }
+
+public function index() {
         // Puedes cargar una vista o redirigir según la lógica de tu app
         echo "Buyers Registration Controller funcionando correctamente.";
     }

@@ -9,9 +9,10 @@
  * @version 1.0
  */
 
-class EventDashboardController {
-    private $db;
-    private $eventModel;
+require_once 'BaseController.php';
+
+class EventDashboardController extends BaseController {
+        private $eventModel;
     private $companyModel;
     private $assistantModel;
     private $matchModel;
@@ -21,13 +22,16 @@ class EventDashboardController {
      * Constructor
      */
     public function __construct() {
-        // Verificar autenticación de usuario de evento
+        
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
+        
+// Verificar autenticación de usuario de evento
         requireEventAuth();
         
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
-        
-        // Inicializar modelos
+        // Inicializar conexión a la base de datos        // Inicializar modelos
         $this->eventModel = new Event($this->db);
         $this->companyModel = new Company($this->db);
         $this->assistantModel = new Assistant($this->db);
@@ -71,7 +75,13 @@ class EventDashboardController {
         $moduleJS = 'event-dashboard';
         
         // Cargar vista del dashboard
-        include(VIEW_DIR . '/event-dashboard/index.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'eventdashboardcontroller',
+            'moduleJS' => 'eventdashboardcontroller'
+        ];
+        
+        $this->render('event-dashboard/index', $data, 'admin');
     }
     
     /**
@@ -119,7 +129,7 @@ class EventDashboardController {
             'upcoming_appointments' => $upcomingAppointments,
             'quick_actions' => [
                 'manage_companies' => BASE_URL . '/events/companies/' . $eventId,
-                'view_matches' => BASE_URL . '/events/matches?event_id=' . $eventId,
+                'view_matches' => BASE_URL . '/events/matches/' . $eventId,
                 'view_schedules' => BASE_URL . '/events/schedules/' . $eventId,
                 'export_data' => BASE_URL . '/events/export/' . $eventId
             ]
@@ -167,10 +177,10 @@ class EventDashboardController {
             'upcoming_appointments' => array_slice($upcomingAppointments, 0, 5),
             'company_assistants' => $companyAssistants,
             'quick_actions' => [
-                'view_agenda' => BASE_URL . '/event-dashboard/agenda',
-                'edit_company' => BASE_URL . '/event-dashboard/company/edit',
+                'view_agenda' => BASE_URL . '/event-dashboard/attendee_agenda',
+                'edit_company' => BASE_URL . '/events/edit_participant/' . $eventId . '/' . $companyId,
                 'manage_assistants' => BASE_URL . '/event-dashboard/assistants',
-                'view_matches' => BASE_URL . '/event-dashboard/matches'
+                'view_matches' => BASE_URL . '/matches/index?event_id=' . $eventId . '&company_id=' . $companyId
             ]
         ];
     }
@@ -216,7 +226,88 @@ class EventDashboardController {
         $moduleCSS = 'calendar';
         $moduleJS = 'calendar';
         
-        include(VIEW_DIR . '/event-dashboard/agenda.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'eventdashboardcontroller',
+            'moduleJS' => 'eventdashboardcontroller'
+        ];
+        
+        $this->render('event-dashboard/agenda', $data, 'admin');
+    }
+    
+    /**
+     * Vista pública de agenda para asistentes (buyers/suppliers)
+     * Esta vista muestra solo la agenda sin menú administrativo
+     * 
+     * @return void
+     */
+    public function attendee_agenda() {
+        requireEventRole('assistant');
+        
+        $eventId = getEventId();
+        $companyId = getEventUserCompanyId();
+        
+        if (!$companyId) {
+            setFlashMessage('No se pudo identificar su empresa', 'danger');
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        // Cargar información del evento y empresa
+        if (!$this->eventModel->findById($eventId)) {
+            setFlashMessage('Evento no encontrado', 'danger');
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        if (!$this->companyModel->findById($companyId)) {
+            setFlashMessage('Empresa no encontrada', 'danger');
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        $event = $this->eventModel;
+        $company = $this->companyModel;
+        
+        // Obtener citas de la empresa con información detallada
+        $appointments = $this->appointmentModel->getByCompany($companyId, $eventId);
+        
+        // Agrupar por día
+        $appointmentsByDay = [];
+        if (is_array($appointments)) {
+            foreach ($appointments as $appointment) {
+                if (isset($appointment['start_datetime'])) {
+                    $day = date('Y-m-d', strtotime($appointment['start_datetime']));
+                    if (!isset($appointmentsByDay[$day])) {
+                        $appointmentsByDay[$day] = [];
+                    }
+                    $appointmentsByDay[$day][] = $appointment;
+                }
+            }
+        }
+        
+        // Extraer variables para la vista standalone
+        $pageTitle = 'Mi Agenda - ' . $event->getEventName();
+        
+        // Verificar que el archivo de vista existe antes de incluirlo
+        $viewFile = VIEW_DIR . '/event-dashboard/attendee_agenda.php';
+        if (!file_exists($viewFile)) {
+            Logger::error('Vista attendee_agenda.php no encontrada');
+            setFlashMessage('Vista no encontrada', 'danger');
+            redirect(BASE_URL . '/auth/event-login');
+            exit;
+        }
+        
+        // Debug information
+        Logger::debug('Renderizando attendee_agenda', [
+            'event_name' => $event->getEventName(),
+            'company_name' => $company->getCompanyName(),
+            'appointments_count' => count($appointments),
+            'days_with_appointments' => count($appointmentsByDay)
+        ]);
+        
+        // Renderizar vista standalone (sin layout administrativo)
+        include $viewFile;
     }
     
     /**
@@ -250,7 +341,13 @@ class EventDashboardController {
         $moduleCSS = 'matches';
         $moduleJS = 'matches';
         
-        include(VIEW_DIR . '/event-dashboard/matches.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'eventdashboardcontroller',
+            'moduleJS' => 'eventdashboardcontroller'
+        ];
+        
+        $this->render('event-dashboard/matches', $data, 'admin');
     }
     
     /**
@@ -284,7 +381,13 @@ class EventDashboardController {
         $moduleCSS = 'assistants';
         $moduleJS = 'assistants';
         
-        include(VIEW_DIR . '/event-dashboard/assistants.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'eventdashboardcontroller',
+            'moduleJS' => 'eventdashboardcontroller'
+        ];
+        
+        $this->render('event-dashboard/assistants', $data, 'admin');
     }
     
     /**

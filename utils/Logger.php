@@ -36,16 +36,18 @@ class Logger {
         
         // Crear el directorio si no existe
         if (!is_dir(self::$logDir)) {
-            if (!mkdir(self::$logDir, 0755, true)) {
-                error_log(self::$dirErrorMessage);
-                return false;
+            if (!@mkdir(self::$logDir, 0755, true)) {
+                error_log(self::$dirErrorMessage . ": No se pudo crear el directorio");
+                // Continuar en modo degradado (solo error_log)
+                return true;
             }
         }
         
         // Verificar si se puede escribir en el directorio
         if (!is_writable(self::$logDir)) {
-            error_log(self::$dirErrorMessage);
-            return false;
+            error_log(self::$dirErrorMessage . ": Sin permisos de escritura");
+            // Continuar en modo degradado (solo error_log)
+            return true;
         }
         
         return true;
@@ -77,13 +79,19 @@ class Logger {
         // Construir el nombre del archivo de log (un archivo por día)
         $logFile = self::$logDir . '/' . date(self::$logFileFormat) . '.log';
         
-        // Escribir en el archivo de log
-        $result = file_put_contents($logFile, $logMessage, FILE_APPEND) !== false;
+        // Escribir en el archivo de log (intentar, pero no fallar si no se puede)
+        $result = false;
+        try {
+            $result = @file_put_contents($logFile, $logMessage, FILE_APPEND) !== false;
+        } catch (Exception $e) {
+            // Silenciosamente continuar si no se puede escribir al archivo
+        }
         
-        // También enviar a error_log de PHP
+        // También enviar a error_log de PHP como respaldo
         error_log("[LOGGER] $logMessage");
         
-        return $result;
+        // Siempre retornar true para no interrumpir la aplicación
+        return true;
     }
     
     /**

@@ -16,8 +16,8 @@ function initEditNameModal({
     const cancelBtn = document.querySelector(cancelBtnSelector);
 
     // Validación de existencia de elementos
-    if (!editNameModal || !editNameInput || !editNameForm || !cancelBtn) {
-        console.warn('Modal de edición: Elementos no encontrados en el DOM');
+    if (!editNameModal || !editNameInput || !editNameForm) {
+        // No mostrar warning si no estamos en una página que necesite estos elementos
         return;
     }
 
@@ -43,12 +43,14 @@ function initEditNameModal({
             editNameModal.classList.remove('hidden');
         });
     });
-    // Cancelar modal
-    cancelBtn.addEventListener('click', function() {
-        editNameModal.classList.add('hidden');
-        editNameInput.value = '';
-        editNameForm.action = '';
-    });
+    // Cancelar modal (solo si existe el botón)
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function() {
+            editNameModal.classList.add('hidden');
+            editNameInput.value = '';
+            editNameForm.action = '';
+        });
+    }
     // Cerrar modal al hacer click fuera del contenido
     editNameModal.addEventListener('click', function(e) {
         if (e.target === editNameModal) {

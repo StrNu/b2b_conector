@@ -9,9 +9,10 @@
  * @version 1.0
  */
 
-class AuthController {
-    private $db;
-    private $userModel;
+require_once 'BaseController.php';
+
+class AuthController extends BaseController {
+        private $userModel;
     private $validator;
     
     /**
@@ -20,10 +21,13 @@ class AuthController {
      * Inicializa los modelos necesarios y otras dependencias
      */
     public function __construct() {
-        // Inicializar conexión a la base de datos
-        $this->db = Database::getInstance();
         
-        // Inicializar modelo de usuario
+        parent::__construct();
+        
+        // La conexión ya se inicializa en BaseController
+        // $this->db ya está disponible
+        
+// Inicializar conexión a la base de datos        // Inicializar modelo de usuario
         $this->userModel = new User($this->db);
         
         // Inicializar validador
@@ -48,7 +52,13 @@ class AuthController {
         Logger::debug('Token CSRF generado para formulario de login: ' . substr($csrfToken, 0, 8) . '...');
         
         // Cargar vista del formulario de login
-        include(VIEW_DIR . '/auth/login.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/login', $data, 'admin');
     }
     
     /**
@@ -164,7 +174,13 @@ class AuthController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario de registro
-        include(VIEW_DIR . '/auth/register.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/register', $data, 'admin');
     }
     
     /**
@@ -267,26 +283,48 @@ class AuthController {
      * @return void
      */
     public function eventLogin($eventId = null) {
+        Logger::debug("AuthController::eventLogin iniciado", ['eventId' => $eventId]);
+        
         // Si el usuario ya está autenticado como event user, redirigir
+        Logger::debug("Verificando autenticación de evento...");
         if (isEventUserAuthenticated()) {
+            Logger::debug("Usuario evento ya autenticado, redirigiendo a event-dashboard");
             redirect(BASE_URL . '/event-dashboard');
             exit;
         }
+        Logger::debug("Usuario evento no autenticado, continuando...");
         
         // Token CSRF para el formulario
+        Logger::debug("Generando token CSRF...");
         $csrfToken = generateCSRFToken();
+        Logger::debug("Token CSRF generado exitosamente");
         
         // Si se proporciona un ID de evento, obtener información del evento
         $eventName = null;
+        Logger::debug("Verificando ID de evento...", ['eventId' => $eventId]);
         if ($eventId) {
+            Logger::debug("ID de evento proporcionado, cargando información...");
             $eventModel = new Event($this->db);
             if ($eventModel->findById($eventId)) {
                 $eventName = $eventModel->getEventName();
+                Logger::debug("Información del evento cargada", ['eventName' => $eventName]);
+            } else {
+                Logger::debug("Evento no encontrado con ID: " . $eventId);
             }
+        } else {
+            Logger::debug("No se proporcionó ID de evento");
         }
         
         // Cargar vista del formulario de login de eventos
-        include(VIEW_DIR . '/auth/event_login.php');
+        Logger::debug("Cargando vista de event_login");
+        
+        // Extraer variables para la vista
+        $pageTitle = 'Acceso de Evento';
+        $moduleCSS = 'authcontroller';
+        $moduleJS = 'authcontroller';
+        
+        // Renderizar sin layout ya que event_login.php es una página HTML completa
+        include VIEW_DIR . '/auth/event_login.php';
     }
     
     /**
@@ -376,11 +414,12 @@ class AuthController {
             setFlashMessage('Acceso exitoso. Bienvenido(a) al evento', 'success');
             
             if ($userData['type'] === 'event_admin') {
-                // Event admin va a la vista del evento con layout de evento
-                redirect(BASE_URL . '/events/view/' . $userData['event_id']);
+                // Event admin va a la vista de su evento
+                $eventId = $_SESSION['event_id'];
+                redirect(BASE_URL . '/events/view/' . $eventId);
             } else {
-                // Asistentes van al dashboard de eventos
-                redirect(BASE_URL . '/event-dashboard');
+                // Asistentes (buyers/suppliers) van a su vista pública de agenda
+                redirect(BASE_URL . '/event-dashboard/attendee-agenda');
             }
         } else {
             // Autenticación fallida
@@ -508,7 +547,13 @@ class AuthController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario de recuperación
-        include(VIEW_DIR . '/auth/forgot.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/forgot', $data, 'admin');
     }
     
     /**
@@ -588,7 +633,13 @@ class AuthController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista del formulario de cambio de contraseña
-        include(VIEW_DIR . '/auth/change_password.php');
+                $data = [
+            'pageTitle' => 'ChangePasswordEventForm',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/change_password', $data, 'admin');
     }
     
     /**
@@ -707,7 +758,13 @@ class AuthController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista
-        include(VIEW_DIR . '/auth/admin_users.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/admin_users', $data, 'admin');
     }
     
     /**
@@ -727,7 +784,13 @@ class AuthController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista
-        include(VIEW_DIR . '/auth/create_user.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/create_user', $data, 'admin');
     }
     
     /**
@@ -852,7 +915,13 @@ class AuthController {
         $csrfToken = generateCSRFToken();
         
         // Cargar vista
-        include(VIEW_DIR . '/auth/edit_user.php');
+                $data = [
+            'pageTitle' => 'Página',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/edit_user', $data, 'admin');
     }
     
     /**
@@ -1071,7 +1140,13 @@ redirect(BASE_URL . '/auth/admin/users');
     public function changePasswordEventForm() {
         // No requiere autenticación de sesión global
         // Mostrar formulario de cambio de contraseña para compradores
-        include(VIEW_DIR . '/auth/change_password.php');
+                $data = [
+            'pageTitle' => 'ChangePasswordEventForm',
+            'moduleCSS' => 'authcontroller',
+            'moduleJS' => 'authcontroller'
+        ];
+        
+        $this->render('auth/change_password', $data, 'admin');
     }
 
     /**
@@ -1121,6 +1196,7 @@ redirect(BASE_URL . '/auth/admin/users');
      * @return void
      */
     public function event_login($eventId = null) {
+        Logger::debug("AuthController::event_login alias llamado", ['eventId' => $eventId]);
         return $this->eventLogin($eventId);
     }
     
