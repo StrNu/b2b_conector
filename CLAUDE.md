@@ -72,11 +72,14 @@ tail -f logs/php_errors.log
 chmod 755 uploads/ logs/
 chown www-data:www-data uploads/ logs/  # For Apache/Nginx
 
-# Test database connection
-php -r "require_once 'config/database.php'; echo 'DB connection OK';"
-
 # Check PHP syntax across the project
 find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors detected"
+
+# Monitor system performance
+php -r "echo 'Memory usage: ' . memory_get_usage(true) / 1024 / 1024 . ' MB' . PHP_EOL;"
+
+# Clear application cache/sessions (if needed)
+rm -f logs/session_* uploads/temp/*
 ```
 
 ### Database Setup
@@ -84,6 +87,15 @@ find . -name "*.php" -exec php -l {} \; | grep -v "No syntax errors detected"
 1. Configure database connection in `config/database.php`
 2. Import database schema (check BD_b2b.md for structure)
 3. Ensure `uploads/` and `logs/` directories have write permissions
+
+**Database Connection Testing**:
+```bash
+# Test database connection
+php -r "require_once 'config/database.php'; $db = Database::getInstance(); echo 'DB connection: ' . ($db->getConnection() ? 'OK' : 'FAILED') . PHP_EOL;"
+
+# Check database tables
+php -r "require_once 'config/database.php'; $db = Database::getInstance(); $result = $db->query('SHOW TABLES'); echo 'Tables: ' . $result->rowCount() . PHP_EOL;"
+```
 
 ### Testing and Debugging
 
@@ -175,6 +187,27 @@ The application supports public registration endpoints:
 - `/suppliers_registration/{event_id}` - Supplier company registration
 
 These routes bypass authentication and allow external registration for events.
+
+### Complex Routing Examples
+
+The routing system handles various URL patterns:
+
+```php
+// Event-specific routes
+/events/{event_id}/companies              # List companies for event
+/events/{event_id}/companies/{company_id} # View specific company
+/events/{event_id}/matches                # View matches for event
+/events/{event_id}/schedule               # Event schedule management
+
+// Dashboard routes
+/event/dashboard/admin                    # Event admin dashboard
+/event/dashboard/all-records              # All records view
+/event/dashboard/event-info               # Event information
+
+// Registration routes (public, no authentication)
+/buyers_registration/{event_id}           # Buyer registration form
+/suppliers_registration/{event_id}        # Supplier registration form
+```
 
 ### Database Schema Reference
 
